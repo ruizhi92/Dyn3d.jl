@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 2.6)
+project(DYN3D)
+enable_language(Fortran)
+
+
+#---------------------------------------------------------------
+# Set flags
+#---------------------------------------------------------------
+
+# optimized flag
+#set (CMAKE_Fortran_FLAGS "-O2 -cpp -w -ffree-form -x f95-cpp-input -ffree-line-length-none")
+
+#debug flag
+set (CMAKE_Fortran_FLAGS "-g -ffree-form -Wall")
+
+#---------------------------------------------------------------
+# Set source and subdirectory
+#---------------------------------------------------------------
+
+file(GLOB_RECURSE DYN3D_SRC
+    "dyn3d.f90"
+    "config_3d_hinged.f90"
+	"module_*.f90"
+)
+
+add_subdirectory(basic_matrix_operations)
+
+#---------------------------------------------------------------
+# build executable
+#---------------------------------------------------------------
+
+add_executable(dyn3d ${DYN3D_SRC})
+SET_TARGET_PROPERTIES(dyn3d PROPERTIES LINKER_LANGUAGE Fortran Fortran_FORMAT FREE)
