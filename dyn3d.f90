@@ -7,25 +7,18 @@ PROGRAM dyn3d
 
 IMPLICIT NONE
 
-    REAL,ALLOCATABLE           :: X(:,:)!,Xinv(:,:),rot(:,:),tr(:,:)
-    REAL,ALLOCATABLE           :: r(:),theta(:)
+    REAL,DIMENSION(6,6)           :: X,Xinv,rot,tr
+    REAL,DIMENSION(3)           :: r,theta
     INTEGER                    :: max_iterations
     REAL                       :: tol
 
 
-    ALLOCATE(X(6,6))
-    !ALLOCATE(Xinv(6,6))
-    !ALLOCATE(rot(6,6))
-    !ALLOCATE(tr(6,6))
-    ALLOCATE(r(3))
-    ALLOCATE(theta(3))
-
     r = (/1.0, 1.0, 1.0/)
     theta = (/ 0.0, 0.0, 0.0/)
 
-    CALL trans_matrix(r,theta,X)
-    !CALL trans_matrix(r,theta,X,Xinv,rot,tr)
-    CALL write_matrix(X)
+    !CALL trans_matrix(r,theta,X)
+    CALL trans_matrix(r,theta,X,Xinv,rot,tr)
+    CALL write_matrix(X,6)
 
 
 END PROGRAM dyn3d

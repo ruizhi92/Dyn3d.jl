@@ -24,7 +24,11 @@
 !
 !  Output       : X, (OPTIONAL)Xinv, (OPTIONAL)rot, (OPTIONAL)tr
 !
-!  Remarks      :
+!  Remarks      : In order to use optional dummy arguments in the calculation,
+!                 one need to give it an alias name. If the optional argument
+!                 doesn't exist, one can't pass it to PRESENT or associate
+!                 it with another argument. Here alias op_Xinv is for Xinv
+!                 , others follow the same rule
 !
 !  References   :
 !
@@ -45,10 +49,9 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
-    ! here actually the input arguments are of (3), output of (6,6)
-    REAL,ALLOCATABLE,INTENT(IN)                    :: r(:), theta(:)
-    REAL,ALLOCATABLE,INTENT(INOUT)                 :: X(:,:)
-    REAL,ALLOCATABLE,OPTIONAL,INTENT(INOUT)        :: Xinv(:,:),rot(:,:),tr(:,:)
+    REAL,DIMENSION(3),INTENT(IN)                :: r, theta
+    REAL,DIMENSION(6,6),INTENT(INOUT)           :: X
+    REAL,DIMENSION(6,6),OPTIONAL,INTENT(INOUT)  :: Xinv,rot,tr
 
     !--------------------------------------------------------------------
     !  Local variables
@@ -57,25 +60,7 @@ IMPLICIT NONE
     INTEGER                                      :: i
     REAL,DIMENSION(3,3)                          :: zero,eye
     REAL,DIMENSION(6,6)                          :: tr_inv
-    INTEGER,DIMENSION(3)                         :: alloc_flag
     REAL,DIMENSION(6,6)                          :: op_Xinv,op_rot,op_tr
-
-    !--------------------------------------------------------------------
-    !  Allocation
-    !--------------------------------------------------------------------
-    alloc_flag(:) = 0
-    IF(.NOT. PRESENT(Xinv)) THEN
-        Xinv = op_Xinv
-        alloc_flag(1) = 1
-    END IF
-    IF(.NOT. PRESENT(rot)) THEN
-        rot = op_rot
-        alloc_flag(2) = 1
-    END IF
-    IF(.NOT. PRESENT(tr)) THEN
-        tr = op_tr
-        alloc_flag(3) = 1
-    END IF
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -115,10 +100,10 @@ IMPLICIT NONE
     E = MATMUL(E3,MATMUL(E2,E1))
     CALL zeros(3,zero)
     DO i = 1, 3
-        rot(i,:) = (/ E(i,:), zero(i,:) /)
-        rot(i+3,:) = (/ zero(i,:), E(i,:) /)
+        op_rot(i,:) = (/ E(i,:), zero(i,:) /)
+        op_rot(i+3,:) = (/ zero(i,:), E(i,:) /)
     END DO
-    rot(:,:) = 0
+    op_rot(:,:) = 0
     !-------------------------- translation -----------------------------
     rcross = zero
     rcross(1,3) = r(2)
@@ -130,8 +115,8 @@ IMPLICIT NONE
 
     CALL ones(3,eye)
     DO i = 1, 3
-        tr(i,:) = (/ eye(i,:), zero(i,:) /)
-        tr(i+3,:) = (/ -rcross(i,:), eye(i,:) /)
+        op_tr(i,:) = (/ eye(i,:), zero(i,:) /)
+        op_tr(i+3,:) = (/ -rcross(i,:), eye(i,:) /)
     END DO
 
     DO i = 1, 3
@@ -140,14 +125,14 @@ IMPLICIT NONE
     END DO
 
     !--------------------- construct 6d matrix --------------------------
-    X = MATMUL(rot,tr)
-    Xinv = MATMUL(tr_inv,TRANSPOSE(rot))
+    X = MATMUL(op_rot,op_tr)
+    op_Xinv = MATMUL(tr_inv,TRANSPOSE(op_rot))
 
     !--------------------------------------------------------------------
-    !  Deallocation
+    !  Assign optional arguments back
     !--------------------------------------------------------------------
-    IF(alloc_flag(1) == 1) DEALLOCATE(Xinv)
-    IF(alloc_flag(2) == 1) DEALLOCATE(rot)
-    IF(alloc_flag(3) == 1) DEALLOCATE(tr)
+    IF(PRESENT(Xinv)) Xinv = op_Xinv
+    IF(PRESENT(rot)) rot = op_rot
+    IF(PRESENT(tr)) tr = op_tr
 
 END SUBROUTINE trans_matrix
