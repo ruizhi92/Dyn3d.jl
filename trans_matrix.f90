@@ -42,6 +42,10 @@
 
 SUBROUTINE trans_matrix(r,theta,X,Xinv,rot,tr)
 
+    !--------------------------------------------------------------------
+    !  MODULE
+    !--------------------------------------------------------------------
+    USE module_constants
     USE module_basic_matrix_operations
 
 IMPLICIT NONE
@@ -49,18 +53,18 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
-    REAL,DIMENSION(3),INTENT(IN)                :: r, theta
-    REAL,DIMENSION(6,6),INTENT(INOUT)           :: X
-    REAL,DIMENSION(6,6),OPTIONAL,INTENT(INOUT)  :: Xinv,rot,tr
+    REAL(dp),DIMENSION(3),INTENT(IN)                :: r, theta
+    REAL(dp),DIMENSION(6,6),INTENT(INOUT)           :: X
+    REAL(dp),DIMENSION(6,6),OPTIONAL,INTENT(INOUT)  :: Xinv,rot,tr
 
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    REAL,DIMENSION(3,3)                          :: E1,E2,E3,E,rcross
-    INTEGER                                      :: i
-    REAL,DIMENSION(3,3)                          :: zero,eye
-    REAL,DIMENSION(6,6)                          :: tr_inv
-    REAL,DIMENSION(6,6)                          :: op_Xinv,op_rot,op_tr
+    REAL(dp),DIMENSION(3,3)                         :: E1,E2,E3,E,rcross
+    INTEGER                                         :: i
+    REAL(dp),DIMENSION(3,3)                         :: zero,eye
+    REAL(dp),DIMENSION(6,6)                         :: tr_inv
+    REAL(dp),DIMENSION(6,6)                         :: op_Xinv,op_rot,op_tr
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -68,9 +72,9 @@ IMPLICIT NONE
     !-------------------- rotation using Euler angles -------------------
     ! first angle
     IF (theta(1) .NE. 0) THEN
-        E1 = reshape( (/ 1.0, 0.0, 0.0, &
-                         0.0, cos(theta(1)), sin(theta(1)), &
-                         0.0, -sin(theta(1)), cos(theta(1)) /), &
+        E1 = reshape( (/ 1.0_dp, 0.0_dp, 0.0_dp, &
+                         0.0_dp, cos(theta(1)), sin(theta(1)), &
+                         0.0_dp, -sin(theta(1)), cos(theta(1)) /), &
                     shape(E1), order=(/2,1/) )
     ELSE
         CALL ones(3,E1)
@@ -78,9 +82,9 @@ IMPLICIT NONE
 
     ! second angle
     IF (theta(2) .NE. 0) THEN
-        E2 = reshape( (/ cos(theta(2)), 0.0, -sin(theta(2)), &
-                         0.0, 1.0, 0.0, &
-                         sin(theta(2)), 0.0, cos(theta(2)) /), &
+        E2 = reshape( (/ cos(theta(2)), 0.0_dp, -sin(theta(2)), &
+                         0.0_dp, 1.0_dp, 0.0_dp, &
+                         sin(theta(2)), 0.0_dp, cos(theta(2)) /), &
                     shape(E2), order=(/2,1/) )
     ELSE
         CALL ones(3,E2)
@@ -88,9 +92,9 @@ IMPLICIT NONE
 
     ! third angle
     IF (theta(3) .NE. 0) THEN
-        E3 = reshape( (/ cos(theta(3)), sin(theta(3)), 0.0, &
-                         -sin(theta(3)), cos(theta(3)), 0.0, &
-                         0.0, 0.0, 1.0 /), &
+        E3 = reshape( (/ cos(theta(3)), sin(theta(3)), 0.0_dp, &
+                         -sin(theta(3)), cos(theta(3)), 0.0_dp, &
+                         0.0_dp, 0.0_dp, 1.0_dp /), &
                     shape(E3), order=(/2,1/) )
     ELSE
         CALL ones(3,E3)

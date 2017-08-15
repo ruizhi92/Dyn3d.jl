@@ -25,6 +25,9 @@
 
 MODULE module_data_type
 
+    !--------------------------------------------------------------------
+    !  MODULE
+    !--------------------------------------------------------------------
     USE module_constants
 
 IMPLICIT NONE
@@ -72,11 +75,11 @@ IMPLICIT NONE
     !                  the default is 'passive' with no stiffness/damping,
     !                  except for cases in which body1=0, in which case
     !                  default is 'active' with a hold at zero.
-        INTEGER                         :: dof_id
-        CHARACTER(LEN = max_char)       :: dof_type
-        REAL,ALLOCATABLE                :: stiff(:),damp(:)
-        CHARACTER(LEN = max_char)       :: motion_type
-        REAL,ALLOCATABLE                :: motion_params(:)
+        INTEGER                             :: dof_id
+        CHARACTER(LEN = max_char)           :: dof_type
+        REAL(dp),ALLOCATABLE                :: stiff(:),damp(:)
+        CHARACTER(LEN = max_char)           :: motion_type
+        REAL(dp),ALLOCATABLE                :: motion_params(:)
     END TYPE
 
 END MODULE module_data_type

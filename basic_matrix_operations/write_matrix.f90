@@ -3,7 +3,7 @@
 !------------------------------------------------------------------------
 !  Purpose      : Print a 2d matrix to screen
 !
-!  Details      ： Currently allow only real matrix type
+!  Details      ： Currently allow only REAL(dp) matrix type
 !
 !  Input        : 2d matrix A, square matrix dimension (n,n)
 !
@@ -23,15 +23,20 @@
 !  Los Angeles, California 90095  USA
 !------------------------------------------------------------------------
 
-SUBROUTINE write_matrix(A,n)
+SUBROUTINE write_matrix(A)
+
+    !--------------------------------------------------------------------
+    !  MODULE
+    !--------------------------------------------------------------------
+    USE module_constants
+
 
 IMPLICIT NONE
-    INTEGER                                   :: n
-    REAL,DIMENSION(n,n),INTENT(IN)            :: A
-    INTEGER                                   :: i,j
+    REAL(dp),DIMENSION(:,:),INTENT(IN)           :: A(:,:)
+    INTEGER                                      :: i,j
 
-    DO i = 1, n
-        DO j = 1, n
+    DO i = 1, SIZE(A,1)
+        DO j = 1, SIZE(A,2)
             WRITE(*,"(f12.3)",ADVANCE="NO") A(i,j)
         END DO
         WRITE(*,*) ! this is to add a new line

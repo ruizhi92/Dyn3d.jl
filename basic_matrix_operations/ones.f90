@@ -25,10 +25,15 @@
 
 SUBROUTINE ones_s(n,E)
 
+    !--------------------------------------------------------------------
+    !  MODULE
+    !--------------------------------------------------------------------
+    USE module_constants
+
 IMPLICIT NONE
 
-    INTEGER                    :: n,i,j
-    REAL,DIMENSION(n,n)        :: E
+    INTEGER                        :: n,i,j
+    REAL(dp),DIMENSION(n,n)        :: E
 
     DO i = 1, n
         DO j = 1, n

@@ -27,8 +27,9 @@ MODULE module_constants
 
 IMPLICIT NONE
 
-    REAL,PARAMETER            ::    pi = 4.0*atan(1.0)
+    INTEGER,PARAMETER         ::    dp = selected_real_kind(15, 307) ! 64 bit, double precision
+    REAL(dp),PARAMETER        ::    pi = 4.0*atan(1.0)
     COMPLEX, PARAMETER        ::    ii = (0,1) ! imaginary unit ii = sqrt(-1)
-    INTEGER,PARAMETER         ::    max_char = 200
+    INTEGER,PARAMETER         ::    max_char = 256
 
 END MODULE module_constants

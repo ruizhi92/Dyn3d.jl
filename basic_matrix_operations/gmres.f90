@@ -26,16 +26,21 @@
 
 SUBROUTINE gmres(A,b,x,max_iterations,tol)
 
+    !--------------------------------------------------------------------
+    !  MODULE
+    !--------------------------------------------------------------------
+    USE module_constants
+
 IMPLICIT NONE
 
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
-    REAL,ALLOCATABLE,INTENT(IN)              :: A(:,:)
-    REAL,ALLOCATABLE,INTENT(IN)              :: b(:)
-    REAL,ALLOCATABLE,INTENT(OUT)             :: x(:)
+    REAL(dp),ALLOCATABLE,INTENT(IN)              :: A(:,:)
+    REAL(dp),ALLOCATABLE,INTENT(IN)              :: b(:)
+    REAL(dp),ALLOCATABLE,INTENT(OUT)             :: x(:)
     INTEGER,INTENT(IN)                       :: max_iterations
-    REAL,INTENT(IN)                          :: tol
+    REAL(dp),INTENT(IN)                          :: tol
 
     !--------------------------------------------------------------------
     !  Local variables
