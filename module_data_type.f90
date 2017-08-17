@@ -82,4 +82,62 @@ IMPLICIT NONE
         REAL(dp),ALLOCATABLE                :: motion_params(:)
     END TYPE
 
+
+    TYPE config_body
+    ! This type is designed for gather input data for body from config files.
+    !   'verts' -- matrix of vertex coordinates, with line No. equal to
+    !             the number of vertices in the polygon. The coordinates are
+    !             given in the coordinate system of the body. For a polygon, it
+    !             is assumed that the polygon lies in the z-x plane of this
+    !             coordinate system, so the vertices need only contain pairs of
+    !             coordinates [z,x]. For example, [0 0;1 0;1 1;0 1] for
+    !             a square.
+    !   'nverts' -- number of verts of a single body
+    !   'rhob'  -- Value of the mass per unit volume (or mass per unit area
+    !           for a polygon of zero thickness). (Default is 1.)
+    !
+    !
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE         :: verts
+    INTEGER                                     :: nverts
+    REAL(dp)                                    :: rhob
+    END TYPE
+
+
+    TYPE single_body
+        ! This is the data type of one body. Only verts_i need to be updated.
+        ! Information in the body structure does not depend on time,
+        ! it's only local info of a single body in the body coordinate
+        !    body_id: id number of this body
+        !    parent_id: id number of this body's parent. A body can only
+        !               have one parent
+        !    child_id: id number of this body's child. A body can have
+        !               more than one child
+        !    (deleted)shape: shape of the body, only 'polygon'
+        !    nchild: number of child
+        !    nverts: number of verts
+        !    verts: body verts coordinate in body coordinate, expressed
+        !           in [x y z]. Different line is different vert.
+        !    verts_i: verts coordinate in the inertia frame
+        !    x_c: body center in the body coordinate, with [x y z]
+        !    mass: mass of the body
+        !    inertia_c: body inertia at center
+        !    Xj_to_c: transform matrix from the joint(same id with this body)
+        !             to body center
+        !    support: body hierarchy number before this body
+        INTEGER                                 :: body_id,parent_id
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
+        INTEGER                                 :: nchild,nverts
+        REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: verts,verts_i
+        REAL(dp),DIMENSION(3)                   :: x_c
+        REAL(dp)                                :: mass
+        REAL(dp),DIMENSION(6,6)                 :: inertia_c,Xj_to_c
+        REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
+
+    END TYPE
+
+    TYPE ptr_body
+    ! consists of n number of TYPE single_body
+        TYPE(single_body),POINTER           :: body(:) => NULL()
+    END TYPE
+
 END MODULE module_data_type

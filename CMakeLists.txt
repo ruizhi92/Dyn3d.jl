@@ -20,7 +20,7 @@ set (CMAKE_Fortran_FLAGS "-g -ffree-form -Wall")
 file(GLOB_RECURSE DYN3D_SRC
     "dyn3d.f90"
     "config_3d_hinged.f90"
-	"module_*.f90"
+    "module_*.f90"
 )
 
 add_subdirectory(basic_matrix_operations)

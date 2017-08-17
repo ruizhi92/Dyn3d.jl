@@ -109,7 +109,7 @@ IMPLICIT NONE
     END DO
 
     !-------------- backward substitution -------------------
-    i0 = 0.0_dp
+    i0 = 0
     x = b
     DO i = 1,n
        ll = indx(i)

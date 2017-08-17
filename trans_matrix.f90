@@ -71,7 +71,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !-------------------- rotation using Euler angles -------------------
     ! first angle
-    IF (theta(1) .NE. 0) THEN
+    IF (theta(1) .NE. 0.0_dp) THEN
         E1 = reshape( (/ 1.0_dp, 0.0_dp, 0.0_dp, &
                          0.0_dp, cos(theta(1)), sin(theta(1)), &
                          0.0_dp, -sin(theta(1)), cos(theta(1)) /), &
@@ -81,7 +81,7 @@ IMPLICIT NONE
     END IF
 
     ! second angle
-    IF (theta(2) .NE. 0) THEN
+    IF (theta(2) .NE. 0.0_dp) THEN
         E2 = reshape( (/ cos(theta(2)), 0.0_dp, -sin(theta(2)), &
                          0.0_dp, 1.0_dp, 0.0_dp, &
                          sin(theta(2)), 0.0_dp, cos(theta(2)) /), &
@@ -91,7 +91,7 @@ IMPLICIT NONE
     END IF
 
     ! third angle
-    IF (theta(3) .NE. 0) THEN
+    IF (theta(3) .NE. 0.0_dp) THEN
         E3 = reshape( (/ cos(theta(3)), sin(theta(3)), 0.0_dp, &
                          -sin(theta(3)), cos(theta(3)), 0.0_dp, &
                          0.0_dp, 0.0_dp, 1.0_dp /), &
@@ -107,7 +107,7 @@ IMPLICIT NONE
         op_rot(i,:) = (/ E(i,:), zero(i,:) /)
         op_rot(i+3,:) = (/ zero(i,:), E(i,:) /)
     END DO
-    op_rot(:,:) = 0
+
     !-------------------------- translation -----------------------------
     rcross = zero
     rcross(1,3) = r(2)

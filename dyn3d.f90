@@ -6,22 +6,41 @@ PROGRAM dyn3d
     USE module_basic_matrix_operations
     USE module_constants
     USE module_data_type
-    USE module_trans_matrix
+    USE module_add_body_and_joint
 
 IMPLICIT NONE
 
-    REAL(dp),DIMENSION(2,2)           :: A
-    REAL(dp),DIMENSION(2)             :: b,x
+    TYPE(ptr_body),POINTER    :: test_body
+    TYPE(config_body)    :: body_input
 
-    A = reshape( (/ 1.0_dp, 2.0_dp, &
-                    3.0_dp, 4.0_dp /), &
-                shape(A), order=(/2,1/) )
+    ALLOCATE(test_body%body(2))
+    ALLOCATE(body_input%verts(4,2))
 
-    b = (/ 5.0_dp, 11.0_dp/)
+    body_input%verts = reshape( (/ 0.0_dp, 0.0_dp, &
+                                   1.0_dp, 0.0_dp, &
+                                   1.0_dp, 1.0_dp, &
+                                   0.0_dp, 1.0_dp /), &
+                    (/4,2/), order=(/2,1/) )
+    !shape(body_input%verts)
+    body_input%rhob = 1.0_dp
+    body_input%nverts = 4
 
-    CALL lu(A,b,x)
-    CALL write_matrix(A)
-    WRITE(*,*) x
+    CALL add_body(1,body_input,test_body)
 
+    WRITE(*,*) test_body%body(1)%verts(1,1)
+        WRITE(*,*) test_body%body(1)%verts(1,2)
+            WRITE(*,*) test_body%body(1)%verts(4,3)
+!    CALL write_matrix(test_body%body(1)%verts)
+!    WRITE(*,*) ' '
+!    WRITE(*,*) test_body%body(1)%verts
+!    WRITE(*,*) SIZE(test_body%body(1)%verts,1),SIZE(test_body%body(1)%verts,2)
+!    WRITE(*,*) test_body%body(1)%x_c
+!    WRITE(*,*) ''
+!    WRITE(*,*) test_body%body(1)%mass
+!    WRITE(*,*) ''
+!    WRITE(*,*) test_body%body(1)%Xj_to_c
+!    WRITE(*,*) ''
+!    WRITE(*,*) test_body%body(1)%inertia_c
+!    WRITE(*,*) ''
 
 END PROGRAM dyn3d

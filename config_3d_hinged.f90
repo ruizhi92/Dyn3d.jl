@@ -47,7 +47,7 @@ IMPLICIT NONE
     !------------------------------------------------------------------------
     !  Arguments
     !------------------------------------------------------------------------
-    INTEGER                              :: nbody
+    INTEGER                              :: nbody,ndim
     REAL(dp)                             :: height,ang,rhob
     REAL(dp)                             :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)                :: gravity,joint1_orient
@@ -56,6 +56,9 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
+
+    ! body dimension
+    ndim = 3
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
