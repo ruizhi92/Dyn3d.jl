@@ -63,7 +63,7 @@ IMPLICIT NONE
     ! in assemble_system
     nverts = config_b%nverts
     ALLOCATE(body%body(ib)%verts(nverts,3))
-    !ALLOCATE(body%body(ib)%verts_i(nverts,3))
+    ALLOCATE(body%body(ib)%verts_i(nverts,3))
 
     !--------------------------------------------------------------------
     !  Set value for body structure depending on config_b
@@ -78,8 +78,8 @@ IMPLICIT NONE
         body%body(ib)%verts(i,3) = config_b%verts(i,1)
     END DO
     ! initialize verts_i, it need to be changed later on
-    !body%body(ib)%verts_i = body%body(ib)%verts
-    !body%body(ib)%verts_i(:,:) = 0
+    body%body(ib)%verts_i = body%body(ib)%verts
+    body%body(ib)%verts_i(:,:) = 0
 
     !--------------- Calculate mass, x_c, inertia_c -------------
     ASSOCIATE(verts => body%body(ib)%verts)

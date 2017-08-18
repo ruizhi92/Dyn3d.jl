@@ -10,11 +10,15 @@ PROGRAM dyn3d
 
 IMPLICIT NONE
 
-    TYPE(ptr_body),POINTER    :: test_body
+    TYPE(ptr_body),POINTER    :: test_body(:)
     TYPE(config_body)    :: body_input
 
-    ALLOCATE(test_body%body(2))
+    ALLOCATE(test_body(1))
     ALLOCATE(body_input%verts(4,2))
+
+    ALLOCATE(test_body(1)%body(2))
+    ALLOCATE(test_body(1)%body(1)%verts(4,3))
+    ALLOCATE(test_body(1)%body(2)%verts(4,3))
 
     body_input%verts = reshape( (/ 0.0_dp, 0.0_dp, &
                                    1.0_dp, 0.0_dp, &
@@ -22,14 +26,19 @@ IMPLICIT NONE
                                    0.0_dp, 1.0_dp /), &
                     (/4,2/), order=(/2,1/) )
     !shape(body_input%verts)
+    !IF(ALLOCATED(body_input%verts)) WRITE(*,*) "yes"
     body_input%rhob = 1.0_dp
     body_input%nverts = 4
 
-    CALL add_body(1,body_input,test_body)
+    CALL add_body(1,body_input,test_body(1))
 
-    WRITE(*,*) test_body%body(1)%verts(1,1)
-        WRITE(*,*) test_body%body(1)%verts(1,2)
-            WRITE(*,*) test_body%body(1)%verts(4,3)
+    WRITE(*,*) test_body(1)%body(1)%verts(1,1)
+        WRITE(*,*) test_body(1)%body(1)%verts(1,2)
+            WRITE(*,*) test_body(1)%body(1)%verts(4,3)
+
+
+
+
 !    CALL write_matrix(test_body%body(1)%verts)
 !    WRITE(*,*) ' '
 !    WRITE(*,*) test_body%body(1)%verts

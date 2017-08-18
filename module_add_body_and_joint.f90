@@ -27,7 +27,7 @@ MODULE module_add_body_and_joint
 
 IMPLICIT NONE
 
-    INTERFACE add_body
+    INTERFACE add_body_inter
         MODULE PROCEDURE add_body
     END INTERFACE
 

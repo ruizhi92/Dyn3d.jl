@@ -27,7 +27,7 @@ MODULE module_trans_matrix
 
 IMPLICIT NONE
 
-    INTERFACE trans_matrix
+    INTERFACE trans_matrix_inter
         MODULE PROCEDURE trans_matrix
     END INTERFACE
 
