@@ -32,7 +32,7 @@ SUBROUTINE write_matrix(A)
 
 
 IMPLICIT NONE
-    REAL(dp),DIMENSION(:,:),INTENT(IN)           :: A(:,:)
+    REAL(dp),INTENT(IN)                          :: A(:,:)
     INTEGER                                      :: i,j
 
     DO i = 1, SIZE(A,1)
