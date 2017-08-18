@@ -9,7 +9,8 @@
 !
 !  Input/output :
 !
-!  Output       : body: single_body type data, fixed during time marching
+!  Output       : No explicit output. The data structure body_system in
+!                 module_data_type is partially allocated and updated.
 !
 !  Remarks      :
 !
@@ -23,7 +24,7 @@
 !  Los Angeles, California 90095  USA
 !------------------------------------------------------------------------
 
-SUBROUTINE add_body(ib,config_b,body)
+SUBROUTINE add_body(ib,config_b)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -40,8 +41,6 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     ! input body configure structure from config files
     TYPE(config_body),INTENT(IN)                    :: config_b
-    ! output body system structure
-    TYPE(ptr_body),POINTER,INTENT(OUT)              :: body
     ! This is the ibody in the system
     INTEGER                                         :: ib
 
@@ -62,27 +61,26 @@ IMPLICIT NONE
     ! child_id and support are not allocated here. They should be allocated
     ! in assemble_system
     nverts = config_b%nverts
-    ALLOCATE(body%body(ib)%verts(nverts,3))
-    ALLOCATE(body%body(ib)%verts_i(nverts,3))
+    ALLOCATE(body_system(ib)%verts(nverts,3))
+    ALLOCATE(body_system(ib)%verts_i(nverts,3))
 
     !--------------------------------------------------------------------
     !  Set value for body structure depending on config_b
     !--------------------------------------------------------------------
-    body%body(ib)%body_id = ib
-    body%body(ib)%nverts = config_b%nverts
+    body_system(ib)%body_id = ib
+    body_system(ib)%nverts = config_b%nverts
 
     !---------------- Set up the vertices of body ---------------
-    body%body(ib)%verts(:,:) = 0
+    body_system(ib)%verts(:,:) = 0
     DO i = 1, nverts
-        body%body(ib)%verts(i,1) = config_b%verts(i,2)
-        body%body(ib)%verts(i,3) = config_b%verts(i,1)
+        body_system(ib)%verts(i,1) = config_b%verts(i,2)
+        body_system(ib)%verts(i,3) = config_b%verts(i,1)
     END DO
     ! initialize verts_i, it need to be changed later on
-    body%body(ib)%verts_i = body%body(ib)%verts
-    body%body(ib)%verts_i(:,:) = 0
+    body_system(ib)%verts_i = body_system(ib)%verts
 
     !--------------- Calculate mass, x_c, inertia_c -------------
-    ASSOCIATE(verts => body%body(ib)%verts)
+    ASSOCIATE(verts => body_system(ib)%verts)
         Xc = 0
         Zc = 0
         A = 0
@@ -120,8 +118,8 @@ IMPLICIT NONE
         Iz = Iz/12.0_dp
         Iy = Ix + Iz
         Ixz = Ixz/24.0_dp
-        body%body(ib)%x_c = (/ Xc, 0.0_dp, Zc /)
-        body%body(ib)%mass  = config_b%rhob*A
+        body_system(ib)%x_c = (/ Xc, 0.0_dp, Zc /)
+        body_system(ib)%mass  = config_b%rhob*A
 
         ! inertia in 3d form, transform to 6d
         inertia_3d = config_b%rhob*RESHAPE( (/Ix, 0.0_dp, -Ixz, &
@@ -130,15 +128,15 @@ IMPLICIT NONE
                                     SHAPE(inertia_3d),ORDER=(/2,1/) )
         CALL zeros(3,zero)
         CALL ones(3,eye)
-        mass_3d = body%body(ib)%mass*eye
+        mass_3d = body_system(ib)%mass*eye
         DO i = 1, 3
-            body%body(ib)%inertia_c(i,:) = (/ inertia_3d(i,:), zero(i,:) /)
-            body%body(ib)%inertia_c(i+3,:) = (/ zero(i,:), mass_3d(i,:) /)
+            body_system(ib)%inertia_c(i,:) = (/ inertia_3d(i,:), zero(i,:) /)
+            body_system(ib)%inertia_c(i+3,:) = (/ zero(i,:), mass_3d(i,:) /)
         END DO
     END ASSOCIATE
 
     !------------ Calculate transform matrix Xj_to_c ------------
     theta = (/ 0.0_dp, 0.0_dp, 0.0_dp/)
-    CALL trans_matrix(body%body(ib)%x_c, theta, body%body(ib)%Xj_to_c)
+    CALL trans_matrix(body_system(ib)%x_c, theta, body_system(ib)%Xj_to_c)
 
 END SUBROUTINE add_body

@@ -97,8 +97,9 @@ IMPLICIT NONE
     !           for a polygon of zero thickness). (Default is 1.)
     !
     !
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE         :: verts
+    INTEGER                                     :: nbody
     INTEGER                                     :: nverts
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE         :: verts
     REAL(dp)                                    :: rhob
     END TYPE
 
@@ -135,9 +136,14 @@ IMPLICIT NONE
 
     END TYPE
 
-    TYPE ptr_body
-    ! consists of n number of TYPE single_body
-        TYPE(single_body),POINTER           :: body(:) => NULL()
-    END TYPE
+    !--------------------------------------------------------------------
+    !  MODULE variables
+    !--------------------------------------------------------------------
+    TYPE(config_body)                           :: input_body
+
+    ! body_system consists of n number of TYPE single_body
+    TYPE(single_body),ALLOCATABLE               :: body_system(:)
+
+
 
 END MODULE module_data_type

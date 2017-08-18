@@ -45,20 +45,18 @@ SUBROUTINE config_3d_hinged
 IMPLICIT NONE
 
     !------------------------------------------------------------------------
-    !  Arguments
+    !  Local variables
     !------------------------------------------------------------------------
-    INTEGER                              :: nbody,ndim
+    INTEGER                              :: nbody
     REAL(dp)                             :: height,ang,rhob
     REAL(dp)                             :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)                :: gravity,joint1_orient
     TYPE(dof),ALLOCATABLE                :: joint1_dof(:)
 
     !--------------------------------------------------------------------
-    !  Local variables
+    !  Assign local variables
     !--------------------------------------------------------------------
 
-    ! body dimension
-    ndim = 3
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
@@ -68,9 +66,9 @@ IMPLICIT NONE
 
     !-------------- body shape in body coordinate -----------
     ! height - height of the fourth (smallest) side, from 0 upward
-    height = 0.1_dp
+    height = 1.0_dp/nbody
     ! ang - angle of the upper side with the child joint
-    ang = 0.0_dp
+    ang = pi/6 ! 0.0_dp
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
@@ -115,5 +113,34 @@ IMPLICIT NONE
     !-------------------------- gravity ---------------------
     ! Orientation and magnitude of gravity in inertial system [x y z]
     gravity = (/ 0.0_dp, 0.0_dp, 0.0_dp /)
+
+
+    !--------------------------------------------------------------------
+    !  Fill the module parameter input_body
+    !--------------------------------------------------------------------
+    input_body%nbody = nbody
+    input_body%rhob = rhob
+
+    ! setup input_body%verts and input_body%nverts
+    IF(height > 0.0_dp .AND. ang >= 0.0_dp) THEN
+        ! quadrilateral
+        input_body%nverts = 4
+        ALLOCATE(input_body%verts(input_body%nverts,2))
+        input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
+                                   1.0_dp, 0.0_dp, &
+                                   cos(ang), height+sin(ang), &
+                                   0.0_dp, height /), &
+                    shape(input_body%verts), order=(/2,1/) )
+    ELSE IF(height == 0 .AND. ang > 0) THEN
+        ! triangle
+        input_body%nverts = 3
+        ALLOCATE(input_body%verts(input_body%nverts,2))
+        input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
+                                   1.0_dp, 0.0_dp, &
+                                   cos(ang), sin(ang) /), &
+                    shape(input_body%verts), order=(/2,1/) )
+    ELSE
+        WRITE(*,*) "Error in setting up verts in input_body%verts."
+    END IF
 
 END SUBROUTINE config_3d_hinged
