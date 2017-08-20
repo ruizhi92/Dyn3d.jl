@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(DYN3D)
 enable_language(Fortran)
+# Ruizhi Yang, 2017 Aug
 
 
 #---------------------------------------------------------------

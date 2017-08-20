@@ -22,6 +22,7 @@
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
+!  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
 SUBROUTINE add_body(ib,config_b)

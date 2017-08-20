@@ -1,15 +1,16 @@
 !------------------------------------------------------------------------
-!  Module	    :            module_constants
+!  Subroutine     :            add_joint
 !------------------------------------------------------------------------
-!  Purpose      : define some global constants to be used as module
+!  Purpose      : Generate a single joint with the specified properties
 !
 !  Details      ：
 !
-!  Input        :
+!  Input        : input_joint: input body info from configure files
 !
 !  Input/output :
 !
-!  Output       :
+!  Output       : No explicit output. The data structure joint_system in
+!                 module_data_type is partially allocated and updated.
 !
 !  Remarks      :
 !
@@ -24,13 +25,12 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-MODULE module_constants
+SUBROUTINE add_joint()
+
+    USE module_constants
+    USE module_data_type
 
 IMPLICIT NONE
 
-    INTEGER,PARAMETER         ::    dp = selected_real_kind(15, 307) ! 64 bit, double precision
-    REAL(dp),PARAMETER        ::    pi = 4.0*atan(1.0)
-    COMPLEX, PARAMETER        ::    ii = (0,1) ! imaginary unit ii = sqrt(-1)
-    INTEGER,PARAMETER         ::    max_char = 256
 
-END MODULE module_constants
+END SUBROUTINE add_joint

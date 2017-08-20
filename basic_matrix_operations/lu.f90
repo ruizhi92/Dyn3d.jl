@@ -23,6 +23,8 @@
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
+!  Modified on the basis of Jeff Eldredge
+!  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
   SUBROUTINE lu(A,b,x)

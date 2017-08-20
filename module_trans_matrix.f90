@@ -21,6 +21,7 @@
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
+!  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
 MODULE module_trans_matrix
