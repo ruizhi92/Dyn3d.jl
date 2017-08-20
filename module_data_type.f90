@@ -133,7 +133,7 @@ IMPLICIT NONE
         INTEGER                                     :: joint_id
         REAL(dp),DIMENSION(6)                       :: q_init
         REAL(dp),DIMENSION(6)                       :: shape1,shape2
-        INTEGER                                     :: body1,body2
+        INTEGER                                     :: body1
         TYPE(dof),DIMENSION(6)                      :: joint_dof
     END TYPE
 
@@ -173,9 +173,46 @@ IMPLICIT NONE
 
     TYPE single_joint
     !------------------------ TYPE single_joint ------------------------
-    !
-    !
-
+    ! nudof -- For a single joint, the total number of unconstrained dof
+    ! np -- For a single joint, the total number of unconstrained passive dof
+    ! na -- For a single joint, the total number of unconstrained active dof
+    ! udof -- In the 6d expression, the unconstrained dof index. For example,
+    !         free joint: [1 2 3 4 5 6]
+    !         revolute joint: 3
+    !         planar joint: [3 4 5]
+    !         cylindrical joint: [3 6]
+    !         spherical joint: [1 2 3]
+    ! udof_p -- the passive ones in the udof
+    ! udof_a --  the ones in udof with active prescribed motion
+    ! i_udof_p -- the index of udof_p in udof. For example, if we have a
+    !                 free joint with udof=[1 2 3 4 5 6] and udof_p=3, then
+    !                 index_udof_p = 3, index_udof_a = [1 2 4 5 6]
+    ! i_udof_a -- see above
+    ! udofmap -- list all the udof of all joints in an "total array", udofmap
+    !            refers to the index of the current dof in the "total array"
+    ! S -- the dof basis matrix for every joint, depending on joint type
+    ! Xj -- 6d transformation matrix, consider joint rotation only
+    ! subtree: joint hierarchy number after this joint(including self)
+    ! Xp_to_j -- transform matrix, considering parent body to the joint
+    ! xj_to_ch -- transform matrix, considering joint to the child body
+    ! q -- position vector of this joint
+    ! qdot -- velocity vector of this joint
+    ! inertia_j -- body inertia at it's origin, i.e. at the joint it connects
+    !              to. This body's body_id equals to the same joint_id.
+        CHARACTER(LEN = max_char)               :: joint_type
+        INTEGER                                 :: joint_id
+        INTEGER                                 :: body1
+        REAL(dp),DIMENSION(6)                   :: shape1,shape2
+        INTEGER                                 :: nudof,np,na
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,udof_p,udof_a
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
+        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
+        TYPE(dof),DIMENSION(6)                  :: joint_dof
+        REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
+        REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
+        REAL(dp),DIMENSION(6)                   :: q,qdot
+        REAL(dp),DIMENSION(6,6)                 :: inertia_j
 
     END TYPE
 

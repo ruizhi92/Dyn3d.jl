@@ -50,7 +50,7 @@ IMPLICIT NONE
     !------------------------------------------------------------------------
     !  Local variables
     !------------------------------------------------------------------------
-    INTEGER                         :: nbody,i,j,ndof
+    INTEGER                         :: nbody,i,j,ndof,njoint
     REAL(dp)                        :: height,ang,rhob
     REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
@@ -118,14 +118,14 @@ IMPLICIT NONE
     !  Set default dof
     !--------------------------------------------------------------------
     ! set default_dof_passive
-    default_dof_passive%dof_id = i
+    default_dof_passive%dof_id = 0
     default_dof_passive%dof_type = 'passive'
     default_dof_passive%stiff = stiff
     default_dof_passive%damp = damp
 
 
     ! set default_dof_active
-    default_dof_active%dof_id = i
+    default_dof_active%dof_id = 0
     default_dof_active%dof_type = 'active'
     default_dof_active%motion_type = 'hold'
     ALLOCATE(default_dof_active%motion_params(1))
@@ -169,56 +169,77 @@ IMPLICIT NONE
     ! Iteratively adding body, generate body_system structure
     DO i = 1, input_body%nbody
         CALL add_body(i,input_body)
-        CALL write_matrix(body_system(1)%verts)
+        !CALL write_matrix(body_system(i)%verts)
     END DO
 
     !--------------------------------------------------------------------
     !  Fill the module parameter input_joint
     !--------------------------------------------------------------------
-    ALLOCATE(input_joint(input_body%nbody))
+    !the number of joint is the same with the number of body
+    njoint = nbody
 
-    ! First joint
+    ALLOCATE(input_joint(njoint))
+
+    !-------------- First joint --------------
     input_joint(1)%joint_type = 'free'
-    input_joint(1)%joint_id = 0
+    input_joint(1)%joint_id = 1
+    input_joint(1)%body1 = 0
     input_joint(1)%q_init = (/ 0.0_dp, 0.0_dp, joint1_angle, &
                               0.0_dp, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape1(1:3) = joint1_orient
     input_joint(1)%shape1(4:6) = (/ 0.0_dp, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape2 = (/ 0.0_dp, 0.0_dp, 0.0_dp, &
                               0.0_dp, 0.0_dp, 0.0_dp /)
+    ! match dof with the specified input, otherwise set to default
     DO i = 1,6
+        input_joint(1)%joint_dof(i) = default_dof_active
+        input_joint(1)%joint_dof(i)%dof_id = i
         DO j = 1,ndof
             IF(joint1_dof(j)%dof_id == input_joint(1)%joint_dof(i)%dof_id) THEN
                 input_joint(1)%joint_dof(i) = joint1_dof(j)
-            ELSE
-                input_joint(1)%joint_dof(i) = default_dof_active
             END IF
         END DO
     END DO
 
-    ! Other joints
+    !-------------- Other joints --------------
     DO i = 2,input_body%nbody
         input_joint(i)%joint_type = 'revolute'
-        input_joint(i)%joint_id = i - 1
+        input_joint(i)%joint_id = i
+        ! This body1 setup is for a single chain. May change in other
+        ! setup such as config_4hinged in Matlab
+        input_joint(i)%body1 = i - 1
         input_joint(i)%q_init = (/ 0.0_dp, 0.0_dp, init_angle, &
                               0.0_dp, 0.0_dp, 0.0_dp /)
         input_joint(i)%shape1 = (/  0.0_dp, ang, 0.0_dp, &
                                     height, 0.0_dp, 0.0_dp /)
         input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
                                     0.0_dp, 0.0_dp, 0.0_dp /)
-        input_joint(i)%joint_dof(:) = default_dof_passive
+        DO j = 1,6
+            input_joint(i)%joint_dof(j) = default_dof_passive
+            input_joint(i)%joint_dof(j)%dof_id = j
+        END DO
     END DO
 
 
     !--------------------------------------------------------------------
     !  Add all joints in the joint_system, while disconnected
     !--------------------------------------------------------------------
-    
+    ! allocate structure for joint
+    ALLOCATE(joint_system(njoint))
 
-
-
-
-
+    ! Iteratively adding joint, generate joint_system structure
+    DO i = 1, njoint
+        CALL add_joint(i,input_joint(i))
+        ASSOCIATE (kk => joint_system(i))
+            WRITE(*,*) kk%nudof,kk%np,kk%na
+            WRITE(*,*) kk%udof_p
+            WRITE(*,*) kk%udof_a
+            WRITE(*,*) kk%i_udof_p
+            WRITE(*,*) kk%i_udof_a
+        END ASSOCIATE
+        !CALL write_matrix(joint_system(i)%Xp_to_j)
+        CALL write_matrix(joint_system(i)%Xj_to_ch)
+    END DO
 
 
 END SUBROUTINE config_3d_hinged

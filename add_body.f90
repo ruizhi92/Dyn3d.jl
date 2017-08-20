@@ -42,7 +42,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     ! input body configure structure from config files
     TYPE(config_body),INTENT(IN)                    :: config_b
-    ! This is the ibody in the system
+    ! This is the i-th body in the system
     INTEGER                                         :: ib
 
     !--------------------------------------------------------------------
