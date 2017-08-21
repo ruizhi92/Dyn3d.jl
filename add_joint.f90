@@ -62,10 +62,6 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     joint_system(ij)%joint_type = config_j%joint_type
     joint_system(ij)%joint_id = config_j%joint_id
-    ! give q the initial value
-    joint_system(ij)%q = config_j%q_init
-    ! init qdot to be 0, later updated in init_system
-    joint_system(ij)%qdot(:) = 0
     joint_system(ij)%shape1 = config_j%shape1
     joint_system(ij)%shape2 = config_j%shape2
     joint_system(ij)%body1 = config_j%body1
@@ -84,8 +80,6 @@ IMPLICIT NONE
 !              subtree => joint_system(ij)%subtree, &
               Xp_to_j => joint_system(ij)%Xp_to_j, &
               Xj_to_ch => joint_system(ij)%Xj_to_ch, &
-              q => joint_system(ij)%q, &
-              qdot => joint_system(ij)%qdot, &
               inertia_j => joint_system(ij)%inertia_j)
 
         !-------- Set nudof, udof and S depending on joint_type --------
@@ -124,6 +118,13 @@ IMPLICIT NONE
             joint_system(ij)%S = reshape( (/ 1, 0, 0, 0, 0, 0, &
                                              0, 1, 0, 0, 0, 0, &
                                              0, 0, 1, 0, 0, 0 /), &
+                         shape(joint_system(ij)%S), order=(/2,1/) )
+        ELSE IF(joint_type == 'prismatic') THEN
+            nudof = 1
+            ALLOCATE(joint_system(ij)%udof(nudof))
+            joint_system(ij)%udof = 6
+            ALLOCATE(joint_system(ij)%S(6,nudof))
+            joint_system(ij)%S = reshape( (/ 0, 0, 0, 0, 0, 1 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
         ELSE IF(joint_type == 'planar') THEN
             nudof = 3
@@ -187,6 +188,12 @@ IMPLICIT NONE
                            MATMUL(body_system(ij)%inertia_c, &
                                   body_system(ij)%Xj_to_c))
 
+        !----------- Set up q and qdot -----------
+        ! Allocate q and assign initial value
+        ALLOCATE(joint_system(ij)%q(nudof))
+        joint_system(ij)%q = config_j%q_init
+        ! Allocate qdot, not assign value
+        ALLOCATE(joint_system(ij)%qdot(nudof))
     END ASSOCIATE
 
 END SUBROUTINE add_joint

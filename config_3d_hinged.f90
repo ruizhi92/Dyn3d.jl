@@ -50,7 +50,8 @@ IMPLICIT NONE
     !------------------------------------------------------------------------
     !  Local variables
     !------------------------------------------------------------------------
-    INTEGER                         :: nbody,i,j,ndof,njoint
+    REAL(dp)                        :: tf
+    INTEGER                         :: nbody,i,j,ndof,njoint,nstep
     REAL(dp)                        :: height,ang,rhob
     REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
@@ -61,10 +62,15 @@ IMPLICIT NONE
     !  Assign local variables
     !--------------------------------------------------------------------
 
+    !------------------ numerical parameters ----------------
+    ! final time
+    tf = 1.0_dp
+    ! total number of steps
+    nstep = 10000
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 2
+    nbody = 4
     ! rhob - Density of each body (mass/area)
     rhob = 1.0_dp
 
@@ -208,8 +214,7 @@ IMPLICIT NONE
         ! This body1 setup is for a single chain. May change in other
         ! setup such as config_4hinged in Matlab
         input_joint(i)%body1 = i - 1
-        input_joint(i)%q_init = (/ 0.0_dp, 0.0_dp, init_angle, &
-                              0.0_dp, 0.0_dp, 0.0_dp /)
+        input_joint(i)%q_init = init_angle
         input_joint(i)%shape1 = (/  0.0_dp, ang, 0.0_dp, &
                                     height, 0.0_dp, 0.0_dp /)
         input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
@@ -231,15 +236,53 @@ IMPLICIT NONE
     DO i = 1, njoint
         CALL add_joint(i,input_joint(i))
         ASSOCIATE (kk => joint_system(i))
-            WRITE(*,*) kk%nudof,kk%np,kk%na
-            WRITE(*,*) kk%udof_p
-            WRITE(*,*) kk%udof_a
-            WRITE(*,*) kk%i_udof_p
-            WRITE(*,*) kk%i_udof_a
+!            WRITE(*,*) kk%joint_id, kk%joint_type
+!            WRITE(*,*) kk%udof
+!            WRITE(*,*) kk%udof_p
+!            IF(.NOT.ALLOCATED(kk%udof_a)) WRITE(*,*) 'yes'
+!            WRITE(*,*) kk%udof_a
+!            WRITE(*,*) kk%i_udof_p
+!            WRITE(*,*) kk%i_udof_a
         END ASSOCIATE
         !CALL write_matrix(joint_system(i)%Xp_to_j)
-        CALL write_matrix(joint_system(i)%Xj_to_ch)
+        !CALL write_matrix(joint_system(i)%Xj_to_ch)
     END DO
+
+    !--------------------------------------------------------------------
+    !  Assign system constants
+    !--------------------------------------------------------------------
+    system%params%gravity = gravity
+    system%params%dt = tf / system%params%nstep
+    system%params%nstep = nstep
+
+    CALL assemble_system
+
+!    WRITE(*,*) system%nudof,system%np,system%na
+!    WRITE(*,*) system%udof
+!    WRITE(*,*) system%udof_p
+!    WRITE(*,*) system%udof_a
+!    WRITE(*,*) system%i_udof_p
+!    WRITE(*,*) system%i_udof_a
+!    DO i = 1,njoint
+!        WRITE(*,*) joint_system(i)%udofmap
+!    END DO
+!    DO i = 1,system%na
+!        WRITE(*,*) system%kinmap(i,:)
+!    END DO
+!    DO i = 1,system%njoint
+!        WRITE(*,*) joint_system(i)%body1
+!    END DO
+    DO i = 1,system%nbody
+        !WRITE(*,*) body_system(i)%nchild,body_system(i)%parent_id
+        !IF(.NOT.ALLOCATED(body_system(i)%child_id)) WRITE(*,*) 'yes'
+        !IF(ALLOCATED(body_system(i)%child_id)) WRITE(*,*) body_system(i)%child_id
+        ASSOCIATE(kk => body_system(i))
+            WRITE(*,*) kk%child_id
+        END ASSOCIATE
+    END DO
+
+
+
 
 
 END SUBROUTINE config_3d_hinged

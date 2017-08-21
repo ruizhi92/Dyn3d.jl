@@ -167,7 +167,7 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(3)                   :: x_c
         REAL(dp)                                :: mass
         REAL(dp),DIMENSION(6,6)                 :: inertia_c,Xj_to_c
-        REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
+        !REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
     END TYPE
 
 
@@ -182,6 +182,7 @@ IMPLICIT NONE
     !         planar joint: [3 4 5]
     !         cylindrical joint: [3 6]
     !         spherical joint: [1 2 3]
+    !         prismatic joint: 6
     ! udof_p -- the passive ones in the udof
     ! udof_a --  the ones in udof with active prescribed motion
     ! i_udof_p -- the index of udof_p in udof. For example, if we have a
@@ -199,6 +200,7 @@ IMPLICIT NONE
     ! qdot -- velocity vector of this joint
     ! inertia_j -- body inertia at it's origin, i.e. at the joint it connects
     !              to. This body's body_id equals to the same joint_id.
+    ! Xj_to_i -- transform from body(at its parent joint) to inertia system
         CHARACTER(LEN = max_char)               :: joint_type
         INTEGER                                 :: joint_id
         INTEGER                                 :: body1
@@ -209,11 +211,71 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
         TYPE(dof),DIMENSION(6)                  :: joint_dof
-        REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
+        !REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
         REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
-        REAL(dp),DIMENSION(6)                   :: q,qdot
+        REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot
         REAL(dp),DIMENSION(6,6)                 :: inertia_j
+        REAL(dp),DIMENSION(6,6)                 :: Xj_to_i
 
+    END TYPE
+
+
+    TYPE system_params
+    ! to be used in the overall_system structure
+    ! defines a small structure to store some physical and numerical
+    ! constants.
+        REAL(dp),DIMENSION(3)                   :: gravity
+        REAL(dp)                                :: dt
+        INTEGER                                 :: nstep
+    END TYPE
+
+    TYPE system_solution
+    ! to be used in the overall_system structure
+    ! defines a structure storing solution. The dimension of t depends on
+    ! nstep, and the dimension of y depends on system.npassive. Should have
+    ! t(nstep),y(nstep,2*system%np). The q for every dof is a scalar,
+    ! so is qdot.
+        REAL(dp),DIMENSION(:),ALLOCATABLE       :: t
+        REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: y
+    END TYPE
+
+
+    TYPE overall_system
+    ! This is the structure of the overall system
+    ! njoint -- number of joint, equals to number of body
+    ! params -- look at TYPE system_params
+    ! time -- the time array that the ODE system is solved at
+    ! soln -- look at TYPE system_solution
+    ! the rest parameters have similar definitions with those in the
+    ! joint_system structure. The difference is that variables here
+    ! take the index considering the whole system, lining up all joints
+    ! kinmap -- This is a matrix of dimension system%na by 2.
+    !           It stores the info like this [1 1]
+    !                                        [1 2]
+    !                                        [1 3]
+    !                                        [1 4]
+    !                                        [1 5]
+    !                                        [1 6]
+    !                                        [2 1]
+    !                                        [3 1]
+    !                                        [4 1]
+    !            in order to keep the mapping information between
+    !            each joint and the system. This is used to assign
+    !            active motion data to kindata. Only active dofs here
+    ! kindata -- This is the data base of prescribed active motion.
+    !            This matrix have the dimension of nstep lines and
+    !            1+3*system%na columns. The first column is time,
+    !            then every continuous 3 columns are position, velocity
+    !            and acceleration of each udof.
+        INTEGER                                 :: njoint,nbody
+        TYPE(system_params)                     :: params
+        REAL(dp),DIMENSION(:),ALLOCATABLE       :: time
+        TYPE(system_solution)                   :: soln
+        INTEGER                                 :: nudof,np,na
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,udof_p,udof_a
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
+        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: kinmap
+        REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: kindata
     END TYPE
 
 
@@ -233,7 +295,7 @@ IMPLICIT NONE
     ! joint_system consists of n number of TYPE single_joint
     TYPE(single_joint),ALLOCATABLE              :: joint_system(:)
 
-
-
+    ! the overall system
+    TYPE(overall_system)                        :: system
 
 END MODULE module_data_type
