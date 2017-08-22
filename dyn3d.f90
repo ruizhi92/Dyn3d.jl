@@ -29,14 +29,27 @@ PROGRAM dyn3d
     !--------------------------------------------------------------------
     !  MODULE
     !--------------------------------------------------------------------
-    USE module_basic_matrix_operations
     USE module_constants
     USE module_data_type
+    USE module_prescribed_motion
 
 IMPLICIT NONE
 
+    CHARACTER(LEN = max_char)    :: mode
+    REAL(dp),ALLOCATABLE         :: motion(:,:)
 
     CALL config_3d_hinged
+
+    mode = 'generate'
+    CALL prescribed_motion(mode)
+
+    mode = 'refer'
+    ALLOCATE(motion(system%na,3))
+    CALL prescribed_motion(mode,0.01_dp,motion)
+    WRITE(*,*) motion(1,:)
+    WRITE(*,*) motion(2,:)
+    WRITE(*,*) motion(3,:)
+
 
 
 

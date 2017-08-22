@@ -31,8 +31,8 @@ SUBROUTINE write_matrix(A)
     !--------------------------------------------------------------------
     USE module_constants
 
-
 IMPLICIT NONE
+
     REAL(dp),INTENT(IN)                          :: A(:,:)
     INTEGER                                      :: i,j
 

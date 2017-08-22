@@ -8,7 +8,7 @@
 !                    by filling in child, parent, subtree and support
 !                 4. Physically connect the body and joint system by
 !                    updating the location of the local body coordinate.
-!                    Also update related properties like x_cent etc.
+!                    Also update related properties like x_c etc.
 !
 !  Details      ：
 !
@@ -40,6 +40,7 @@ SUBROUTINE assemble_system
     USE module_constants
     USE module_data_type
     USE module_trans_matrix
+    USE module_basic_matrix_operations
 
 IMPLICIT NONE
 
@@ -49,7 +50,12 @@ IMPLICIT NONE
     TYPE(single_joint),ALLOCATABLE              :: joint_temp(:)
     TYPE(single_body),ALLOCATABLE               :: body_temp(:)
     INTEGER                                     :: i,j,count,last,child_count
-    INTEGER                                     :: nstep
+    INTEGER                                     :: nstep,cj
+    REAL(dp),DIMENSION(3,3)                     :: rot_old
+    REAL(dp),DIMENSION(3)                       :: r_old,r_temp
+    REAL(dp),DIMENSION(3,1)                     :: r_temp_2d,child_temp
+    REAL(dp),DIMENSION(3,1)                     :: x_c_temp,verts_temp
+    REAL(dp),DIMENSION(6,6)                     :: Xj_to_ch_old
 
     !--------------------------------------------------------------------
     !  Step 1: Reorder joint_system and body_system
@@ -211,7 +217,58 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Step 4: Update the location of body coordinate
     !--------------------------------------------------------------------
+    ! this is only related to shape2, not shape1
+    DO i = 1,system%njoint
 
+        ! store old values
+        r_old = joint_system(i)%shape2(1:3)
+        Xj_to_ch_old = joint_system(i)%Xj_to_ch
+        rot_old = Xj_to_ch_old(1:3,1:3)
 
+        ! assign new values
+        ! The joint location now coincides with the origin of body
+        joint_system(i)%shape2(1:3) = 0
+
+        ! the new transform from parent joint to body is the identity
+        CALL ones(6, joint_system(i)%Xj_to_ch)
+
+        ! update all of the vertices
+        DO j = 1,body_system(i)%nverts
+            r_temp = -r_old + body_system(i)%verts(:,j)
+            r_temp_2d(:,1) = r_temp
+            verts_temp = MATMUL(TRANSPOSE(rot_old),r_temp_2d(:,1:1))
+            body_system(i)%verts(:,j) = verts_temp(:,1)
+        END DO
+
+        ! update the position of center of mass
+        r_temp = -r_old + body_system(i)%x_c
+        r_temp_2d(:,1) = r_temp
+        x_c_temp = MATMUL(TRANSPOSE(rot_old),r_temp_2d(:,1:1))
+        body_system(i)%x_c = x_c_temp(:,1)
+
+        ! update Xj_to_c and inertia_j
+        body_system(i)%Xj_to_c = MATMUL(body_system(i)%Xj_to_c, &
+                                        Xj_to_ch_old)
+        body_system(i)%inertia_c = MATMUL(TRANSPOSE(Xj_to_ch_old), &
+                                          MATMUL(body_system(i)%inertia_c, &
+                                                 Xj_to_ch_old))
+
+        ! for a joint, since its child body's body coordinate changes,
+        ! the shape1 of this child-body's child-joint changes as well.
+        ! update the location, axis and transform for each child joint
+        IF(body_system(i)%nchild /= 0) THEN
+            DO j = 1,body_system(i)%nchild
+                ! update the position of this joint relative to body
+                cj = body_system(i)%child_id(j)
+                r_temp = -r_old + joint_system(cj)%shape1(4:6)
+                r_temp_2d(:,1) = r_temp
+                child_temp = MATMUL(TRANSPOSE(rot_old),r_temp_2d(:,1:1))
+
+                joint_system(cj)%Xp_to_j = MATMUL(joint_system(cj)%Xp_to_j, &
+                                                  Xj_to_ch_old)
+            END DO
+        END IF
+
+    END DO
 
 END SUBROUTINE assemble_system

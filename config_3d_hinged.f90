@@ -254,6 +254,7 @@ IMPLICIT NONE
     system%params%gravity = gravity
     system%params%dt = tf / system%params%nstep
     system%params%nstep = nstep
+    system%params%tf = tf
 
     CALL assemble_system
 
@@ -266,20 +267,20 @@ IMPLICIT NONE
 !    DO i = 1,njoint
 !        WRITE(*,*) joint_system(i)%udofmap
 !    END DO
-!    DO i = 1,system%na
-!        WRITE(*,*) system%kinmap(i,:)
-!    END DO
+    DO i = 1,system%na
+        WRITE(*,*) system%kinmap(i,:)
+    END DO
 !    DO i = 1,system%njoint
 !        WRITE(*,*) joint_system(i)%body1
 !    END DO
-    DO i = 1,system%nbody
-        !WRITE(*,*) body_system(i)%nchild,body_system(i)%parent_id
-        !IF(.NOT.ALLOCATED(body_system(i)%child_id)) WRITE(*,*) 'yes'
-        !IF(ALLOCATED(body_system(i)%child_id)) WRITE(*,*) body_system(i)%child_id
-        ASSOCIATE(kk => body_system(i))
-            WRITE(*,*) kk%child_id
-        END ASSOCIATE
-    END DO
+!    DO i = 1,system%nbody
+!        !WRITE(*,*) body_system(i)%nchild,body_system(i)%parent_id
+!        !IF(.NOT.ALLOCATED(body_system(i)%child_id)) WRITE(*,*) 'yes'
+!        !IF(ALLOCATED(body_system(i)%child_id)) WRITE(*,*) body_system(i)%child_id
+!        ASSOCIATE(kk => body_system(i))
+!            WRITE(*,*) kk%child_id
+!        END ASSOCIATE
+!    END DO
 
 
 

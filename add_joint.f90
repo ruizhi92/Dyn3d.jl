@@ -79,8 +79,7 @@ IMPLICIT NONE
               joint_dof => joint_system(ij)%joint_dof, &
 !              subtree => joint_system(ij)%subtree, &
               Xp_to_j => joint_system(ij)%Xp_to_j, &
-              Xj_to_ch => joint_system(ij)%Xj_to_ch, &
-              inertia_j => joint_system(ij)%inertia_j)
+              Xj_to_ch => joint_system(ij)%Xj_to_ch)
 
         !-------- Set nudof, udof and S depending on joint_type --------
         IF(joint_type == 'revolute') THEN
@@ -180,13 +179,8 @@ IMPLICIT NONE
         END IF
 
         !----------- Set Xp_to_j, Xj_to_ch -----------
-        CALL trans_matrix(shape1(1:3), shape1(4:6), Xp_to_j)
-        CALL trans_matrix(shape2(1:3), shape2(4:6), Xj_to_ch)
-
-        !----------- Set up inertia_j -----------
-        inertia_j = MATMUL(TRANSPOSE(body_system(ij)%Xj_to_c), &
-                           MATMUL(body_system(ij)%inertia_c, &
-                                  body_system(ij)%Xj_to_c))
+        CALL trans_matrix(shape1(4:6), shape1(1:3), Xp_to_j)
+        CALL trans_matrix(shape2(4:6), shape2(1:3), Xj_to_ch)
 
         !----------- Set up q and qdot -----------
         ! Allocate q and assign initial value

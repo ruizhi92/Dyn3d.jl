@@ -80,7 +80,7 @@ IMPLICIT NONE
     ! initialize verts_i, it need to be changed later on
     body_system(ib)%verts_i = body_system(ib)%verts
 
-    !--------------- Calculate mass, x_c, inertia_c -------------
+    !---------- Calculate mass, x_c, inertia_c, inertia_j -------
     ASSOCIATE(verts => body_system(ib)%verts)
         Xc = 0
         Zc = 0
@@ -134,6 +134,11 @@ IMPLICIT NONE
             body_system(ib)%inertia_c(i,:) = (/ inertia_3d(i,:), zero(i,:) /)
             body_system(ib)%inertia_c(i+3,:) = (/ zero(i,:), mass_3d(i,:) /)
         END DO
+
+        ! Set up inertia_j
+        body_system(ib)%inertia_j = MATMUL(TRANSPOSE(body_system(ib)%Xj_to_c), &
+                                           MATMUL(body_system(ib)%inertia_c, &
+                                                  body_system(ib)%Xj_to_c))
     END ASSOCIATE
 
     !------------ Calculate transform matrix Xj_to_c ------------

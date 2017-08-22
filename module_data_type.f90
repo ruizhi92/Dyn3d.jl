@@ -159,6 +159,8 @@ IMPLICIT NONE
     !    inertia_c: body inertia at center
     !    Xj_to_c: transform matrix from the joint(same id with this body)
     !             to body center
+    !    inertia_j -- body inertia at it's origin, i.e. at the joint it connects
+    !              to. This body's body_id equals to the same joint_id.
     !    support: body hierarchy number before this body
         INTEGER                                 :: body_id,parent_id
         INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
@@ -167,6 +169,7 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(3)                   :: x_c
         REAL(dp)                                :: mass
         REAL(dp),DIMENSION(6,6)                 :: inertia_c,Xj_to_c
+        REAL(dp),DIMENSION(6,6)                 :: inertia_j
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
     END TYPE
 
@@ -198,8 +201,7 @@ IMPLICIT NONE
     ! xj_to_ch -- transform matrix, considering joint to the child body
     ! q -- position vector of this joint
     ! qdot -- velocity vector of this joint
-    ! inertia_j -- body inertia at it's origin, i.e. at the joint it connects
-    !              to. This body's body_id equals to the same joint_id.
+
     ! Xj_to_i -- transform from body(at its parent joint) to inertia system
         CHARACTER(LEN = max_char)               :: joint_type
         INTEGER                                 :: joint_id
@@ -211,11 +213,10 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
         TYPE(dof),DIMENSION(6)                  :: joint_dof
-        !REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
         REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot
-        REAL(dp),DIMENSION(6,6)                 :: inertia_j
         REAL(dp),DIMENSION(6,6)                 :: Xj_to_i
+        !REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
 
     END TYPE
 
@@ -225,7 +226,7 @@ IMPLICIT NONE
     ! defines a small structure to store some physical and numerical
     ! constants.
         REAL(dp),DIMENSION(3)                   :: gravity
-        REAL(dp)                                :: dt
+        REAL(dp)                                :: dt,tf
         INTEGER                                 :: nstep
     END TYPE
 
