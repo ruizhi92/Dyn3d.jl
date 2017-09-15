@@ -48,6 +48,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(:),ALLOCATABLE           :: time
     REAL(dp)                                    :: dt,tf
     INTEGER                                     :: i_pos,i_vel,i_acc
+    REAL(dp)                                    :: amp,freq,phase,arg
 
     !--------------------------------------------------------------------
     !  Check arguments
@@ -63,7 +64,7 @@ IMPLICIT NONE
 
     ! construct the time array
     ALLOCATE(time(nstep))
-    time = tf/nstep*(/ (i,i=1,nstep) /)
+    time = tf/nstep*(/ (i,i=0,nstep-1) /)
     DO i = 1,nstep
         system%kindata(i,1) = time(i)
     END DO
@@ -92,7 +93,15 @@ IMPLICIT NONE
 
 
             CASE('oscillatory')
-
+                amp = joint_system(joint_id)%joint_dof(dof_id)%motion_params(1)
+                freq = joint_system(joint_id)%joint_dof(dof_id)%motion_params(2)
+                phase = joint_system(joint_id)%joint_dof(dof_id)%motion_params(3)
+                DO j = 1,nstep
+                arg = 2*pi*freq*time(j)+phase
+                system%kindata(j,i_pos) = amp*cos(arg)
+                system%kindata(j,i_vel) = -2*pi*freq*amp*sin(arg)
+                system%kindata(j,i_acc) = -4*pi**2*freq**2*amp*cos(arg)
+                END DO
 
             CASE('ramp')
 

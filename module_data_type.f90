@@ -131,7 +131,7 @@ IMPLICIT NONE
     !  body1,body2 -- the parent body id and the child body id connecting the joint
         CHARACTER(LEN = max_char)                   :: joint_type
         INTEGER                                     :: joint_id
-        REAL(dp),DIMENSION(6)                       :: q_init
+        REAL(dp),DIMENSION(:),ALLOCATABLE           :: q_init
         REAL(dp),DIMENSION(6)                       :: shape1,shape2
         INTEGER                                     :: body1
         TYPE(dof),DIMENSION(6)                      :: joint_dof
@@ -162,14 +162,16 @@ IMPLICIT NONE
     !    inertia_j -- body inertia at it's origin, i.e. at the joint it connects
     !              to. This body's body_id equals to the same joint_id.
     !    support: body hierarchy number before this body
+    !    Xb_to_i -- transform from body(at its first point) to inertia system
         INTEGER                                 :: body_id,parent_id
         INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
         INTEGER                                 :: nchild,nverts
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: verts,verts_i
-        REAL(dp),DIMENSION(3)                   :: x_c
+        REAL(dp),DIMENSION(3)                   :: x_c,x_0
         REAL(dp)                                :: mass
-        REAL(dp),DIMENSION(6,6)                 :: inertia_c,Xj_to_c
-        REAL(dp),DIMENSION(6,6)                 :: inertia_j
+        REAL(dp),DIMENSION(6,6)                 :: Xj_to_c
+        REAL(dp),DIMENSION(6,6)                 :: inertia_c,inertia_j
+        REAL(dp),DIMENSION(6,6)                 :: Xb_to_i
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
     END TYPE
 
@@ -202,7 +204,6 @@ IMPLICIT NONE
     ! q -- position vector of this joint
     ! qdot -- velocity vector of this joint
 
-    ! Xj_to_i -- transform from body(at its parent joint) to inertia system
         CHARACTER(LEN = max_char)               :: joint_type
         INTEGER                                 :: joint_id
         INTEGER                                 :: body1
@@ -213,9 +214,8 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
         TYPE(dof),DIMENSION(6)                  :: joint_dof
-        REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot
-        REAL(dp),DIMENSION(6,6)                 :: Xj_to_i
+        REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
 
     END TYPE
@@ -267,7 +267,7 @@ IMPLICIT NONE
     !            This matrix have the dimension of nstep lines and
     !            1+3*system%na columns. The first column is time,
     !            then every continuous 3 columns are position, velocity
-    !            and acceleration of each udof.
+    !            and acceleration of each active udof.
         INTEGER                                 :: njoint,nbody
         TYPE(system_params)                     :: params
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: time

@@ -70,7 +70,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 4
+    nbody = 3
     ! rhob - Density of each body (mass/area)
     rhob = 1.0_dp
 
@@ -175,7 +175,6 @@ IMPLICIT NONE
     ! Iteratively adding body, generate body_system structure
     DO i = 1, input_body%nbody
         CALL add_body(i,input_body)
-        !CALL write_matrix(body_system(i)%verts)
     END DO
 
     !--------------------------------------------------------------------
@@ -190,6 +189,7 @@ IMPLICIT NONE
     input_joint(1)%joint_type = 'free'
     input_joint(1)%joint_id = 1
     input_joint(1)%body1 = 0
+    ALLOCATE(input_joint(1)%q_init(6))
     input_joint(1)%q_init = (/ 0.0_dp, 0.0_dp, joint1_angle, &
                               0.0_dp, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape1(1:3) = joint1_orient
@@ -202,6 +202,8 @@ IMPLICIT NONE
         input_joint(1)%joint_dof(i)%dof_id = i
         DO j = 1,ndof
             IF(joint1_dof(j)%dof_id == input_joint(1)%joint_dof(i)%dof_id) THEN
+                ! the allocation of the default case should be overwrite
+                DEALLOCATE(input_joint(1)%joint_dof(i)%motion_params)
                 input_joint(1)%joint_dof(i) = joint1_dof(j)
             END IF
         END DO
@@ -214,6 +216,7 @@ IMPLICIT NONE
         ! This body1 setup is for a single chain. May change in other
         ! setup such as config_4hinged in Matlab
         input_joint(i)%body1 = i - 1
+        ALLOCATE(input_joint(i)%q_init(1))
         input_joint(i)%q_init = init_angle
         input_joint(i)%shape1 = (/  0.0_dp, ang, 0.0_dp, &
                                     height, 0.0_dp, 0.0_dp /)
@@ -235,55 +238,21 @@ IMPLICIT NONE
     ! Iteratively adding joint, generate joint_system structure
     DO i = 1, njoint
         CALL add_joint(i,input_joint(i))
-        ASSOCIATE (kk => joint_system(i))
-!            WRITE(*,*) kk%joint_id, kk%joint_type
-!            WRITE(*,*) kk%udof
-!            WRITE(*,*) kk%udof_p
-!            IF(.NOT.ALLOCATED(kk%udof_a)) WRITE(*,*) 'yes'
-!            WRITE(*,*) kk%udof_a
-!            WRITE(*,*) kk%i_udof_p
-!            WRITE(*,*) kk%i_udof_a
-        END ASSOCIATE
-        !CALL write_matrix(joint_system(i)%Xp_to_j)
-        !CALL write_matrix(joint_system(i)%Xj_to_ch)
     END DO
 
     !--------------------------------------------------------------------
     !  Assign system constants
     !--------------------------------------------------------------------
     system%params%gravity = gravity
-    system%params%dt = tf / system%params%nstep
     system%params%nstep = nstep
+    system%params%dt = tf / system%params%nstep
     system%params%tf = tf
 
     CALL assemble_system
 
-!    WRITE(*,*) system%nudof,system%np,system%na
-!    WRITE(*,*) system%udof
-!    WRITE(*,*) system%udof_p
-!    WRITE(*,*) system%udof_a
-!    WRITE(*,*) system%i_udof_p
-!    WRITE(*,*) system%i_udof_a
-!    DO i = 1,njoint
-!        WRITE(*,*) joint_system(i)%udofmap
-!    END DO
     DO i = 1,system%na
         WRITE(*,*) system%kinmap(i,:)
     END DO
-!    DO i = 1,system%njoint
-!        WRITE(*,*) joint_system(i)%body1
-!    END DO
-!    DO i = 1,system%nbody
-!        !WRITE(*,*) body_system(i)%nchild,body_system(i)%parent_id
-!        !IF(.NOT.ALLOCATED(body_system(i)%child_id)) WRITE(*,*) 'yes'
-!        !IF(ALLOCATED(body_system(i)%child_id)) WRITE(*,*) body_system(i)%child_id
-!        ASSOCIATE(kk => body_system(i))
-!            WRITE(*,*) kk%child_id
-!        END ASSOCIATE
-!    END DO
-
-
-
 
 
 END SUBROUTINE config_3d_hinged

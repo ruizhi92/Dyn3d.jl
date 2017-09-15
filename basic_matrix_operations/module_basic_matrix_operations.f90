@@ -50,11 +50,16 @@ IMPLICIT NONE
         MODULE PROCEDURE lu
     END INTERFACE
 
+    INTERFACE inverse_inter
+        MODULE PROCEDURE inverse
+    END INTERFACE
+
     CONTAINS
     INCLUDE 'ones.f90'
     INCLUDE 'zeros.f90'
     INCLUDE 'write_matrix.f90'
 !    INCLUDE 'gmres.f90'
     INCLUDE 'lu.f90'
+    INCLUDE 'inverse.f90'
 
 END MODULE module_basic_matrix_operations

@@ -48,7 +48,8 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     REAL(dp),DIMENSION(6,6)                         :: Xinv,rot,tr
-    REAL(dp),DIMENSION(6,1)                         :: q_temp
+    REAL(dp),DIMENSION(6,1)                         :: qdot_temp
+    REAL(dp),DIMENSION(6)                           :: q_temp
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -59,30 +60,36 @@ IMPLICIT NONE
               udof => joint_system(joint_id)%udof, &
               joint_type => joint_system(joint_id)%joint_type)
 
+        ! q is not necessarily 6 element vector. Construct it to be q_temp
+        q_temp(:) = 0
+        q_temp(joint_system(joint_id)%udof) = q
+
         ! 'revolute','cylindrical','prismatic' and 'spherical'
         IF( (joint_type == 'revolute') .OR. (joint_type == 'cylindrical') .OR. &
             (joint_type == 'prismatic') .OR. (joint_type == 'spherical')) THEN
+
             ! update Xj
-            CALL trans_matrix(q(4:6), q(1:3), Xj)
+            CALL trans_matrix(q_temp(4:6), q_temp(1:3), Xj)
             ! qdot unchanged
-!           qdot = 
+
 
         ! 'free' and 'planar'
         ELSE IF ((joint_type == 'free') .OR. (joint_type == 'planar')) THEN
+
             ! update Xj
-            CALL trans_matrix(q(4:6), q(1:3), Xj, Xinv, rot, tr)
+            CALL trans_matrix(q_temp(4:6), q_temp(1:3), Xj, Xinv, rot, tr)
             ! update qdot. In this case, alpha must be rotated back to the joint parent
             ! system, since q is expressed in the parent joint coordinates
-            q_temp(:,1) = 0
-            q_temp(udof,1) = q
-            ! now q_temp has 6 elements, with the ones of udof the same with q
+            qdot_temp(:,1) = 0
+            qdot_temp(udof,1) = q
+            ! now qdot_temp has 6 elements, with the ones of udof the same with q
             ! It is constructed as a matrix instead of a vector in order to do
             ! MATMUL
-            q_temp = MATMUL(TRANSPOSE(rot),q_temp(:,1:1))
-            qdot = q_temp(udof,1)
+            qdot_temp = MATMUL(TRANSPOSE(rot),qdot_temp(:,1:1))
+            qdot = qdot_temp(udof,1)
 
         END IF
 
     END ASSOCIATE
 
-END SUBROUTINE
+END SUBROUTINE jcalc
