@@ -188,6 +188,9 @@ IMPLICIT NONE
         joint_system(ij)%q = config_j%q_init
         ! Allocate qdot, not assign value
         ALLOCATE(joint_system(ij)%qdot(nudof))
+        ! Allocate qdot_pp, not assign value
+        ALLOCATE(joint_system(ij)%qdot_pp(np))
+
     END ASSOCIATE
 
 END SUBROUTINE add_joint

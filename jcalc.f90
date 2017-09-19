@@ -2,7 +2,8 @@
 !  Subroutine     :            jcalc
 !------------------------------------------------------------------------
 !  Purpose      : Computes joint_system(i)%Xj and update the passive part
-!                 of joint_system(i)%qdot
+!                 joint_system(i)%qdot_pp. Also compute joint_system(i)%vJ
+!                 and joint_system(i)%cJ.
 !
 !  Details      ：
 !
@@ -50,18 +51,24 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(6,6)                         :: Xinv,rot,tr
     REAL(dp),DIMENSION(6,1)                         :: qdot_temp
     REAL(dp),DIMENSION(6)                           :: q_temp
+    REAL(dp)                                        :: q_scalar
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
     ASSOCIATE(Xj => joint_system(joint_id)%Xj, &
+              nudof => joint_system(joint_id)%nudof, &
+              S => joint_system(joint_id)%S, &
               q => joint_system(joint_id)%q, &
               qdot => joint_system(joint_id)%qdot, &
+              qdot_pp => joint_system(joint_id)%qdot_pp, &
               udof => joint_system(joint_id)%udof, &
+              vJ => joint_system(joint_id)%vJ, &
+              cJ => joint_system(joint_id)%cJ, &
               joint_type => joint_system(joint_id)%joint_type)
 
         ! q is not necessarily 6 element vector. Construct it to be q_temp
-        q_temp(:) = 0
+        q_temp(:) = 0.0_dp
         q_temp(joint_system(joint_id)%udof) = q
 
         ! 'revolute','cylindrical','prismatic' and 'spherical'
@@ -70,7 +77,8 @@ IMPLICIT NONE
 
             ! update Xj
             CALL trans_matrix(q_temp(4:6), q_temp(1:3), Xj)
-            ! qdot unchanged
+            ! qdot unchanged, update qdot_pp
+            qdot_pp = qdot(joint_system(joint_id)%i_udof_p)
 
 
         ! 'free' and 'planar'
@@ -80,14 +88,26 @@ IMPLICIT NONE
             CALL trans_matrix(q_temp(4:6), q_temp(1:3), Xj, Xinv, rot, tr)
             ! update qdot. In this case, alpha must be rotated back to the joint parent
             ! system, since q is expressed in the parent joint coordinates
-            qdot_temp(:,1) = 0
-            qdot_temp(udof,1) = q
+            qdot_temp(:,1) = 0.0_dp
+            qdot_temp(udof,1) = qdot
             ! now qdot_temp has 6 elements, with the ones of udof the same with q
             ! It is constructed as a matrix instead of a vector in order to do
             ! MATMUL
             qdot_temp = MATMUL(TRANSPOSE(rot),qdot_temp(:,1:1))
-            qdot = qdot_temp(udof,1)
+            qdot_pp = qdot_temp(udof,1)
 
+        END IF
+
+        ! compute cJ and vJ
+        cJ(:,1) = 0.0_dp
+
+        IF(nudof == 1) THEN
+            q_scalar = qdot(1)
+            vJ = q_scalar*S
+        ELSE
+            qdot_temp(:,1) = 0.0_dp
+            qdot_temp(udof,1) = qdot
+            vJ = MATMUL(S,qdot_temp)
         END IF
 
     END ASSOCIATE

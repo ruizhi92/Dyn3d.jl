@@ -97,6 +97,17 @@ IMPLICIT NONE
         DO j = 1, SIZE(body_system(i)%Xb_to_i,1)
             WRITE(2017,'(6F9.5)') body_system(i)%Xb_to_i(j,:)
         END DO
+
+        WRITE(2017,'(/)')
+        WRITE(2017,'(A,6F9.5)') 'v:', body_system(i)%v(:,1)
+        WRITE(2017,'(A,6F9.5)') 'c:', body_system(i)%c(:,1)
+        WRITE(2017,'(A,6F9.5)') 'pA:', body_system(i)%pA(:,1)
+
+        WRITE(2017,'(A)') 'Ib_A:'
+        DO j = 1, SIZE(body_system(i)%Ib_A,1)
+            WRITE(2017,'(6F9.5)') body_system(i)%Ib_A(j,:)
+        END DO
+
         WRITE(2017,'(/)')
     END DO
 
@@ -160,6 +171,10 @@ IMPLICIT NONE
         IF(ALLOCATED(joint_system(i)%qdot)) THEN
             WRITE(2017,'(F9.5)') joint_system(i)%qdot
         END IF
+        WRITE(2017,'(A)') 'qdot_pp:'
+        IF(ALLOCATED(joint_system(i)%qdot_pp)) THEN
+            WRITE(2017,'(F9.5)') joint_system(i)%qdot_pp
+        END IF
         WRITE(2017,'(A)') 'Xj:'
         DO j = 1, SIZE(joint_system(i)%Xj,1)
             WRITE(2017,'(6F9.5)') joint_system(i)%Xj(j,:)
@@ -193,6 +208,8 @@ IMPLICIT NONE
             END IF
         END DO
 
+        WRITE(2017,'(A,6F9.5)') 'vJ:', joint_system(i)%vJ(:,1)
+        WRITE(2017,'(A,6F9.5)') 'cJ:', joint_system(i)%cJ(:,1)
 
         WRITE(2017,'(/)')
     END DO

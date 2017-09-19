@@ -93,8 +93,13 @@ IMPLICIT NONE
         DO i = 1, nverts
             xj = verts(i,1)
             zj = verts(i,3)
-            xjp1 = verts(i+1,1)
-            zjp1 = verts(i+1,3)
+            IF(i == nverts) THEN
+                xjp1 = verts(1,1)
+                zjp1 = verts(1,3)
+            ELSE
+                xjp1 = verts(i+1,1)
+                zjp1 = verts(i+1,3)
+            END IF
             fact = zj*xjp1 - zjp1*xj
             Xc = Xc + (xj + xjp1)*fact
             Zc = Zc + (zj + zjp1)*fact
@@ -107,9 +112,14 @@ IMPLICIT NONE
         DO i = 1, nverts
             ! make (Zc,Xc) the origin
             xj = verts(i,1) - Xc
-            zj = verts(i,3) - Zc;
-            xjp1 = verts(i+1,1) - Xc
-            zjp1 = verts(i+1,3) - Zc
+            zj = verts(i,3) - Zc
+            IF(i == nverts) THEN
+                xjp1 = verts(1,1) - Xc
+                zjp1 = verts(1,3) - Zc
+            ELSE
+                xjp1 = verts(i+1,1) - Xc
+                zjp1 = verts(i+1,3) - Zc
+            END IF
             fact = zj*xjp1 - zjp1*xj
             Ix =   Ix + (zj**2+zj*zjp1+zjp1**2)*fact
             Iz =   Iz + (xj**2+xj*xjp1+xjp1**2)*fact

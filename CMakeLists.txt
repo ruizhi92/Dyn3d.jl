@@ -12,7 +12,7 @@ enable_language(Fortran)
 #set (CMAKE_Fortran_FLAGS "-O2 -cpp -w -ffree-form -x f95-cpp-input -ffree-line-length-none")
 
 #debug flag
-set (CMAKE_Fortran_FLAGS "-g -ffree-form -Wall")
+set (CMAKE_Fortran_FLAGS "-g -ffree-form -Wall -fbounds-check -fcheck=all")
 
 #---------------------------------------------------------------
 # Set source and subdirectory

@@ -163,6 +163,10 @@ IMPLICIT NONE
     !              to. This body's body_id equals to the same joint_id.
     !    support: body hierarchy number before this body
     !    Xb_to_i -- transform from body(at its first point) to inertia system
+    !    v -- body velocity expressed in [wx,wy,wz,ux,uy,uz]
+    !    c -- body acceleration
+    !    pA -- momentum of chained body
+    !    Ib_A -- inertia of chained body
         INTEGER                                 :: body_id,parent_id
         INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
         INTEGER                                 :: nchild,nverts
@@ -173,6 +177,8 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(6,6)                 :: inertia_c,inertia_j
         REAL(dp),DIMENSION(6,6)                 :: Xb_to_i
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
+        REAL(dp),DIMENSION(6,1)                 :: v,c,pA
+        REAL(dp),DIMENSION(6,6)                 :: Ib_A
     END TYPE
 
 
@@ -203,6 +209,9 @@ IMPLICIT NONE
     ! xj_to_ch -- transform matrix, considering joint to the child body
     ! q -- position vector of this joint
     ! qdot -- velocity vector of this joint
+    ! vJ -- joint velocity in the parent body's body coord, which is S*qdot
+    ! cJ -- joint acceleration due to time variation of S, which is kept at
+    !       0 most of the time
 
         CHARACTER(LEN = max_char)               :: joint_type
         INTEGER                                 :: joint_id
@@ -214,9 +223,10 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
         TYPE(dof),DIMENSION(6)                  :: joint_dof
-        REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot
+        REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot,qdot_pp
         REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
+        REAL(dp),DIMENSION(6,1)                  :: vJ,cJ
 
     END TYPE
 

@@ -48,7 +48,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    REAL(dp),DIMENSION(6,1)                         :: q_temp,q_ref
+    REAL(dp),DIMENSION(6,1)                         :: q_temp,q_temp2,q_ref
     REAL(dp),DIMENSION(6,6)                         :: Xi_to_body1,Xj_to_p
     REAL(dp),DIMENSION(6,6)                         :: Xb_to_ch,Xch_to_b
     INTEGER                                         :: i,j,child_id
@@ -132,8 +132,10 @@ IMPLICIT NONE
 
             ! step 2: find the vector to account for joint rotation(Xj is expressed
             ! in the child joint coord)
+            q_temp2(:,1) = 0
+            q_temp2(joint_system(child_id)%udof,1) = joint_system(child_id)%q
             q_temp(1:3,1) = 0
-            q_temp(4:6,1) = joint_system(child_id)%q(4:6)
+            q_temp(4:6,1) = q_temp2(4:6,1)
             CALL inverse(joint_system(child_id)%Xp_to_j,Xj_to_p)
             q_temp = MATMUL(body_system(i)%Xb_to_i, &
                             MATMUL(Xj_to_p,q_temp))

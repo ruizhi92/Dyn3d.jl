@@ -234,10 +234,10 @@ IMPLICIT NONE
 
         ! update all of the vertices
         DO j = 1,body_system(i)%nverts
-            r_temp = -r_old + body_system(i)%verts(:,j)
+            r_temp = -r_old + body_system(i)%verts(j,:)
             r_temp_2d(:,1) = r_temp
             verts_temp = MATMUL(TRANSPOSE(rot_old),r_temp_2d(:,1:1))
-            body_system(i)%verts(:,j) = verts_temp(:,1)
+            body_system(i)%verts(j,:) = verts_temp(:,1)
         END DO
 
         ! update the position of center of mass
