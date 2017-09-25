@@ -118,12 +118,20 @@ IMPLICIT NONE
         END DO
     END DO
 
-    ! joint_system%udofmap
+    ! joint_system(i)%udofmap
     last = 0
     DO i = 1,system%njoint
         ALLOCATE(joint_system(i)%udofmap(joint_system(i)%nudof))
         joint_system(i)%udofmap = last + (/(j, j=1,joint_system(i)%nudof)/)
         last = joint_system(i)%udofmap(joint_system(i)%nudof)
+    END DO
+
+    ! joint_system(i)%global_up
+    last = 0
+    DO i = 1,system%njoint
+        ALLOCATE(joint_system(i)%global_up(joint_system(i)%np))
+        joint_system(i)%global_up = last + (/(j, j=1,joint_system(i)%np)/)
+        last = joint_system(i)%global_up(joint_system(i)%np)
     END DO
 
     ! i_udof_p
@@ -270,5 +278,11 @@ IMPLICIT NONE
         END IF
 
     END DO
+
+    !--------------------------------------------------------------------
+    !  Deallocation
+    !--------------------------------------------------------------------
+    DEALLOCATE(joint_temp)
+    DEALLOCATE(body_temp)
 
 END SUBROUTINE assemble_system

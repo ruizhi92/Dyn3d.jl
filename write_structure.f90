@@ -157,6 +157,10 @@ IMPLICIT NONE
         IF(ALLOCATED(joint_system(i)%udofmap)) THEN
             WRITE(2017,'(I5)') joint_system(i)%udofmap
         END IF
+        WRITE(2017,'(A)') 'global_up:'
+        IF(ALLOCATED(joint_system(i)%global_up)) THEN
+            WRITE(2017,'(I5)') joint_system(i)%global_up
+        END IF
         WRITE(2017,'(A)') 'S:'
         IF(ALLOCATED(joint_system(i)%S)) THEN
             DO j = 1, SIZE(joint_system(i)%S,1)

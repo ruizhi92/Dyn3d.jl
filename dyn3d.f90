@@ -36,11 +36,19 @@ PROGRAM dyn3d
 
 IMPLICIT NONE
 
+    !--------------------------------------------------------------------
+    !  ARGUMENT
+    !--------------------------------------------------------------------
+    REAL(dp),DIMENSION(:),ALLOCATABLE         :: y_init
+
     ! add_body, add_joint and assemble them
     CALL config_3d_hinged
 
     ! initialize system
-    CALL init_system
+    ALLOCATE(y_init(2*system%np))
+    CALL init_system(y_init)
+    WRITE(*,*) y_init
+    DEALLOCATE(y_init)
 
     ! write data
     CALL write_structure

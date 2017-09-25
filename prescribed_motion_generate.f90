@@ -109,4 +109,9 @@ IMPLICIT NONE
         END SELECT
     END DO
 
+    !--------------------------------------------------------------------
+    !  Deallocation
+    !--------------------------------------------------------------------
+    DEALLOCATE(time)
+
 END SUBROUTINE prescribed_motion_generate

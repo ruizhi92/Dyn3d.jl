@@ -145,14 +145,14 @@ IMPLICIT NONE
             body_system(ib)%inertia_c(i+3,:) = (/ zero(i,:), mass_3d(i,:) /)
         END DO
 
-        ! Set up inertia_j
-        body_system(ib)%inertia_j = MATMUL(TRANSPOSE(body_system(ib)%Xj_to_c), &
-                                           MATMUL(body_system(ib)%inertia_c, &
-                                                  body_system(ib)%Xj_to_c))
     END ASSOCIATE
 
     !------------ Calculate transform matrix Xj_to_c ------------
     theta = (/ 0.0_dp, 0.0_dp, 0.0_dp/)
     CALL trans_matrix(body_system(ib)%x_c, theta, body_system(ib)%Xj_to_c)
 
+    !------------ Set up inertia_j ------------
+    body_system(ib)%inertia_j = MATMUL(TRANSPOSE(body_system(ib)%Xj_to_c), &
+                                       MATMUL(body_system(ib)%inertia_c, &
+                                              body_system(ib)%Xj_to_c))
 END SUBROUTINE add_body

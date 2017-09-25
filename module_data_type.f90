@@ -202,13 +202,17 @@ IMPLICIT NONE
     ! i_udof_a -- see above
     ! udofmap -- list all the udof of all joints in an "total array", udofmap
     !            refers to the index of the current dof in the "total array"
+    ! global_up -- after assembling all passive dofs of all joints, the index
+    !              of the current joint passive dof in that "all dof" vector
     ! S -- the dof basis matrix for every joint, depending on joint type
     ! Xj -- 6d transformation matrix, consider joint rotation only
     ! subtree: joint hierarchy number after this joint(including self)
     ! Xp_to_j -- transform matrix, considering parent body to the joint
     ! xj_to_ch -- transform matrix, considering joint to the child body
     ! q -- position vector of this joint
-    ! qdot -- velocity vector of this joint
+    ! qdot -- velocity vector of this joint, this is called alpha in Matlab
+    ! qdot_pp -- the passive part of rate of change of q vector in the parent
+    !            body's body coordinate, called qdot_p in Matlab
     ! vJ -- joint velocity in the parent body's body coord, which is S*qdot
     ! cJ -- joint acceleration due to time variation of S, which is kept at
     !       0 most of the time
@@ -221,6 +225,7 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,udof_p,udof_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: global_up
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
         TYPE(dof),DIMENSION(6)                  :: joint_dof
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot,qdot_pp

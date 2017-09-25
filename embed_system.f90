@@ -102,6 +102,8 @@ IMPLICIT NONE
 
         ! for this joint, loop through every child of it. DO loop will not
         ! execute when nchild=0
+        IF(body_system(i)%nchild /= 0) THEN
+
         DO j = 1,body_system(i)%nchild
             child_id = body_system(i)%child_id(j)
 
@@ -151,7 +153,7 @@ IMPLICIT NONE
             ! assign to x_0
             body_system(child_id)%x_0 = x_temp
         END DO
-
+        END IF
     END DO
 
 END SUBROUTINE
