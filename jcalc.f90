@@ -63,6 +63,7 @@ IMPLICIT NONE
               qdot => joint_system(joint_id)%qdot, &
               qdot_pp => joint_system(joint_id)%qdot_pp, &
               udof => joint_system(joint_id)%udof, &
+              udof_p => joint_system(joint_id)%udof_p, &
               vJ => joint_system(joint_id)%vJ, &
               cJ => joint_system(joint_id)%cJ, &
               joint_type => joint_system(joint_id)%joint_type)
@@ -94,7 +95,7 @@ IMPLICIT NONE
             ! It is constructed as a matrix instead of a vector in order to do
             ! MATMUL
             qdot_temp = MATMUL(TRANSPOSE(rot),qdot_temp(:,1:1))
-            qdot_pp = qdot_temp(udof,1)
+            qdot_pp = qdot_temp(udof_p,1)
 
         END IF
 

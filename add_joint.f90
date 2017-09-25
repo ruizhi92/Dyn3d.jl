@@ -146,7 +146,7 @@ IMPLICIT NONE
             ELSE IF(joint_dof(joint_system(ij)%udof(i))%dof_type == 'active') THEN
                 na = na + 1
             ELSE
-                WRITE(*,*), 'Error:dof_type not correct!'
+                WRITE(*,*) 'Error:dof_type not correct!'
             END IF
         END DO
 
