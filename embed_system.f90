@@ -1,10 +1,18 @@
 !------------------------------------------------------------------------
 !  Subroutine     :          embed_system
 !------------------------------------------------------------------------
-!  Purpose      : This subroutine express the body chain in the inertial
-!                 system. Updates Xb_to_i in body_system, verts_i in
-!                 body_system and x_0 in body_system. Also updates q and
-!                 qdot of the passive dofs in the joint_system structure.
+!  Purpose      : This subroutine takes in q_total and qdot_total to
+!                 update several things.
+!                 1. update the body chain in the inertial system, including
+!                    Xb_to_i, verts_i and x_0 in body_system.
+!                 2. Xj, vJ and cJ got updated by calling subroutine jcalc
+!                 3. updates q and qdot of the passive dofs for the
+!                    joint_system structure to keep it updated.(may not be
+!                    useful)
+!                 4. update Xp_to_b for every body, which is the transform
+!                    between parent body and the current body, i.e.
+!                    Xp_to_b = Xj_to_ch*Xj*Xp_to_j
+
 !
 !  Details      ：
 !
@@ -51,7 +59,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(6,1)                         :: q_temp,q_temp2,q_ref
     REAL(dp),DIMENSION(6,6)                         :: Xi_to_body1,Xj_to_p
     REAL(dp),DIMENSION(6,6)                         :: Xb_to_ch,Xch_to_b
-    INTEGER                                         :: i,j,child_id
+    INTEGER                                         :: i,j,child_id,pb_id
     REAL(dp),DIMENSION(3)                           :: x_temp
 
     !--------------------------------------------------------------------
@@ -154,6 +162,19 @@ IMPLICIT NONE
             body_system(child_id)%x_0 = x_temp
         END DO
         END IF
+    END DO
+
+    !--------------------------------------------------------------------
+    !  Update body_system(i)%Xp_to_b
+    !--------------------------------------------------------------------
+    ! from body n to body 1
+    DO i = system%nbody, 1 ,-1
+        ! the body_id of this body's parent body
+        pb_id = body_system(i)%parent_id
+
+        body_system(i)%Xp_to_b = MATMUL(joint_system(i)%Xj_to_ch, &
+                                        MATMUL(joint_system(i)%Xj, &
+                                               joint_system(i)%Xp_to_j))
     END DO
 
 END SUBROUTINE

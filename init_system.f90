@@ -75,8 +75,8 @@ IMPLICIT NONE
     CALL prescribed_motion(mode,0.0_dp,motion)
 
     ! initialize the q_total and qdot_total vector
-    q_total(:) = 0
-    qdot_total(:) = 0
+    q_total(:) = 0.0_dp
+    qdot_total(:) = 0.0_dp
     DO i = 1,system%njoint
         q_total(joint_system(i)%udofmap) = joint_system(i)%q
         qdot_total(joint_system(i)%udofmap) = joint_system(i)%qdot
@@ -105,10 +105,10 @@ IMPLICIT NONE
 
         ! initialize the articulated inertia of each body to be equal to its
         ! own inertia
-        body_system(i)%Ib_A = body_system(i)%inertia_j;
+        body_system(i)%Ib_A = body_system(i)%inertia_j
 
         ! initialize the joint momentum term
-        body_system(i)%pA = 0
+        body_system(i)%pA = 0.0_dp
     END DO
 
     !--------------------------------------------------------------------
@@ -124,10 +124,7 @@ IMPLICIT NONE
         ! body  (in the coordinate system of the parent) to the inertia of its
         ! parent
         IF(pb_id /= 0) THEN
-            Xp_to_b = MATMUL(joint_system(i)%Xj_to_ch, &
-                         MATMUL(joint_system(i)%Xj, &
-                                joint_system(i)%Xp_to_j))
-            ! WRITE(*,*) Xp_to_b
+            Xp_to_b = body_system(i)%Xp_to_b
 
             Ib_A_rest = body_system(i)%Ib_A
             pA_rest = body_system(i)%pA + MATMUL(Ib_A_rest, body_system(i)%v)

@@ -97,6 +97,10 @@ IMPLICIT NONE
         DO j = 1, SIZE(body_system(i)%Xb_to_i,1)
             WRITE(2017,'(6F9.5)') body_system(i)%Xb_to_i(j,:)
         END DO
+        WRITE(2017,'(A)') 'Xp_to_b:'
+        DO j = 1, SIZE(body_system(i)%Xp_to_b,1)
+            WRITE(2017,'(6F9.5)') body_system(i)%Xp_to_b(j,:)
+        END DO
 
         WRITE(2017,'(/)')
         WRITE(2017,'(A,6F9.5)') 'v:', body_system(i)%v(:,1)

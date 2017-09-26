@@ -163,6 +163,7 @@ IMPLICIT NONE
     !              to. This body's body_id equals to the same joint_id.
     !    support: body hierarchy number before this body
     !    Xb_to_i -- transform from body(at its first point) to inertia system
+    !    Xp_to_b -- transform between the parent body and the current body
     !    v -- body velocity expressed in [wx,wy,wz,ux,uy,uz]
     !    c -- body acceleration
     !    pA -- momentum of chained body
@@ -176,6 +177,7 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(6,6)                 :: Xj_to_c
         REAL(dp),DIMENSION(6,6)                 :: inertia_c,inertia_j
         REAL(dp),DIMENSION(6,6)                 :: Xb_to_i
+        REAL(dp),DIMENSION(6,6)                 :: Xp_to_b
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
         REAL(dp),DIMENSION(6,1)                 :: v,c,pA
         REAL(dp),DIMENSION(6,6)                 :: Ib_A

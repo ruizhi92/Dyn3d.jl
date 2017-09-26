@@ -8,13 +8,13 @@
 !  Details      ：
 !
 !  Input        : joint_id. Use the joint_id to extract position vector q
-!                 (DIMENSION(6)) in the joint_system
+!                 and qdot of (DIMENSION(6)) in the joint_system
 !
 !  Input/output :
 !
 !  Output       : No explicit output. Updates joint_system(i)%Xj for all
 !                 joint types. And update joint_system(i)%qdot(udof_p)
-!                 for planar and free type of joint.
+!                 for planar and free type of joint. Also update vJ.
 !
 !  Remarks      :
 !

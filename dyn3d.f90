@@ -33,6 +33,7 @@ PROGRAM dyn3d
     USE module_data_type
     USE module_init_system
     USE module_write_structure
+    USE module_artic_rhs_3d
 
 IMPLICIT NONE
 
@@ -49,6 +50,10 @@ IMPLICIT NONE
     CALL init_system(y_init)
     WRITE(*,*) y_init
     DEALLOCATE(y_init)
+
+    ! construct rhs for the first timestep
+!    system%soln%t(1) = system%params%dt
+!    CALL artic_rhs_3d(system%soln%t(1),y_init,system%soln%y)
 
     ! write data
     CALL write_structure
