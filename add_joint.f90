@@ -49,7 +49,7 @@ IMPLICIT NONE
     ! input joint configure structure from config files
     TYPE(config_joint),INTENT(IN)                   :: config_j
     ! This is the i-th joint in the system
-    INTEGER                                         :: ij
+    INTEGER,INTENT(IN)                              :: ij
 
     !--------------------------------------------------------------------
     !  Local variables
@@ -65,6 +65,9 @@ IMPLICIT NONE
     joint_system(ij)%shape1 = config_j%shape1
     joint_system(ij)%shape2 = config_j%shape2
     joint_system(ij)%body1 = config_j%body1
+
+    ! allocate and assign joint_dof structure
+    ALLOCATE(joint_system(ij)%joint_dof(SIZE(config_j%joint_dof)))
     joint_system(ij)%joint_dof = config_j%joint_dof
 
     !--------------- Using abbr. for joint_system variable -------------
@@ -140,10 +143,11 @@ IMPLICIT NONE
         ! np and na
         np = 0
         na = 0
+
         DO i = 1,nudof
-            IF(joint_dof(joint_system(ij)%udof(i))%dof_type == 'passive') THEN
+            IF(joint_dof(i)%dof_type == 'passive') THEN
                 np = np + 1
-            ELSE IF(joint_dof(joint_system(ij)%udof(i))%dof_type == 'active') THEN
+            ELSE IF(joint_dof(i)%dof_type == 'active') THEN
                 na = na + 1
             ELSE
                 WRITE(*,*) 'Error:dof_type not correct!'
@@ -156,8 +160,8 @@ IMPLICIT NONE
             ALLOCATE(joint_system(ij)%udof_p(np))
             ALLOCATE(joint_system(ij)%i_udof_p(np))
             DO j = 1,nudof
-                IF(joint_dof(joint_system(ij)%udof(j))%dof_type == 'passive') THEN
-                    joint_system(ij)%udof_p(count) = joint_dof(joint_system(ij)%udof(j))%dof_id
+                IF(joint_dof(j)%dof_type == 'passive') THEN
+                    joint_system(ij)%udof_p(count) = joint_dof(j)%dof_id
                     joint_system(ij)%i_udof_p(count) = j
                     count = count + 1
                 END IF
@@ -170,8 +174,8 @@ IMPLICIT NONE
             ALLOCATE(joint_system(ij)%udof_a(na))
             ALLOCATE(joint_system(ij)%i_udof_a(na))
             DO j = 1,nudof
-                IF(joint_dof(joint_system(ij)%udof(j))%dof_type == 'active') THEN
-                    joint_system(ij)%udof_a(count) = joint_dof(joint_system(ij)%udof(j))%dof_id
+                IF(joint_dof(j)%dof_type == 'active') THEN
+                    joint_system(ij)%udof_a(count) = joint_dof(j)%dof_id
                     joint_system(ij)%i_udof_a(count) = j
                     count = count + 1
                 END IF

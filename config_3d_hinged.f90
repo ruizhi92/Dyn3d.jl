@@ -123,15 +123,14 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Set default dof
     !--------------------------------------------------------------------
-    ! set default_dof_passive
-    default_dof_passive%dof_id = 0
+    ! set default_dof_passive to passive revolute joint
+    default_dof_passive%dof_id = 3
     default_dof_passive%dof_type = 'passive'
     default_dof_passive%stiff = stiff
     default_dof_passive%damp = damp
 
 
-    ! set default_dof_active
-    default_dof_active%dof_id = 0
+    ! set default_dof_active to active hold at 0
     default_dof_active%dof_type = 'active'
     default_dof_active%motion_type = 'hold'
     ALLOCATE(default_dof_active%motion_params(1))
@@ -196,7 +195,9 @@ IMPLICIT NONE
     input_joint(1)%shape1(4:6) = (/ 0.0_dp, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape2 = (/ 0.0_dp, 0.0_dp, 0.0_dp, &
                               0.0_dp, 0.0_dp, 0.0_dp /)
+
     ! match dof with the specified input, otherwise set to default
+    ALLOCATE(input_joint(1)%joint_dof(6))
     DO i = 1,6
         input_joint(1)%joint_dof(i) = default_dof_active
         input_joint(1)%joint_dof(i)%dof_id = i
@@ -222,9 +223,11 @@ IMPLICIT NONE
                                     height, 0.0_dp, 0.0_dp /)
         input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
                                     0.0_dp, 0.0_dp, 0.0_dp /)
-        DO j = 1,6
+
+        ! revolute joint only has one unconstrained dof
+        ALLOCATE(input_joint(i)%joint_dof(1))
+        DO j = 1, 1
             input_joint(i)%joint_dof(j) = default_dof_passive
-            input_joint(i)%joint_dof(j)%dof_id = j
         END DO
     END DO
 

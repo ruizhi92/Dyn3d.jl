@@ -197,7 +197,7 @@ IMPLICIT NONE
         END DO
         WRITE(2017,'(/)')
 
-        DO j = 1, 6
+        DO j = 1, joint_system(i)%nudof
             WRITE(2017,'(A,I5,A)') 'joint_dof of degree ',j,':'
             WRITE(2017,'(A,I5)') 'dof_id:', joint_system(i)%joint_dof(j)%dof_id
             WRITE(2017,'(A,A)') 'dof_type: ', TRIM(joint_system(i)%joint_dof(j)%dof_type)

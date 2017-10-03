@@ -52,8 +52,8 @@ IMPLICIT NONE
     DEALLOCATE(y_init)
 
     ! construct rhs for the first timestep
-!    system%soln%t(1) = system%params%dt
-!    CALL artic_rhs_3d(system%soln%t(1),y_init,system%soln%y)
+    system%soln%t(1) = system%params%dt
+    CALL artic_rhs_3d(system%soln%t(1),y_init,system%soln%y(1,:))
 
     ! write data
     CALL write_structure

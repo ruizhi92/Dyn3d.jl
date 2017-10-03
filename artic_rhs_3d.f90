@@ -7,7 +7,7 @@
 !                 and embed the system position in the new timestep, dydt
 !                 of time i is calculated. dydt then goes into the ode solver.
 !
-!  Details      ：
+!  Details      ：y_im1 and dydt_i are allocated before this subroutine
 !
 !  Input        : time t, y_im1
 !
@@ -35,6 +35,7 @@ SUBROUTINE artic_rhs_3d(t_i,y_im1,dydt_i)
     !--------------------------------------------------------------------
     USE module_constants
     USE module_data_type
+    USE module_basic_matrix_operations
     USE module_prescribed_motion
     USE module_embed_system
     USE module_six_dimension_cross
@@ -44,23 +45,25 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
-    REAL(dp)                                  :: t_i
-    REAL(dp),DIMENSION(:),ALLOCATABLE         :: y_im1
-    REAL(dp),DIMENSION(:),ALLOCATABLE         :: dydt_i
+    REAL(dp),INTENT(IN)                                  :: t_i
+    REAL(dp),DIMENSION(:),INTENT(IN)                     :: y_im1
+    REAL(dp),DIMENSION(:),INTENT(OUT)                    :: dydt_i
 
 
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                   :: i,pb_id,i0,i1
+    INTEGER                                   :: i,j,pb_id,i0,i1,dofid
     CHARACTER(LEN = max_char)                 :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: motion
     REAL(dp),DIMENSION(:),ALLOCATABLE         :: q_total,qdot_total
     REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: qJ_ddot_a
-    REAL(dp),DIMENSION(6,6)                   :: Ib_A_rest,Xp_to_b
-    REAL(dp),DIMENSION(6,1)                   :: pA_rest,c_temp
-    REAL(dp),DIMENSION(6,1)                   :: fex_i,fex_b
-!    REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: Pup,Ptemp,Ptemp_inv,ytemp
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: tauj
+    REAL(dp),DIMENSION(6,1)                   :: fex_i,fex_b,c_temp
+    REAL(dp),DIMENSION(6,6)                   :: Ib_A_rest
+    REAL(dp),DIMENSION(6,1)                   :: pA_rest,a_pb,aprime,aJ
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: Pup
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: qddot_p
 
     !--------------------------------------------------------------------
     !  ALLOCATION
@@ -103,8 +106,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     ! from body 1 to body n, use the recursive Newton-Euler algorithm, compute
     ! body properties from first body to the last body in every body's own
-    ! local body coordinates. Update body velocity, body acceleration,
-    ! bias force, external force and articulated inertia.
+    ! local body coordinates. Update body velocity v, body acceleration c,
+    ! bias force pA, external force fex_b and articulated inertia Ib_A.
 
     DO i = 1, system%nbody
 
@@ -150,7 +153,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Pass 2
     !--------------------------------------------------------------------
-    ! Develop the articulated body inertias and bias forces
+    ! Develop the articulated body inertias Ib_A and bias forces pA
     !
     ! Note that this algorithm assumes that the transform from parent joint to
     ! a body is the identity. This has been ensured in assemble_system.
@@ -158,53 +161,128 @@ IMPLICIT NONE
     ! calculating the articulated inertia of each body from those of its
     ! descendants
 
-!    ! from body n to body 1
-!    DO i = system%nbody, 1 ,-1
-!
-!        ! the body_id of this body's parent body
-!         pb_id = body_system(i)%parent_id
-!
-!        ! If the parent is not the base, then add the composite inertia of this
-!        ! body  (in the coordinate system of the parent) to the inertia of its
-!        ! parent
-!        IF(pb_id /= 0) THEN
-!            Xp_to_b = MATMUL(joint_system(i)%Xj_to_ch, &
-!                         MATMUL(joint_system(i)%Xj, &
-!                                joint_system(i)%Xp_to_j))
-!            ! WRITE(*,*) Xp_to_b
-!
-!            Ib_A_rest = body_system(i)%Ib_A
-!            pA_rest = body_system(i)%pA + MATMUL(Ib_A_rest, body_system(i)%v)
-!            body_system(pb_id)%Ib_A = body_system(pb_id)%Ib_A + &
-!                MATMUL(TRANSPOSE(Xp_to_b), MATMUL( &
-!                    Ib_A_rest, Xp_to_b))
-!            body_system(pb_id)%pA = body_system(pb_id)%pA + MATMUL( &
-!                TRANSPOSE(Xp_to_b), pA_rest)
-!        END IF
-!
-!    END DO
-!
-!    !--------------------------------------------------------------------
-!    !  Pass 3
-!    !--------------------------------------------------------------------
-!    ! compute the velocity of passive degrees of freedom in joint from inertial
-!    ! system to body 1, by zeroing the overall system momentum.
-!    ! update the passive part of qdot
-!
-!    ! only deal with body 1's passive dof
-!    IF(ALLOCATED(joint_system(1)%global_up)) THEN
-!        ALLOCATE(Pup(6,joint_system(1)%np))
-!        Pup = joint_system(1)%S(:,joint_system(1)%udof_p)
-!
-!        ALLOCATE(Ptemp(SIZE(Pup,2),SIZE(Pup,2)))
-!        Ptemp = MATMUL(TRANSPOSE(Pup),MATMUL(body_system(1)%Ib_A,Pup))
-!        ALLOCATE(Ptemp_inv(SIZE(Ptemp,2),SIZE(Ptemp,1)))
-!        CALL inverse(Ptemp,Ptemp_inv)
-!
-!        ALLOCATE(ytemp(SIZE(Pup,2),1))
-!        ytemp = MATMUL(-Ptemp_inv,MATMUL(TRANSPOSE(Pup),body_system(1)%pA))
-!        y_init(joint_system(1)%global_up) = ytemp(:,1)
-!    END IF
+    ! from body n to body 1
+    DO i = system%nbody, 1 ,-1
+
+        ! the body_id of this body's parent body
+        pb_id = body_system(i)%parent_id
+
+        ! compute the passive portion of joint force(spring+damper) tauj
+        IF(ALLOCATED(tauj)) DEALLOCATE(tauj)
+        ALLOCATE(tauj(joint_system(i)%np,1))
+        tauj(:,1) = 0.0_dp
+        DO j = 1, joint_system(i)%np
+            ! find index of the dof in the unconstrained list of this joint
+            dofid = joint_system(i)%i_udof_p(j)
+            ! the dimension of tauj equals to the number of passive dof for a joint
+            ! scalar operation here for tauj(j,1)
+            tauj(j,1) = -joint_system(i)%joint_dof(dofid)%stiff * &
+                       joint_system(i)%q(dofid) - &
+                       joint_system(i)%joint_dof(dofid)%damp * &
+                       joint_system(i)%qdot(dofid)
+        END DO
+
+        ! compute some useful quantities for passive dof only
+        IF(joint_system(i)%np > 0) THEN
+            ! since FORTRAN doesn't distinguish upper and lower case, u is written
+            ! as uu here
+            IF(ALLOCATED(Pup)) DEALLOCATE(Pup)
+            ALLOCATE(Pup(6,joint_system(i)%np))
+            ALLOCATE(body_system(i)%U(6,joint_system(i)%np))
+            ALLOCATE(body_system(i)%Hp(joint_system(i)%np,joint_system(i)%np))
+            ALLOCATE(body_system(i)%Hpinv(joint_system(i)%np,joint_system(i)%np))
+            ALLOCATE(body_system(i)%uu(joint_system(i)%np,1))
+
+            Pup = joint_system(i)%S(:,joint_system(i)%i_udof_p)
+            body_system(i)%U = MATMUL(body_system(i)%Ib_A,Pup)
+            body_system(i)%Hp = MATMUL(TRANSPOSE(Pup), body_system(i)%U)
+            CALL inverse(body_system(i)%Hp,body_system(i)%Hpinv)
+            body_system(i)%uu = tauj - MATMUL(TRANSPOSE(Pup),body_system(i)%pA)
+        END IF
+
+
+        ! If the parent is not the base, then add the composite inertia of this
+        ! body  (in the coordinate system of the parent) to the inertia of its
+        ! parent
+        IF(pb_id /= 0) THEN
+
+            ! for the part other than the handle
+            IF(joint_system(i)%np == 0) THEN
+                Ib_A_rest = body_system(i)%Ib_A
+                pA_rest = body_system(i)%pA + MATMUL(Ib_A_rest, body_system(i)%c)
+            ELSE
+                Ib_A_rest = body_system(i)%Ib_A - MATMUL(body_system(i)%U, &
+                            MATMUL(body_system(i)%Hpinv, TRANSPOSE(body_system(i)%U)))
+                pA_rest = MATMUL(body_system(i)%U,&
+                            MATMUL(body_system(i)%Hpinv, body_system(i)%uu))
+
+            END IF
+
+            ! for the new assembled body
+            body_system(pb_id)%Ib_A = body_system(pb_id)%Ib_A + &
+                MATMUL(TRANSPOSE(body_system(i)%Xp_to_b), MATMUL( &
+                    Ib_A_rest, body_system(i)%Xp_to_b))
+            body_system(pb_id)%pA = body_system(pb_id)%pA + MATMUL( &
+                TRANSPOSE(body_system(i)%Xp_to_b), pA_rest)
+        END IF
+
+    END DO
+
+    !--------------------------------------------------------------------
+    !  Pass 3
+    !--------------------------------------------------------------------
+    ! compute the accelerations of the passive joint variables
+    ! include -gravity in the base acceleration in order to account for it
+    ! in the whole system
+
+    ! compute passive dof of joint acceleration qddot_p for this timestep
+    ! qddot_p is global, it has system%np entries
+    ALLOCATE(qddot_p(system%np,1))
+    qddot_p(:,1) = 0.0_dp
+
+    DO i = 1, system%nbody
+
+        ! the body_id of this body's parent body
+        pb_id = body_system(i)%parent_id
+
+        ! get assembled body acceleration of the parent body, gravity is
+        ! accounted for here at the base
+        IF(pb_id == 1) THEN
+            a_pb(:,1) = 0.0_dp
+            a_pb(4:6,1) = -system%params%gravity(:)
+        ELSE
+            a_pb = body_system(pb_id)%a
+        END IF
+
+        ! pass assembled acceleration by parent-child hierarchy called aprime
+        aprime = MATMUL(body_system(i)%Xp_to_b, a_pb) + body_system(i)%c
+
+        ! aJ is constructed with 6 elements for each joint
+        aJ(:,1) = 0.0_dp
+
+        ! if passive dofs exist, account for qddot
+        IF(joint_system(i)%np > 0 ) THEN
+            qddot_p(joint_system(i)%global_up,:) = MATMUL(body_system(i)%Hpinv, &
+                (body_system(i)%uu - MATMUL(TRANSPOSE(body_system(i)%U), &
+                                            aprime)))
+            aJ(joint_system(i)%udof_p,1) = qddot_p(joint_system(i)%global_up,1)
+            body_system(i)%a = aprime + aJ
+        ELSE
+            body_system(i)%a = aprime
+        END IF
+
+    END DO
+
+    !--------------------------------------------------------------------
+    ! Fill in dydt vector
+    !--------------------------------------------------------------------
+    ! dydt(1:np) = qdot_p
+    DO i = 1,system%nbody
+        dydt_i(joint_system(i)%global_up) = joint_system(i)%qdot_pp
+    END DO
+
+    ! dydt(np+1:1*np) = qddot_p
+    dydt_i(system%np+1 : 2*system%np) = qddot_p(:,1)
 
     !--------------------------------------------------------------------
     !  DEALLOCATION
@@ -213,10 +291,9 @@ IMPLICIT NONE
     DEALLOCATE(q_total)
     DEALLOCATE(qdot_total)
     DEALLOCATE(qJ_ddot_a)
+    IF(ALLOCATED(tauj)) DEALLOCATE(tauj)
+    IF(ALLOCATED(Pup)) DEALLOCATE(Pup)
+    DEALLOCATE(qddot_p)
 
-!    IF(ALLOCATED(Pup)) DEALLOCATE(Pup)
-!    IF(ALLOCATED(Ptemp)) DEALLOCATE(Ptemp)
-!    IF(ALLOCATED(Ptemp_inv)) DEALLOCATE(Ptemp_inv)
-!    IF(ALLOCATED(ytemp)) DEALLOCATE(ytemp)
 
 END SUBROUTINE artic_rhs_3d

@@ -134,7 +134,7 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(:),ALLOCATABLE           :: q_init
         REAL(dp),DIMENSION(6)                       :: shape1,shape2
         INTEGER                                     :: body1
-        TYPE(dof),DIMENSION(6)                      :: joint_dof
+        TYPE(dof),DIMENSION(:),ALLOCATABLE          :: joint_dof
     END TYPE
 
 
@@ -165,9 +165,11 @@ IMPLICIT NONE
     !    Xb_to_i -- transform from body(at its first point) to inertia system
     !    Xp_to_b -- transform between the parent body and the current body
     !    v -- body velocity expressed in [wx,wy,wz,ux,uy,uz]
-    !    c -- body acceleration
+    !    c -- body acceleration of the local single body
+    !    a --  body acceleration of assembled chained body
     !    pA -- momentum of chained body
     !    Ib_A -- inertia of chained body
+    !    U,Hp,Hpinv,uu -- some intermediate variables in Pass 2 and Pass 3
         INTEGER                                 :: body_id,parent_id
         INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
         INTEGER                                 :: nchild,nverts
@@ -179,8 +181,9 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(6,6)                 :: Xb_to_i
         REAL(dp),DIMENSION(6,6)                 :: Xp_to_b
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
-        REAL(dp),DIMENSION(6,1)                 :: v,c,pA
+        REAL(dp),DIMENSION(6,1)                 :: v,c,a,pA
         REAL(dp),DIMENSION(6,6)                 :: Ib_A
+        REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: U,Hp,Hpinv,uu
     END TYPE
 
 
@@ -229,11 +232,11 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
         INTEGER,DIMENSION(:),ALLOCATABLE        :: global_up
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
-        TYPE(dof),DIMENSION(6)                  :: joint_dof
+        TYPE(dof),DIMENSION(:),ALLOCATABLE      :: joint_dof
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot,qdot_pp
         REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
         !REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
-        REAL(dp),DIMENSION(6,1)                  :: vJ,cJ
+        REAL(dp),DIMENSION(6,1)                 :: vJ,cJ
 
     END TYPE
 

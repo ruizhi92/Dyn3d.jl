@@ -118,7 +118,7 @@ IMPLICIT NONE
     DO i = system%nbody, 1 ,-1
 
         ! the body_id of this body's parent body
-         pb_id = body_system(i)%parent_id
+        pb_id = body_system(i)%parent_id
 
         ! If the parent is not the base, then add the composite inertia of this
         ! body  (in the coordinate system of the parent) to the inertia of its
@@ -147,7 +147,7 @@ IMPLICIT NONE
     ! only deal with body 1's passive dof
     IF(ALLOCATED(joint_system(1)%global_up)) THEN
         ALLOCATE(Pup(6,joint_system(1)%np))
-        Pup = joint_system(1)%S(:,joint_system(1)%udof_p)
+        Pup = joint_system(1)%S(:,joint_system(1)%i_udof_p)
 
         ALLOCATE(Ptemp(SIZE(Pup,2),SIZE(Pup,2)))
         Ptemp = MATMUL(TRANSPOSE(Pup),MATMUL(body_system(1)%Ib_A,Pup))
