@@ -253,9 +253,9 @@ IMPLICIT NONE
 
     CALL assemble_system
 
-    DO i = 1,system%na
-        WRITE(*,*) system%kinmap(i,:)
-    END DO
+!    DO i = 1,system%na
+!        WRITE(*,*) system%kinmap(i,:)
+!    END DO
 
 
 END SUBROUTINE config_3d_hinged

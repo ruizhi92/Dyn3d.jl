@@ -71,7 +71,7 @@ IMPLICIT NONE
     ALLOCATE(motion(system%na,3))
     ALLOCATE(q_total(system%nudof))
     ALLOCATE(qdot_total(system%nudof))
-    ALLOCATE(qJ_ddot_a(system%nudof,1))
+    ALLOCATE(qJ_ddot_a(6*system%nbody,1))
 
     !--------------------------------------------------------------------
     !  Construct q_total and qdot_total
@@ -247,7 +247,7 @@ IMPLICIT NONE
 
         ! get assembled body acceleration of the parent body, gravity is
         ! accounted for here at the base
-        IF(pb_id == 1) THEN
+        IF(pb_id == 0) THEN
             a_pb(:,1) = 0.0_dp
             a_pb(4:6,1) = -system%params%gravity(:)
         ELSE

@@ -37,9 +37,7 @@ PROGRAM dyn3d
 
 IMPLICIT NONE
 
-    !--------------------------------------------------------------------
-    !  ARGUMENT
-    !--------------------------------------------------------------------
+
     REAL(dp),DIMENSION(:),ALLOCATABLE         :: y_init
 
     ! add_body, add_joint and assemble them
@@ -48,14 +46,19 @@ IMPLICIT NONE
     ! initialize system
     ALLOCATE(y_init(2*system%np))
     CALL init_system(y_init)
-    WRITE(*,*) y_init
-    DEALLOCATE(y_init)
+
 
     ! construct rhs for the first timestep
     system%soln%t(1) = system%params%dt
+
     CALL artic_rhs_3d(system%soln%t(1),y_init,system%soln%y(1,:))
 
     ! write data
     CALL write_structure
+
+    !--------------------------------------------------------------------
+    !  Deallocation
+    !--------------------------------------------------------------------
+    DEALLOCATE(y_init)
 
 END PROGRAM dyn3d

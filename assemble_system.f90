@@ -180,6 +180,8 @@ IMPLICIT NONE
     ALLOCATE(system%time(nstep))
     ALLOCATE(system%soln%t(nstep))
     ALLOCATE(system%soln%y(nstep,2*system%np))
+    system%soln%t(:) = 0.0_dp
+    system%soln%y(:,:) = 0.0_dp
 
 
     !--------------------------------------------------------------------
