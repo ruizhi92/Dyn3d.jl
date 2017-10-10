@@ -31,11 +31,11 @@ MODULE module_basic_matrix_operations
 IMPLICIT NONE
 
     INTERFACE ones
-        MODULE PROCEDURE ones_s
+        MODULE PROCEDURE ones
     END INTERFACE
 
     INTERFACE zeros
-        MODULE PROCEDURE zeros_s
+        MODULE PROCEDURE zeros
     END INTERFACE
 
     INTERFACE write_matrix_inter

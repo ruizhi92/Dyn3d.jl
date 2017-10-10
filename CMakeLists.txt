@@ -12,8 +12,8 @@ enable_language(Fortran)
 #set (CMAKE_Fortran_FLAGS "-O2 -cpp -w -ffree-form -x f95-cpp-input -ffree-line-length-none")
 
 #debug flag
-#set (CMAKE_Fortran_FLAGS "-g -ffree-form -O2  -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface  -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace")
-set (CMAKE_Fortran_FLAGS "-g -ffree-form -Wall -fbounds-check -fcheck=all")
+set (CMAKE_Fortran_FLAGS "-g -ffree-form -O2  -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface  -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace")
+#set (CMAKE_Fortran_FLAGS "-g -ffree-form -Wall -fbounds-check -fcheck=all")
 
 #---------------------------------------------------------------
 # Set source and subdirectory
@@ -26,6 +26,7 @@ file(GLOB_RECURSE DYN3D_SRC
 )
 
 add_subdirectory(basic_matrix_operations)
+add_subdirectory(ode_methods)
 
 #---------------------------------------------------------------
 # build executable

@@ -172,14 +172,15 @@ IMPLICIT NONE
     END DO
 
     ! kindata
-    ALLOCATE(system%kindata(system%params%nstep, 1+3*system%na))
+    ! note here that the allocation is specified to RK4 ode method
+    ALLOCATE(system%kindata(2*system%params%nstep+1, 1+3*system%na))
 
     ! params got assigned in config files
     ! Allocate time, soln
     nstep = system%params%nstep
     ALLOCATE(system%time(nstep))
-    ALLOCATE(system%soln%t(nstep))
-    ALLOCATE(system%soln%y(nstep,2*system%np))
+    ALLOCATE(system%soln%t(nstep+1))
+    ALLOCATE(system%soln%y(nstep+1,2*system%np))
     system%soln%t(:) = 0.0_dp
     system%soln%y(:,:) = 0.0_dp
 
@@ -237,7 +238,7 @@ IMPLICIT NONE
 
         ! assign new values
         ! The joint location now coincides with the origin of body
-        joint_system(i)%shape2(1:3) = 0
+        joint_system(i)%shape2(1:3) = 0.0_dp
 
         ! the new transform from parent joint to body is the identity
         CALL ones(6, joint_system(i)%Xj_to_ch)

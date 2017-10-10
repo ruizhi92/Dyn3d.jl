@@ -64,9 +64,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 1.0_dp
+    tf = 0.01_dp
     ! total number of steps
-    nstep = 10000
+    nstep = 1
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
@@ -153,7 +153,7 @@ IMPLICIT NONE
                                    cos(ang), height+sin(ang), &
                                    0.0_dp, height /), &
                     shape(input_body%verts), order=(/2,1/) )
-    ELSE IF(height == 0 .AND. ang > 0) THEN
+    ELSE IF(height == 0.0_dp .AND. ang > 0.0_dp) THEN
         ! triangle
         input_body%nverts = 3
         ALLOCATE(input_body%verts(input_body%nverts,2))
@@ -252,10 +252,6 @@ IMPLICIT NONE
     system%params%tf = tf
 
     CALL assemble_system
-
-!    DO i = 1,system%na
-!        WRITE(*,*) system%kinmap(i,:)
-!    END DO
 
 
 END SUBROUTINE config_3d_hinged

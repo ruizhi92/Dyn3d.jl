@@ -72,7 +72,7 @@ IMPLICIT NONE
     body_system(ib)%nverts = config_b%nverts
 
     !---------------- Set up the vertices of body ---------------
-    body_system(ib)%verts(:,:) = 0
+    body_system(ib)%verts(:,:) = 0.0_dp
     DO i = 1, nverts
         body_system(ib)%verts(i,1) = config_b%verts(i,2)
         body_system(ib)%verts(i,3) = config_b%verts(i,1)
@@ -82,12 +82,12 @@ IMPLICIT NONE
 
     !---------- Calculate mass, x_c, inertia_c, inertia_j -------
     ASSOCIATE(verts => body_system(ib)%verts)
-        Xc = 0
-        Zc = 0
-        A = 0
-        Ix = 0
-        Iz = 0
-        Ixz = 0
+        Xc = 0.0_dp
+        Zc = 0.0_dp
+        A = 0.0_dp
+        Ix = 0.0_dp
+        Iz = 0.0_dp
+        Ixz = 0.0_dp
 
         ! some preparation work
         DO i = 1, nverts
@@ -123,7 +123,7 @@ IMPLICIT NONE
             fact = zj*xjp1 - zjp1*xj
             Ix =   Ix + (zj**2+zj*zjp1+zjp1**2)*fact
             Iz =   Iz + (xj**2+xj*xjp1+xjp1**2)*fact
-            Ixz = Ixz + (xj*zjp1+2*xj*zj+2*xjp1*zjp1+xjp1*zj)*fact
+            Ixz = Ixz + (xj*zjp1+2.0_dp*xj*zj+2.0_dp*xjp1*zjp1+xjp1*zj)*fact
         END DO
         Ix = Ix/12.0_dp
         Iz = Iz/12.0_dp

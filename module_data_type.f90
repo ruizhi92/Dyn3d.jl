@@ -155,6 +155,7 @@ IMPLICIT NONE
     !           in [x y z]. Different line is different vert.
     !    verts_i: verts coordinate in the inertia frame
     !    x_c: body center in the body coordinate, with [x y z]
+    !    x_0: origin of this body in inertial frame
     !    mass: mass of the body
     !    inertia_c: body inertia at center
     !    Xj_to_c: transform matrix from the joint(same id with this body)

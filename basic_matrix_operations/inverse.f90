@@ -119,8 +119,8 @@ IMPLICIT NONE
     ALLOCATE(x(n))
     DO k = 1, n
         ! set up identity vector
-        x(:) = 0
-        x(k) = 1
+        x(:) = 0.0_dp
+        x(k) = 1.0_dp
 
         i0 = 0
         DO i = 1,n

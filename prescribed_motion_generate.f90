@@ -64,8 +64,8 @@ IMPLICIT NONE
 
     ! construct the time array
     ALLOCATE(time(nstep))
-    time = tf/nstep*(/ (i,i=0,nstep-1) /)
-    DO i = 1,nstep
+    time = tf/2/nstep*(/ (i,i=0,2*nstep) /)
+    DO i = 1,2*nstep+1
         system%kindata(i,1) = time(i)
     END DO
 
@@ -82,11 +82,11 @@ IMPLICIT NONE
         SELECT CASE(joint_system(joint_id)%joint_dof(dof_id)%motion_type)
 
             CASE('hold')
-                DO j = 1,nstep
+                DO j = 1,2*nstep+1
                 system%kindata(j,i_pos) = &
                     joint_system(joint_id)%joint_dof(dof_id)%motion_params(1)
-                system%kindata(j,i_vel) = 0
-                system%kindata(j,i_acc) = 0
+                system%kindata(j,i_vel) = 0.0_dp
+                system%kindata(j,i_acc) = 0.0_dp
                 END DO
 
             CASE('velocity')
@@ -96,7 +96,7 @@ IMPLICIT NONE
                 amp = joint_system(joint_id)%joint_dof(dof_id)%motion_params(1)
                 freq = joint_system(joint_id)%joint_dof(dof_id)%motion_params(2)
                 phase = joint_system(joint_id)%joint_dof(dof_id)%motion_params(3)
-                DO j = 1,nstep
+                DO j = 1,2*nstep+1
                 arg = 2*pi*freq*time(j)+phase
                 system%kindata(j,i_pos) = amp*cos(arg)
                 system%kindata(j,i_vel) = -2*pi*freq*amp*sin(arg)

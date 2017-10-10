@@ -61,7 +61,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     nstep = system%params%nstep
     ALLOCATE(active_motion(system%na,3))
-    DO i = 1,nstep
+    DO i = 1,2*nstep+1
         IF(system%kindata(i,1) == t) THEN
             DO j = 1,system%na
                 j_pos = 1 + 3*(j-1) + 1

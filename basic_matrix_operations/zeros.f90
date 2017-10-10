@@ -24,7 +24,7 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-SUBROUTINE zeros_s(n,E)
+SUBROUTINE zeros(n,E)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -39,8 +39,8 @@ IMPLICIT NONE
 
     DO i = 1, n
         DO j = 1, n
-            E(i,j) = 0
+            E(i,j) = 0.0_dp
         END DO
     END DO
 
-END SUBROUTINE zeros_s
+END SUBROUTINE zeros

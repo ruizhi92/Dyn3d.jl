@@ -24,7 +24,7 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-SUBROUTINE ones_s(n,E)
+SUBROUTINE ones(n,E)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -38,9 +38,9 @@ IMPLICIT NONE
 
     DO i = 1, n
         DO j = 1, n
-            E(i,j) = 0
+            E(i,j) = 0.0_dp
         END DO
-        E(i,i) = 1
+        E(i,i) = 1.0_dp
     END DO
 
-END SUBROUTINE ones_s
+END SUBROUTINE ones

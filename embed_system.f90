@@ -70,7 +70,7 @@ IMPLICIT NONE
 
     ! extract the degrees of freedom from q for reference joint to form
     ! a 6-element version of q for joint 1
-    q_ref(:,1) = 0
+    q_ref(:,1) = 0.0_dp
     q_ref(joint_system(1)%udof,1) = q_total(joint_system(1)%udofmap)
 
     ! insert q and qdot values into joint_system structure
@@ -88,7 +88,7 @@ IMPLICIT NONE
     CALL inverse(Xi_to_body1,body_system(1)%Xb_to_i)
 
     ! set the origin of the reference body in inertial space
-    q_temp(1:3,1) = 0
+    q_temp(1:3,1) = 0.0_dp
     q_temp(4:6,1) = q_ref(4:6,1)
     q_temp = MATMUL(body_system(1)%Xb_to_i,q_temp)
     body_system(1)%x_0 = joint_system(1)%shape1(4:6) + q_temp(4:6,1)
@@ -102,7 +102,7 @@ IMPLICIT NONE
 
         ! update verts_i
         DO j = 1, body_system(i)%nverts
-            q_temp(1:3,1) = 0
+            q_temp(1:3,1) = 0.0_dp
             q_temp(4:6,1) = body_system(i)%verts(j,:)
             q_temp = MATMUL(body_system(i)%Xb_to_i,q_temp)
             body_system(i)%verts_i(j,:) = q_temp(4:6,1) + body_system(i)%x_0
@@ -135,16 +135,16 @@ IMPLICIT NONE
             ! update x_0 for this child in the inertial system
             ! step 1: find the vector to account for shape1(shape1 is expressed
             !         in the parent joint coord)
-            q_temp(1:3,1) = 0
+            q_temp(1:3,1) = 0.0_dp
             q_temp(4:6,1) = joint_system(child_id)%shape1(4:6)
             q_temp = MATMUL(body_system(i)%Xb_to_i,q_temp)
             x_temp = q_temp(4:6,1) + body_system(i)%x_0
 
             ! step 2: find the vector to account for joint rotation(Xj is expressed
             ! in the child joint coord)
-            q_temp2(:,1) = 0
+            q_temp2(:,1) = 0.0_dp
             q_temp2(joint_system(child_id)%udof,1) = joint_system(child_id)%q
-            q_temp(1:3,1) = 0
+            q_temp(1:3,1) = 0.0_dp
             q_temp(4:6,1) = q_temp2(4:6,1)
             CALL inverse(joint_system(child_id)%Xp_to_j,Xj_to_p)
             q_temp = MATMUL(body_system(i)%Xb_to_i, &
@@ -153,7 +153,7 @@ IMPLICIT NONE
 
             ! step 3: find the vector to accout for shape2(shape2 is expressed
             !         in the child joint coord)
-            q_temp(1:3,1) = 0
+            q_temp(1:3,1) = 0.0_dp
             q_temp(4:6,1) = -joint_system(child_id)%shape2(4:6)
             q_temp = MATMUL(body_system(child_id)%Xb_to_i,q_temp)
             x_temp = x_temp + q_temp(4:6,1)

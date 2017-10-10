@@ -4,7 +4,7 @@
 !  Purpose      : By constructing dydt=f(y,t), this subroutine takes in
 !                 time of i, passive position vector y from previous time step
 !                 i-1 as input. By imposing the active prescribed motion
-!                 and embed the system position in the new timestep, dydt
+!                 and embed the system position in the new timestep, dydt_i
 !                 of time i is calculated. dydt then goes into the ode solver.
 !
 !  Details      ：y_im1 and dydt_i are allocated before this subroutine
@@ -62,7 +62,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(6,1)                   :: fex_i,fex_b,c_temp
     REAL(dp),DIMENSION(6,6)                   :: Ib_A_rest
     REAL(dp),DIMENSION(6,1)                   :: pA_rest,a_pb,aprime,aJ
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: Pup
+    INTEGER,DIMENSION(:,:),ALLOCATABLE        :: Pup
     REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: qddot_p
 
     !--------------------------------------------------------------------
@@ -142,12 +142,13 @@ IMPLICIT NONE
 
         ! add zero external force. fex_i is expressed in the inertial frame
         ! fex_b is expressed in every body's own body coordinate
-        fex_i(:,1) = 0
+        fex_i(:,1) = 0.0_dp
         fex_b = MATMUL(TRANSPOSE(body_system(i)%Xb_to_i),fex_i)
 
         ! compute the full expression of pA by accounting for fex_b
         body_system(i)%pA = body_system(i)%pA - fex_b
-
+!WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
+!WRITE(*,*) 'pA in Pass 1: ',body_system(i)%pA
     END DO
 
     !--------------------------------------------------------------------
@@ -188,18 +189,36 @@ IMPLICIT NONE
             ! as uu here
             IF(ALLOCATED(Pup)) DEALLOCATE(Pup)
             ALLOCATE(Pup(6,joint_system(i)%np))
-            ALLOCATE(body_system(i)%U(6,joint_system(i)%np))
-            ALLOCATE(body_system(i)%Hp(joint_system(i)%np,joint_system(i)%np))
-            ALLOCATE(body_system(i)%Hpinv(joint_system(i)%np,joint_system(i)%np))
-            ALLOCATE(body_system(i)%uu(joint_system(i)%np,1))
+
+            IF(.NOT. ALLOCATED(body_system(i)%U)) THEN
+                ALLOCATE(body_system(i)%U(6,joint_system(i)%np))
+            END IF
+            IF(.NOT. ALLOCATED(body_system(i)%Hp)) THEN
+                ALLOCATE(body_system(i)%Hp(joint_system(i)%np,joint_system(i)%np))
+            END IF
+            IF(.NOT. ALLOCATED(body_system(i)%Hpinv)) THEN
+                ALLOCATE(body_system(i)%Hpinv(joint_system(i)%np,joint_system(i)%np))
+            END IF
+            IF(.NOT. ALLOCATED(body_system(i)%uu)) THEN
+                ALLOCATE(body_system(i)%uu(joint_system(i)%np,1))
+            END IF
 
             Pup = joint_system(i)%S(:,joint_system(i)%i_udof_p)
             body_system(i)%U = MATMUL(body_system(i)%Ib_A,Pup)
             body_system(i)%Hp = MATMUL(TRANSPOSE(Pup), body_system(i)%U)
             CALL inverse(body_system(i)%Hp,body_system(i)%Hpinv)
             body_system(i)%uu = tauj - MATMUL(TRANSPOSE(Pup),body_system(i)%pA)
+
         END IF
 
+!IF(joint_system(i)%joint_id == 3) THEN
+!    WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
+!    WRITE(*,*) 'inertia_j of body 3: ',body_system(i)%inertia_j(1,:)
+!    WRITE(*,*) 'Ib_A of body 3: ',body_system(i)%Ib_A(1,:)
+!    WRITE(*,*) 'U of body 3: ',body_system(i)%U
+!    WRITE(*,*) 'Hpinv of body 3: ',body_system(i)%Hpinv
+!    WRITE(*,*) '******************************** '
+!END IF
 
         ! If the parent is not the base, then add the composite inertia of this
         ! body  (in the coordinate system of the parent) to the inertia of its
@@ -213,7 +232,8 @@ IMPLICIT NONE
             ELSE
                 Ib_A_rest = body_system(i)%Ib_A - MATMUL(body_system(i)%U, &
                             MATMUL(body_system(i)%Hpinv, TRANSPOSE(body_system(i)%U)))
-                pA_rest = MATMUL(body_system(i)%U,&
+                pA_rest = body_system(i)%pA + MATMUL(Ib_A_rest, body_system(i)%c) + &
+                          MATMUL(body_system(i)%U,&
                             MATMUL(body_system(i)%Hpinv, body_system(i)%uu))
 
             END IF
@@ -225,6 +245,25 @@ IMPLICIT NONE
             body_system(pb_id)%pA = body_system(pb_id)%pA + MATMUL( &
                 TRANSPOSE(body_system(i)%Xp_to_b), pA_rest)
         END IF
+!IF(joint_system(i)%joint_id == 2) THEN
+!    WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
+!    WRITE(*,*) 'tauj: ',tauj
+!    WRITE(*,*) 'body%c of body 3: ',body_system(i)%c
+!    WRITE(*,*) 'uu of body 3: ',body_system(i)%uu
+!    WRITE(*,*) 'U of body 3: ',body_system(i)%U
+!    WRITE(*,*) 'Hpinv of body 3: ',body_system(i)%Hpinv
+!    WRITE(*,*) 'pA_rest: ',pA_rest
+!    WRITE(*,*) 'Ib_A of body 2: ',body_system(pb_id)%Ib_A(1,:)
+!    WRITE(*,*) 'pA of body 2: ',body_system(pb_id)%pA
+!    WRITE(*,*) ' '
+!END IF
+
+
+!WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
+!WRITE(*,*) 'This pb_id is: ', pb_id
+!WRITE(*,*) 'Ib_A in pass 2: ',body_system(i)%Ib_A
+!WRITE(*,'(A,6F20.15)') 'pA in pass 2: ',body_system(i)%pA(:,1)
+!WRITE(*,*) ' '
 
     END DO
 

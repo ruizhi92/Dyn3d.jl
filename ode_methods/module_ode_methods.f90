@@ -1,7 +1,7 @@
 !------------------------------------------------------------------------
-!  Module	    :            module_constants
+!  Module	    :            module_ode_methods
 !------------------------------------------------------------------------
-!  Purpose      : define some global constants to be used as module
+!  Purpose      : include some ode methods
 !
 !  Details      ：
 !
@@ -24,13 +24,16 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-MODULE module_constants
+MODULE module_ode_methods
 
 IMPLICIT NONE
 
-    INTEGER,PARAMETER         ::    dp = selected_real_kind(15, 307) ! 64 bit, double precision
-    REAL(dp),PARAMETER        ::    pi = 4.0_dp*atan(1.0_dp)
-!    COMPLEX, PARAMETER        ::    ii = (0,1) ! imaginary unit ii = sqrt(-1)
-    INTEGER,PARAMETER         ::    max_char = 256
+    INTERFACE rk4
+        MODULE PROCEDURE rk4_v
+    END INTERFACE
 
-END MODULE module_constants
+
+    CONTAINS
+    INCLUDE 'rk4_v.f90'
+
+END MODULE module_ode_methods
