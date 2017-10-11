@@ -46,7 +46,7 @@ IMPLICIT NONE
     INTEGER                                     :: joint_id,dof_id
     INTEGER                                     :: i,j,nstep
     REAL(dp),DIMENSION(:),ALLOCATABLE           :: time
-    REAL(dp)                                    :: dt,tf
+    REAL(dp)                                    :: dt
     INTEGER                                     :: i_pos,i_vel,i_acc
     REAL(dp)                                    :: amp,freq,phase,arg
 
@@ -60,11 +60,10 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     nstep = system%params%nstep
     dt = system%params%dt
-    tf = system%params%tf
 
     ! construct the time array
     ALLOCATE(time(nstep))
-    time = tf/2/nstep*(/ (i,i=0,2*nstep) /)
+    time = dt/2*(/ (i,i=0,2*nstep) /)
     DO i = 1,2*nstep+1
         system%kindata(i,1) = time(i)
     END DO
@@ -97,10 +96,10 @@ IMPLICIT NONE
                 freq = joint_system(joint_id)%joint_dof(dof_id)%motion_params(2)
                 phase = joint_system(joint_id)%joint_dof(dof_id)%motion_params(3)
                 DO j = 1,2*nstep+1
-                arg = 2*pi*freq*time(j)+phase
+                arg = 2.0_dp*pi*freq*time(j)+phase
                 system%kindata(j,i_pos) = amp*cos(arg)
-                system%kindata(j,i_vel) = -2*pi*freq*amp*sin(arg)
-                system%kindata(j,i_acc) = -4*pi**2*freq**2*amp*cos(arg)
+                system%kindata(j,i_vel) = -2.0_dp*pi*freq*amp*sin(arg)
+                system%kindata(j,i_acc) = -4.0_dp*pi**2*freq**2*amp*cos(arg)
                 END DO
 
             CASE('ramp')

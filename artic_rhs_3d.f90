@@ -147,8 +147,7 @@ IMPLICIT NONE
 
         ! compute the full expression of pA by accounting for fex_b
         body_system(i)%pA = body_system(i)%pA - fex_b
-!WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
-!WRITE(*,*) 'pA in Pass 1: ',body_system(i)%pA
+
     END DO
 
     !--------------------------------------------------------------------
@@ -245,6 +244,7 @@ IMPLICIT NONE
             body_system(pb_id)%pA = body_system(pb_id)%pA + MATMUL( &
                 TRANSPOSE(body_system(i)%Xp_to_b), pA_rest)
         END IF
+
 !IF(joint_system(i)%joint_id == 2) THEN
 !    WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
 !    WRITE(*,*) 'tauj: ',tauj
@@ -257,13 +257,6 @@ IMPLICIT NONE
 !    WRITE(*,*) 'pA of body 2: ',body_system(pb_id)%pA
 !    WRITE(*,*) ' '
 !END IF
-
-
-!WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
-!WRITE(*,*) 'This pb_id is: ', pb_id
-!WRITE(*,*) 'Ib_A in pass 2: ',body_system(i)%Ib_A
-!WRITE(*,'(A,6F20.15)') 'pA in pass 2: ',body_system(i)%pA(:,1)
-!WRITE(*,*) ' '
 
     END DO
 

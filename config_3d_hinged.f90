@@ -64,9 +64,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 0.01_dp
+    tf = 1.0_dp
     ! total number of steps
-    nstep = 1
+    nstep = 1000
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
@@ -153,7 +153,7 @@ IMPLICIT NONE
                                    cos(ang), height+sin(ang), &
                                    0.0_dp, height /), &
                     shape(input_body%verts), order=(/2,1/) )
-    ELSE IF(height == 0.0_dp .AND. ang > 0.0_dp) THEN
+    ELSE IF(ABS(height-0.0_dp) < tiny .AND. ang > 0.0_dp) THEN
         ! triangle
         input_body%nverts = 3
         ALLOCATE(input_body%verts(input_body%nverts,2))

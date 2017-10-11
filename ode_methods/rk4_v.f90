@@ -38,6 +38,7 @@ SUBROUTINE rk4_v(m, t_im1, dt, y_im1, f, y)
     !  MODULE
     !--------------------------------------------------------------------
     USE module_constants
+    USE module_write_structure
 
 IMPLICIT NONE
 
@@ -92,6 +93,5 @@ IMPLICIT NONE
 
     !  Combine them to estimate the solution y
     y(1:m) = y_im1(1:m) + dt/6*( k1(1:m) + 2*k2(1:m) + 2*k3(1:m) +  k4(1:m) )
-!WRITE(*,*) y
-!STOP
+
 END SUBROUTINE rk4_v

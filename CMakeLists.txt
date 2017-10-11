@@ -13,6 +13,9 @@ enable_language(Fortran)
 
 #debug flag
 set (CMAKE_Fortran_FLAGS "-g -ffree-form -O2  -fimplicit-none  -Wall  -Wline-truncation  -Wcharacter-truncation  -Wsurprising  -Waliasing  -Wimplicit-interface  -Wunused-parameter  -fwhole-file  -fcheck=all  -std=f2008  -pedantic  -fbacktrace")
+
+#-ffpe-trap=zero,overflow,underflow
+
 #set (CMAKE_Fortran_FLAGS "-g -ffree-form -Wall -fbounds-check -fcheck=all")
 
 #---------------------------------------------------------------

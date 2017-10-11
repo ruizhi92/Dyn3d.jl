@@ -78,8 +78,13 @@ IMPLICIT NONE
 
     WRITE(*,*) 'at t=0, ', system%soln%y(1,:)
 
+    ! Allocation of local variables
+    ALLOCATE(motion(system%na,3))
+    ALLOCATE(q_total(system%nudof))
+    ALLOCATE(qdot_total(system%nudof))
+
     !--------------------------------------------------------------------
-    !  Solve ode
+    !  Solve ode and embed system using the last solution
     !--------------------------------------------------------------------
 
     ! construct y for the first timestep using y_init
@@ -94,44 +99,34 @@ IMPLICIT NONE
         CALL rk4( 2*system%np, system%soln%t(i-1), dt, system%soln%y(i-1,:), &
                   f, system%soln%y(i,:))
 
+        ! the motion table is created in init_system, only need to refer here
+        mode = 'refer'
+        CALL prescribed_motion(mode, &
+            system%soln%t(i),motion)
+
+        ! update the system state with ode solution
+        q_total(:) = 0.0_dp
+        qdot_total(:) = 0.0_dp
+
+        ! insert passive vector position from input of last timestep
+        q_total(system%i_udof_p) = system%soln%y(i, 1:system%np)
+        qdot_total(system%i_udof_p) = system%soln%y(i, system%np+1 : 2*system%np)
+
+        ! impose the prescribed active motion
+        q_total(system%i_udof_a) = motion(:,1)
+        qdot_total(system%i_udof_a) = motion(:,2)
+
+        ! update the current setup of the system
+        CALL embed_system(q_total,qdot_total)
+
         ! print time
         IF(MOD(i,100) == 1) THEN
             WRITE(*,*) ' '
             WRITE(*,*) 'at t= ', system%soln%t(i)
             WRITE(*,*) system%soln%y(i,:)
         END IF
+
     END DO
-
-    !--------------------------------------------------------------------
-    !  Embed system using the last solution
-    !--------------------------------------------------------------------
-
-    ! Allocation of local variables
-    ALLOCATE(motion(system%na,3))
-    ALLOCATE(q_total(system%nudof))
-    ALLOCATE(qdot_total(system%nudof))
-
-    ! the motion table is created in init_system, only need to refer here
-    mode = 'refer'
-    CALL prescribed_motion(mode, &
-        system%soln%t(system%params%nstep+1),motion)
-
-    ! update the system state with ode solution
-    q_total(:) = 0.0_dp
-    qdot_total(:) = 0.0_dp
-
-    ! insert passive vector position from input of last timestep
-    q_total(system%i_udof_p) = system%soln%y(system%params%nstep+1, &
-        1:system%np)
-    qdot_total(system%i_udof_p) = system%soln%y( &
-        system%params%nstep+1,system%np+1 : 2*system%np)
-
-    ! impose the prescribed active motion
-    q_total(system%i_udof_a) = motion(:,1)
-    qdot_total(system%i_udof_a) = motion(:,2)
-WRITE(*,*) q_total
-    ! update the current setup of the system
-    CALL embed_system(q_total,qdot_total)
 
     !--------------------------------------------------------------------
     !  Write data

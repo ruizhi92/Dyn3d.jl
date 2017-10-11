@@ -48,7 +48,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     INTEGER                                 :: i,imax,j,k,n,i0,ll
     REAL(dp)                                :: aamax,dum,sum
-    REAL(dp),PARAMETER                      :: TINY = 1e-20_dp
+    REAL(dp),PARAMETER                      :: small_e = 1e-20_dp
     REAL(dp),ALLOCATABLE                    :: vv(:)
     INTEGER,ALLOCATABLE                     :: indx(:)
     REAL(dp),ALLOCATABLE                    :: A_temp(:,:)
@@ -63,6 +63,9 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
+
+    ! initialize imax
+    imax = 0
 
     !-------------- forward decomposition -------------------
     n = SIZE(A,1)
@@ -101,7 +104,7 @@ IMPLICIT NONE
           vv(imax) = vv(j)
        END IF
        indx(j) = imax
-       IF (A_temp(j,j).EQ.0.0_dp) A_temp(j,j) = TINY
+       IF (A_temp(j,j).EQ.0.0_dp) A_temp(j,j) = small_e
        IF (j.ne.n) THEN
           dum = 1.0_dp/A_temp(j,j)
           DO i = j+1,n

@@ -54,7 +54,9 @@ IMPLICIT NONE
     !  Check arguments
     !--------------------------------------------------------------------
     IF(mode /= 'refer') WRITE(*,*) 'Error: prescribed_motion input error'
-    IF(t > system%params%tf) WRITE(*,*) 'Time is out of bounds of kindata'
+    IF((t-system%params%tf) > tiny) THEN
+        WRITE(*,*) 'Time is out of bounds of kindata'
+    END IF
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -62,7 +64,7 @@ IMPLICIT NONE
     nstep = system%params%nstep
     ALLOCATE(active_motion(system%na,3))
     DO i = 1,2*nstep+1
-        IF(system%kindata(i,1) == t) THEN
+        IF(ABS(system%kindata(i,1)-t) < tiny) THEN
             DO j = 1,system%na
                 j_pos = 1 + 3*(j-1) + 1
                 j_vel = 1 + 3*(j-1) + 2

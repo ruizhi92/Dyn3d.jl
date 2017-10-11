@@ -69,47 +69,47 @@ IMPLICIT NONE
         IF(ALLOCATED(body_system(i)%verts)) THEN
             WRITE(2017,'(A)') 'verts:'
             DO j = 1, SIZE(body_system(i)%verts,1)
-                WRITE(2017,'(3F20.15)') body_system(i)%verts(j,:)
+                WRITE(2017,'(3F9.5)') body_system(i)%verts(j,:)
             END DO
         END IF
         IF(ALLOCATED(body_system(i)%verts_i)) THEN
             WRITE(2017,'(A)') 'verts_i:'
             DO j = 1, SIZE(body_system(i)%verts_i,1)
-                WRITE(2017,'(3F20.15)') body_system(i)%verts_i(j,:)
+                WRITE(2017,'(3F9.5)') body_system(i)%verts_i(j,:)
             END DO
         END IF
-        WRITE(2017,'(A,3F20.15)') 'x_c:',body_system(i)%x_c(:)
-        WRITE(2017,'(A,3F20.15)') 'x_0:',body_system(i)%x_0(:)
-        WRITE(2017,'(A,F20.15)') 'mass:',body_system(i)%mass
+        WRITE(2017,'(A,3F9.5)') 'x_c:',body_system(i)%x_c(:)
+        WRITE(2017,'(A,3F9.5)') 'x_0:',body_system(i)%x_0(:)
+        WRITE(2017,'(A,F9.5)') 'mass:',body_system(i)%mass
         WRITE(2017,'(A)') 'inertia_c:'
         DO j = 1, SIZE(body_system(i)%inertia_c,1)
-            WRITE(2017,'(6F20.15)') body_system(i)%inertia_c(j,:)
+            WRITE(2017,'(6F9.5)') body_system(i)%inertia_c(j,:)
         END DO
         WRITE(2017,'(A)') 'inertia_j:'
         DO j = 1, SIZE(body_system(i)%inertia_j,1)
-            WRITE(2017,'(6F20.15)') body_system(i)%inertia_j(j,:)
+            WRITE(2017,'(6F9.5)') body_system(i)%inertia_j(j,:)
         END DO
         WRITE(2017,'(A)') 'Xj_to_c:'
         DO j = 1, SIZE(body_system(i)%Xj_to_c,1)
-            WRITE(2017,'(6F20.15)') body_system(i)%Xj_to_c(j,:)
+            WRITE(2017,'(6F9.5)') body_system(i)%Xj_to_c(j,:)
         END DO
         WRITE(2017,'(A)') 'Xb_to_i:'
         DO j = 1, SIZE(body_system(i)%Xb_to_i,1)
-            WRITE(2017,'(6F20.15)') body_system(i)%Xb_to_i(j,:)
+            WRITE(2017,'(6F9.5)') body_system(i)%Xb_to_i(j,:)
         END DO
         WRITE(2017,'(A)') 'Xp_to_b:'
         DO j = 1, SIZE(body_system(i)%Xp_to_b,1)
-            WRITE(2017,'(6F20.15)') body_system(i)%Xp_to_b(j,:)
+            WRITE(2017,'(6F9.5)') body_system(i)%Xp_to_b(j,:)
         END DO
 
         WRITE(2017,'(/)')
-        WRITE(2017,'(A,6F20.15)') 'v:', body_system(i)%v(:,1)
-        WRITE(2017,'(A,6F20.15)') 'c:', body_system(i)%c(:,1)
-        WRITE(2017,'(A,6F20.15)') 'pA:', body_system(i)%pA(:,1)
+        WRITE(2017,'(A,6F9.5)') 'v:', body_system(i)%v(:,1)
+        WRITE(2017,'(A,6F9.5)') 'c:', body_system(i)%c(:,1)
+        WRITE(2017,'(A,6F9.5)') 'pA:', body_system(i)%pA(:,1)
 
         WRITE(2017,'(A)') 'Ib_A:'
         DO j = 1, SIZE(body_system(i)%Ib_A,1)
-            WRITE(2017,'(6F20.15)') body_system(i)%Ib_A(j,:)
+            WRITE(2017,'(6F9.5)') body_system(i)%Ib_A(j,:)
         END DO
 
         WRITE(2017,'(/)')
@@ -131,8 +131,8 @@ IMPLICIT NONE
         WRITE(2017,'(A,I5)') 'joint_id:', joint_system(i)%joint_id
         WRITE(2017,'(A,A)') 'joint_type:', TRIM(joint_system(i)%joint_type)
         WRITE(2017,'(A,I5)') 'body1:', joint_system(i)%body1
-        WRITE(2017,'(A,6F20.15)') 'shape1:', joint_system(i)%shape1(:)
-        WRITE(2017,'(A,6F20.15)') 'shape2:', joint_system(i)%shape2(:)
+        WRITE(2017,'(A,6F9.5)') 'shape1:', joint_system(i)%shape1(:)
+        WRITE(2017,'(A,6F9.5)') 'shape2:', joint_system(i)%shape2(:)
         WRITE(2017,'(A,I5)') 'nudof:', joint_system(i)%nudof
         WRITE(2017,'(A,I5)') 'np:', joint_system(i)%np
         WRITE(2017,'(A,I5)') 'na:', joint_system(i)%na
@@ -173,27 +173,27 @@ IMPLICIT NONE
         END IF
         WRITE(2017,'(A)') 'q:'
         IF(ALLOCATED(joint_system(i)%q)) THEN
-            WRITE(2017,'(F20.15)') joint_system(i)%q
+            WRITE(2017,'(F9.5)') joint_system(i)%q
         END IF
         WRITE(2017,'(A)') 'qdot:'
         IF(ALLOCATED(joint_system(i)%qdot)) THEN
-            WRITE(2017,'(F20.15)') joint_system(i)%qdot
+            WRITE(2017,'(F9.5)') joint_system(i)%qdot
         END IF
         WRITE(2017,'(A)') 'qdot_pp:'
         IF(ALLOCATED(joint_system(i)%qdot_pp)) THEN
-            WRITE(2017,'(F20.15)') joint_system(i)%qdot_pp
+            WRITE(2017,'(F9.5)') joint_system(i)%qdot_pp
         END IF
         WRITE(2017,'(A)') 'Xj:'
         DO j = 1, SIZE(joint_system(i)%Xj,1)
-            WRITE(2017,'(6F20.15)') joint_system(i)%Xj(j,:)
+            WRITE(2017,'(6F9.5)') joint_system(i)%Xj(j,:)
         END DO
         WRITE(2017,'(A)') 'Xp_to_j:'
         DO j = 1, SIZE(joint_system(i)%Xp_to_j,1)
-            WRITE(2017,'(6F20.15)') joint_system(i)%Xp_to_j(j,:)
+            WRITE(2017,'(6F9.5)') joint_system(i)%Xp_to_j(j,:)
         END DO
         WRITE(2017,'(A)') 'Xj_to_ch:'
         DO j = 1, SIZE(joint_system(i)%Xj_to_ch,1)
-            WRITE(2017,'(6F20.15)') joint_system(i)%Xj_to_ch(j,:)
+            WRITE(2017,'(6F9.5)') joint_system(i)%Xj_to_ch(j,:)
         END DO
         WRITE(2017,'(/)')
 
@@ -202,22 +202,22 @@ IMPLICIT NONE
             WRITE(2017,'(A,I5)') 'dof_id:', joint_system(i)%joint_dof(j)%dof_id
             WRITE(2017,'(A,A)') 'dof_type: ', TRIM(joint_system(i)%joint_dof(j)%dof_type)
             IF(joint_system(i)%joint_dof(j)%dof_type == 'passive') THEN
-                WRITE(2017,'(A,F20.15)') 'stiff: ',joint_system(i)%joint_dof(j)%stiff
-                WRITE(2017,'(A,F20.15)') 'damp: ',joint_system(i)%joint_dof(j)%damp
+                WRITE(2017,'(A,F9.5)') 'stiff: ',joint_system(i)%joint_dof(j)%stiff
+                WRITE(2017,'(A,F9.5)') 'damp: ',joint_system(i)%joint_dof(j)%damp
             ELSE IF(joint_system(i)%joint_dof(j)%dof_type == 'active') THEN
                 WRITE(2017,'(2A)') 'motion_type:', TRIM(joint_system(i)%joint_dof(j)%motion_type)
                 IF(ALLOCATED(joint_system(i)%joint_dof(j)%motion_params)) THEN
                     WRITE(2017,'(A)',ADVANCE="NO") 'motion_params: '
                     DO k = 1,SIZE(joint_system(i)%joint_dof(j)%motion_params)
-                    WRITE(2017,'(F20.15)',ADVANCE="NO") joint_system(i)%joint_dof(j)%motion_params(k)
+                    WRITE(2017,'(F9.5)',ADVANCE="NO") joint_system(i)%joint_dof(j)%motion_params(k)
                     END DO
                 END IF
                 WRITE(2017,'(/)')
             END IF
         END DO
 
-        WRITE(2017,'(A,6F20.15)') 'vJ:', joint_system(i)%vJ(:,1)
-        WRITE(2017,'(A,6F20.15)') 'cJ:', joint_system(i)%cJ(:,1)
+        WRITE(2017,'(A,6F9.5)') 'vJ:', joint_system(i)%vJ(:,1)
+        WRITE(2017,'(A,6F9.5)') 'cJ:', joint_system(i)%cJ(:,1)
 
         WRITE(2017,'(/)')
     END DO
@@ -232,9 +232,9 @@ IMPLICIT NONE
 
     WRITE(2017,'(A,2/)') 'system structure'
     WRITE(2017,'(A,I5)') 'njoint:', system%njoint
-    WRITE(2017,'(A,3F20.15)') 'params%gravity:', system%params%gravity
-    WRITE(2017,'(A,F20.15)') 'params%dt:', system%params%dt
-    WRITE(2017,'(A,F20.15)') 'params%tf:', system%params%tf
+    WRITE(2017,'(A,3F9.5)') 'params%gravity:', system%params%gravity
+    WRITE(2017,'(A,F9.5)') 'params%dt:', system%params%dt
+    WRITE(2017,'(A,F9.5)') 'params%tf:', system%params%tf
     WRITE(2017,'(A,I5)') 'params%nstep:', system%params%nstep
     WRITE(2017,'(A,I5)') 'nudof:', system%nudof
     WRITE(2017,'(A,I5)') 'np:', system%np
@@ -278,9 +278,9 @@ IMPLICIT NONE
     OPEN(2017,file = fullname)
     IF(ALLOCATED(system%soln%t)) THEN
         DO i = 1, SIZE(system%soln%t)
-            WRITE(2017,'(F20.15)',ADVANCE="NO") system%soln%t(i)
+            WRITE(2017,'(F9.5)',ADVANCE="NO") system%soln%t(i)
             DO j = 1, SIZE(system%soln%y,2)
-                WRITE(2017,'(F20.15)',ADVANCE="NO") system%soln%y(i,j)
+                WRITE(2017,'(F9.5)',ADVANCE="NO") system%soln%y(i,j)
             END DO
             WRITE(2017,'(/)')
         END DO
@@ -296,7 +296,7 @@ IMPLICIT NONE
     IF(ALLOCATED(system%kindata)) THEN
         DO i = 1, SIZE(system%kindata,1)
             DO j = 1, SIZE(system%kindata,2)
-                WRITE(2017,'(F20.15)',ADVANCE="NO") system%kindata(i,j)
+                WRITE(2017,'(F9.5)',ADVANCE="NO") system%kindata(i,j)
             END DO
             WRITE(2017,'(/)')
         END DO

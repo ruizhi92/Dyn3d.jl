@@ -32,5 +32,6 @@ IMPLICIT NONE
     REAL(dp),PARAMETER        ::    pi = 4.0_dp*atan(1.0_dp)
 !    COMPLEX, PARAMETER        ::    ii = (0,1) ! imaginary unit ii = sqrt(-1)
     INTEGER,PARAMETER         ::    max_char = 256
+    REAL(dp),PARAMETER        ::    tiny = 1e-12_dp
 
 END MODULE module_constants
