@@ -38,7 +38,6 @@ SUBROUTINE rk4_v(m, t_im1, dt, y_im1, f, y)
     !  MODULE
     !--------------------------------------------------------------------
     USE module_constants
-    USE module_write_structure
 
 IMPLICIT NONE
 

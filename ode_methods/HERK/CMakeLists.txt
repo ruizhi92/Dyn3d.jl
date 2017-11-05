@@ -6,4 +6,3 @@ file(GLOB_RECURSE DYN3D_SRC
     "module_*.f90"
 )
 
-add_subdirectory(HERK)
