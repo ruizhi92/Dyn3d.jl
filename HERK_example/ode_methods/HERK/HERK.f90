@@ -8,6 +8,7 @@
 !                       | M(q)*dv/dt = f(q,v) - GT(q)*lambda |
 !                       | 0 = G(q)*v + gti(q)                |
 !                 , where GT is the transpose of G,
+!                 Note that this is a index-2 system with two variables q and u.
 !
 !  Details      ： Normally q is body position vector and v is body vel vector
 !                 , lambda is the constraint on q to be satisfied.
@@ -17,16 +18,18 @@
 !                 v_0(:): initial body velocity vector
 !                 q_dim: dimension of the q0 or v0 vector
 !                 lambda_dim: dimension of lambda vector
-!                 h: timestep
+!                 h_0: input timestep
+!                 tol: tolerance to adjust timestep
 !                 stage: coefficient table to be referred to in
 !                             HERK_pick_order
 !                 M(:,:), G(:,:), GT(:,:): function pointer
 !                 f(:), gti(:): function pointer
-!
+
 !  Output       : q_out: calculated position of next timestep
 !                 v_out: calculated velocity of next timestep
 !                 vdot_out: calculated acceleration of next timestep
 !                 lambda_out: calculated constraint of next timestep
+!                 h_out: output timestep
 !
 !  Remarks      :
 !
@@ -41,8 +44,8 @@
 !  Ruizhi Yang, 2017 Nov
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK(t_0, q_0, v_0, q_dim, lambda_dim, h, stage, M, f, G, GT, gti, &
-                q_out, v_out, vdot_out, lambda_out)
+SUBROUTINE HERK(t_0, q_0, v_0, q_dim, lambda_dim, h_0, tol, stage, M, f, G, &
+                GT, gti, q_out, v_out, vdot_out, lambda_out, h_out)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -78,18 +81,19 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
-    REAL(dp),INTENT(IN)                           :: t_0,h
+    REAL(dp),INTENT(IN)                           :: t_0,tol,h_0
     REAL(dp),DIMENSION(:),INTENT(IN)              :: q_0,v_0
     INTEGER,INTENT(IN)                            :: q_dim,lambda_dim,stage
     PROCEDURE(y_of_q),INTENT(IN),POINTER          :: M,G,GT,gti
     PROCEDURE(y_of_qv),INTENT(IN),POINTER         :: f
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: q_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: lambda_out
+    REAL(dp),INTENT(OUT)                          :: h_out
 
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i,j,ii,jj
+    INTEGER                                       :: i,j
     REAL(dp)                                      :: t_i,t_im1
     REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: A
     REAL(dp),ALLOCATABLE,DIMENSION(:)             :: b,c
@@ -149,14 +153,14 @@ IMPLICIT NONE
 
         ! time of i-1 and i
         t_im1 = t_i
-        t_i = t_0 + h*c(i)
+        t_i = t_0 + h_0*c(i)
 
         ! initialize Q(i,:)
         Q(i,:) = q_0
 
         ! calculate Q(i,:)
         DO j = 1, i-1
-            Q(i,:) = Q(i,:) + h*A(i,j)*V(j,:)
+            Q(i,:) = Q(i,:) + h_0*A(i,j)*V(j,:)
         END DO
 
         ! calculate M, f and GT at Q(i-1,:)
@@ -182,12 +186,12 @@ IMPLICIT NONE
 
         ! calculate V_temp(i,:)
         DO j = 1, i-2
-             V_temp(:,1) =  V_temp(:,1) + h*A(i,j)*Vdot(j,:)
+             V_temp(:,1) =  V_temp(:,1) + h_0*A(i,j)*Vdot(j,:)
         END DO
 
         ! construct RHS
         RHS(1:q_dim) = f_im1(1:q_dim,1)
-        RHS_temp = -1.0_dp/(h*A(i,i-1))*(MATMUL(G_i,V_temp) + gti_i)
+        RHS_temp = -1.0_dp/(h_0*A(i,i-1))*(MATMUL(G_i,V_temp) + gti_i)
         RHS(q_dim+1:q_dim+lambda_dim) = RHS_temp(:,1)
 
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
@@ -201,10 +205,13 @@ IMPLICIT NONE
 
         ! calculate V(i,:)
         DO j = 1, i-1
-            V(i,:) = V(i,:) + h*A(i,j)*Vdot(j,:)
+            V(i,:) = V(i,:) + h_0*A(i,j)*Vdot(j,:)
         END DO
 
     END DO
+
+    ! use norm2(V(stage+1,:)-V(stage,:)) to determine next timestep h_out
+    h_out = h_0*( tol/norm2(V(stage+1,:)-V(stage,:)) )**(1.0_dp/3.0_dp)
 
     ! output
     q_out = Q(stage+1,:)

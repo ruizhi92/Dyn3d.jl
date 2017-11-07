@@ -80,7 +80,7 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     INTEGER                                   :: i,nstep
-    REAL(dp)                                  :: t_0,h
+    REAL(dp)                                  :: t_0,h_0,h_out,tol
     REAL(dp),DIMENSION(3)                     :: q_0,v_0
     INTEGER                                   :: q_dim,lambda_dim,stage
     REAL(dp),DIMENSION(3)                     :: q_out,v_out,vdot_out
@@ -101,17 +101,23 @@ IMPLICIT NONE
     q_dim = 3
     lambda_dim = 1
     stage = 3
-    h = 1e-5_dp
+    h_0 = 1e-6_dp ! initial timstep
+    tol = 1e-6_dp
 
-    nstep = 20000
+    nstep = 10000
 
     DO i = 1,nstep
-        CALL HERK(t_0, q_0, v_0, q_dim, lambda_dim, h, stage, &
+        CALL HERK(t_0, q_0, v_0, q_dim, lambda_dim, h_0, tol, stage, &
                   M_local, f_local, G_local, GT_local, gti_local, &
-                  q_out, v_out, vdot_out, lambda_out)
-        t_0 = t_0 + h
+                  q_out, v_out, vdot_out, lambda_out, h_out)
+        t_0 = t_0 + h_0
+        h_0 = h_out
         q_0 = q_out
         v_0 = v_out
+
+        IF(MOD(i,1000) == 1) THEN
+            WRITE(*,*) 'timestep h at step ',i,' is: ',h_0
+        END IF
     END DO
 
 WRITE(*,*) '**************************************** '
@@ -119,7 +125,7 @@ WRITE(*,*) ' '
 WRITE(*,*) 't_out is: ',t_0
 WRITE(*,*) 'Numerical solution of q is: ',q_out
 WRITE(*,*) 'Analytical solution of q is: ', -2.0_dp*SIN(t_0), &
-        sin(t_0), -2.0_dp*sin(t_0)
+        SIN(t_0), -2.0_dp*SIN(t_0)
 WRITE(*,*) ' '
 WRITE(*,*) 'Numerical solution of v is: ',v_out
 WRITE(*,*) 'Analytical solution of v is: ', -2.0_dp*COS(t_0), &

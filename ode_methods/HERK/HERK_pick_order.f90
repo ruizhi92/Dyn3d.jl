@@ -29,7 +29,7 @@
 !  Ruizhi Yang, 2017 Oct
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK_pick_order(m, A, b, c, s, p)
+SUBROUTINE HERK_pick_order(m, A, b, c)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -44,25 +44,25 @@ IMPLICIT NONE
     INTEGER,INTENT(IN)                            :: m
     REAL(dp),INTENT(OUT),DIMENSION(:,:)           :: A
     REAL(dp),INTENT(OUT),DIMENSION(:)             :: b,c
-    INTEGER,OPTIONAL,INTENT(OUT)                  :: s,p
+!    INTEGER,OPTIONAL,INTENT(OUT)                  :: s,p
 
     !--------------------------------------------------------------------
     !  Coefficients
     !--------------------------------------------------------------------
     SELECT CASE(m)
 
-        CASE(1)
+        CASE(3)
             ! Brasey-Hairer 3-Stage HERK, table 2
             A = RESHAPE( (/ 0.0_dp, 0.0_dp, 0.0_dp, & ! line 1
-                            0.3_dp, 0.0_dp, 0.0_dp, & ! line 2
+                            1.0_dp/3.0_dp, 0.0_dp, 0.0_dp, & ! line 2
                             -1.0_dp, 2.0_dp, 0.0_dp /), & ! line 3
-                        SHAPE(3,3), order=(/2,1/) )
+                        (/3,3/), order=(/2,1/) )
             c = (/ 0.0_dp, 1.0_dp/3.0_dp, 1.0_dp /)
             b = (/ 0.0_dp, 0.75_dp, 0.25_dp /)
-            s = 3
-            p = 3
+!            s = 3
+!            p = 3
 
-        CASE(2)
+        CASE(4)
             ! Brasey-Hairer 5-Stage HERK, table 5
             A = RESHAPE( (/ 0.0_dp, 0.0_dp, 0.0_dp, 0.0_dp, 0.0_dp, & ! line 1
                             0.3_dp, 0.0_dp, 0.0_dp, 0.0_dp, 0.0_dp, & ! line 2
@@ -77,24 +77,24 @@ IMPLICIT NONE
                             (-8.0_dp+7.0_dp*SQRT(6.0_dp))/6.0_dp, &
                             (-9.0_dp-7.0_dp*SQRT(6.0_dp))/4.0_dp, &
                             (9.0_dp-SQRT(6.0_dp))/4.0_dp, 0.0_dp /), &
-                        SHAPE(5,5), order=(/2,1/) )
+                        (/5,5/), order=(/2,1/) )
             c = (/ 0.0_dp, 0.3_dp, (4.0_dp-SQRT(6.0_dp))/10.0_dp, &
                    (4.0_dp+SQRT(6.0_dp))/10.0_dp, 1.0_dp /)
             b = (/ 0.0_dp, 0.0_dp, (16.0_dp-SQRT(6.0_dp))/36.0_dp, &
                    (16.0_dp+SQRT(6.0_dp))/36.0_dp, 1.0_dp/9.0_dp /)
-            s = 5
-            p = 4
+!            s = 5
+!            p = 4
 
-        CASE(3)
+        CASE(2)
             ! Scheme A of HERK in Liska's paper
             A = RESHAPE( (/ 0.0_dp, 0.0_dp, 0.0_dp, & ! line 1
                             0.5_dp, 0.0_dp, 0.0_dp, & ! line 2
-                            SQRT(3.0_dp)/3.0_dp, (3-SQRT(3.0_dp)/3.0_dp), 0 /), & ! line 3
-                        SHAPE(3,3), order=(/2,1/) )
+                            SQRT(3.0_dp)/3.0_dp, (3-SQRT(3.0_dp)/3.0_dp), 0.0_dp /), & ! line 3
+                        (/3,3/), order=(/2,1/) )
             c = (/ 0.0_dp, 0.5_dp, 1.0_dp /)
             b = (/ (3+SQRT(3.0_dp)/6.0_dp), -SQRT(3.0_dp)/3.0_dp, (3+SQRT(3.0_dp)/6.0_dp) /)
-            s = 3
-            p = 2
+!            s = 3
+!            p = 2
 
     END SELECT
 
