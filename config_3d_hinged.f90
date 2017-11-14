@@ -64,9 +64,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 1_dp
+    tf = 1.0_dp
     ! total number of steps
-    nstep = 10000
+    nstep = 1000
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
