@@ -129,9 +129,11 @@ IMPLICIT NONE
     ! joint_system(i)%global_up
     last = 0
     DO i = 1,system%njoint
-        ALLOCATE(joint_system(i)%global_up(joint_system(i)%np))
-        joint_system(i)%global_up = last + (/(j, j=1,joint_system(i)%np)/)
-        last = joint_system(i)%global_up(joint_system(i)%np)
+        IF(joint_system(i)%np > 0) THEN
+            ALLOCATE(joint_system(i)%global_up(joint_system(i)%np))
+            joint_system(i)%global_up = last + (/(j, j=1,joint_system(i)%np)/)
+            last = joint_system(i)%global_up(joint_system(i)%np)
+        END IF
     END DO
 
     ! i_udof_p

@@ -78,8 +78,11 @@ IMPLICIT NONE
 
             ! update Xj
             CALL trans_matrix(q_temp(4:6), q_temp(1:3), Xj)
+
+            IF(joint_system(joint_id)%np > 0) THEN
             ! qdot unchanged, update qdot_pp
             qdot_pp = qdot(joint_system(joint_id)%i_udof_p)
+            END IF
 
 
         ! 'free' and 'planar'
@@ -87,6 +90,8 @@ IMPLICIT NONE
 
             ! update Xj
             CALL trans_matrix(q_temp(4:6), q_temp(1:3), Xj, Xinv, rot, tr)
+
+            IF(joint_system(joint_id)%np > 0) THEN
             ! update qdot. In this case, alpha must be rotated back to the joint parent
             ! system, since q is expressed in the parent joint coordinates
             qdot_temp(:,1) = 0.0_dp
@@ -96,6 +101,7 @@ IMPLICIT NONE
             ! MATMUL
             qdot_temp = MATMUL(TRANSPOSE(rot),qdot_temp(:,1:1))
             qdot_pp = qdot_temp(udof_p,1)
+            END IF
 
         END IF
 
