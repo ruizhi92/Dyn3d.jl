@@ -147,7 +147,8 @@ IMPLICIT NONE
 
         ! compute the full expression of pA by accounting for fex_b
         body_system(i)%pA = body_system(i)%pA - fex_b
-
+!WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
+!WRITE(*,*) 'v is: ',body_system(i)%v
     END DO
 
     !--------------------------------------------------------------------
@@ -310,7 +311,9 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     ! dydt(1:np) = qdot_p
     DO i = 1,system%nbody
+        IF(joint_system(i)%np > 0) THEN
         dydt_i(joint_system(i)%global_up) = joint_system(i)%qdot_pp
+        END IF
     END DO
 
     ! dydt(np+1:1*np) = qddot_p

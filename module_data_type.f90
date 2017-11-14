@@ -289,6 +289,8 @@ IMPLICIT NONE
     !            1+3*system%na columns. The first column is time,
     !            then every continuous 3 columns are position, velocity
     !            and acceleration of each active udof.
+    ! P_map -- This matrix maps the hierarchy relation from joint to body.
+    !          It consists of many [1], [-1] and [0] blocks.
         INTEGER                                 :: njoint,nbody
         TYPE(system_params)                     :: params
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: time
@@ -298,6 +300,7 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: kinmap
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: kindata
+        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: P_map
     END TYPE
 
 

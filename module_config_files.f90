@@ -1,7 +1,7 @@
 !------------------------------------------------------------------------
-!  Module	    :            module_constants
+!  Module	    :            module_config_files
 !------------------------------------------------------------------------
-!  Purpose      : define some global constants to be used as module
+!  Purpose      :  This module wraps multiple configuration files.
 !
 !  Details      ：
 !
@@ -24,18 +24,20 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-MODULE module_constants
+MODULE module_config_files
 
 IMPLICIT NONE
 
-    INTEGER,PARAMETER         ::    dp = selected_real_kind(15, 307) ! 64 bit, double precision
-    REAL(dp),PARAMETER        ::    pi = 4.0_dp*atan(1.0_dp)
-!    COMPLEX, PARAMETER        ::    ii = (0,1) ! imaginary unit ii = sqrt(-1)
-    INTEGER,PARAMETER         ::    max_char = 256
-    REAL(dp),PARAMETER        ::    tiny = 1e-12_dp
+    INTERFACE inter_config_config_3d_hinged
+        MODULE PROCEDURE config_3d_hinged
+    END INTERFACE
 
-    REAL(dp),PARAMETER        ::    global_m = 1.0_dp
-    REAL(dp),PARAMETER        ::    global_c = 1.0_dp/6.0_dp
+    INTERFACE inter_config_2d_linkobj
+        MODULE PROCEDURE config_2d_linkobj
+    END INTERFACE
 
+    CONTAINS
+    INCLUDE 'config_3d_hinged.f90'
+    INCLUDE 'config_2d_linkobj.f90'
 
-END MODULE module_constants
+END MODULE module_config_files

@@ -173,13 +173,13 @@ IMPLICIT NONE
         CALL gti(t_i, Q(i,:), gti_i)
 
         ! construct LHS matrix
-        LHS(:,:) = 0
+        LHS(:,:) = 0.0_dp
         LHS(1:q_dim,1:q_dim) = M_im1
         LHS(q_dim+1:q_dim+lambda_dim,1:q_dim) = G_i
         LHS(1:q_dim,q_dim+1:q_dim+lambda_dim) = GT_im1
 
         ! initialize solution x
-        x(:) = 0
+        x(:) = 0.0_dp
 
         ! initialize V_temp(i,:)
         V_temp(:,1) = v_0

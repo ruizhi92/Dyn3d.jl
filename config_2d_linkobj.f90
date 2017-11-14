@@ -1,20 +1,18 @@
 !------------------------------------------------------------------------
-!  Subroutine   :            config_3d_hinged
+!  Subroutine   :            config_2d_linkobj
 !------------------------------------------------------------------------
 !  Purpose      : This is a system configure file, containing body and
-!                 joint information. The body itself is a 2d body, but
-!                 moves in 3d space. This subroutine is passed into dyn3d
-!                 as a pointer to set up a specific system of rigid bodies.
+!                 joint information. The body itself is a 2d body, and
+!                 moves in 2d space. This subroutine is passed into dyn3d
+!                 to set up a specific system of rigid bodies.
 !                 The configuration of that system is described in this
 !                 function. It returns an un-assembled list of bodies and
 !                 joints in the output system.
 !
-!  Details      ： This sets up hinged rigid bodies, connected to inertial
+!  Details      ： This sets up 2d hinged rigid bodies, connected to inertial
 !                 space with a revolute joint, and each connected to the
-!                 next by revolute joint. Each body is an identical shape
-!                 (with a limiting case of a triangle). The lower side is
-!                 connected to the parent body, while the upper side is
-!                 connected to the child joint.
+!                 next by revolute joint. The first joint has active
+!                 oscillatory motion while the others are all passive.
 !
 !  Input        :
 !
@@ -35,7 +33,7 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-SUBROUTINE config_3d_hinged
+SUBROUTINE config_2d_linkobj
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -52,7 +50,7 @@ IMPLICIT NONE
     !------------------------------------------------------------------------
     REAL(dp)                        :: tf
     INTEGER                         :: nbody,i,j,ndof,njoint,nstep
-    REAL(dp)                        :: height,ang,rhob
+    REAL(dp)                        :: height,rhob
     REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
     TYPE(dof),ALLOCATABLE           :: joint1_dof(:)
@@ -64,33 +62,31 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 1_dp
+    tf = 1.0_dp
     ! total number of steps
-    nstep = 10000
+    nstep = 1000
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 3
+    nbody = 4
     ! rhob - Density of each body (mass/area)
-    rhob = 1.0_dp
+    rhob = 0.01_dp
 
     !-------------- body shape in body coordinate -----------
     ! height - height of the fourth (smallest) side, from 0 upward
     height = 1.0_dp/nbody
-    ! ang - angle of the upper side with the child joint
-    ang = pi/4 ! 0.0_dp
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 0.1_dp
+    stiff = 0.03_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.0001_dp
+    damp = 0.01_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system
     joint1_angle = 0.0_dp
     ! init_angle - Initial angle of each interior joint
-    init_angle = pi/4
+    init_angle = 0.0_dp
 
     !---------- joint orientation in inertial system --------
     ! joint1_orient - Fixed orientation of joint to inertial system
@@ -101,19 +97,14 @@ IMPLICIT NONE
     ! joint1_dof specifies the degrees of freedom in the joint connected to
     ! the inertial system. Default is active hold at zero for those not
     ! specified.
-    ndof = 2
+    ndof = 1
     ALLOCATE(joint1_dof(ndof))
 
     joint1_dof(1)%dof_id = 3
-    joint1_dof(1)%dof_type = 'passive'
-    joint1_dof(1)%stiff = 0.0_dp
-    joint1_dof(1)%damp = 0.001_dp
-
-    joint1_dof(2)%dof_id = 5
-    joint1_dof(2)%dof_type = 'active'
-    joint1_dof(2)%motion_type = 'oscillatory'
-    ALLOCATE(joint1_dof(2)%motion_params(3))
-    joint1_dof(2)%motion_params = (/ 0.05_dp, 1.0_dp, 0.0_dp /)
+    joint1_dof(1)%dof_type = 'active'
+    joint1_dof(1)%motion_type = 'oscillatory'
+    ALLOCATE(joint1_dof(1)%motion_params(3))
+    joint1_dof(1)%motion_params = (/ pi/4, 1.0_dp, 0.0_dp /)
 
     !-------------------------- gravity ---------------------
     ! Orientation and magnitude of gravity in inertial system [x y z]
@@ -144,22 +135,17 @@ IMPLICIT NONE
     input_body%rhob = rhob
 
     ! setup input_body%verts and input_body%nverts
-    IF(height > 0.0_dp .AND. ang >= 0.0_dp) THEN
+    IF(height > 0.0_dp) THEN
         ! quadrilateral
         input_body%nverts = 4
         ALLOCATE(input_body%verts(input_body%nverts,2))
+
+        ! In this 2-d problem, the out-of-plane dimension is
+        ! set to unity and has no bearing on the results.
         input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
                                    1.0_dp, 0.0_dp, &
-                                   cos(ang), height+sin(ang), &
+                                   1.0_dp, height, &
                                    0.0_dp, height /), &
-                    shape(input_body%verts), order=(/2,1/) )
-    ELSE IF(ABS(height-0.0_dp) < tiny .AND. ang > 0.0_dp) THEN
-        ! triangle
-        input_body%nverts = 3
-        ALLOCATE(input_body%verts(input_body%nverts,2))
-        input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
-                                   1.0_dp, 0.0_dp, &
-                                   cos(ang), sin(ang) /), &
                     shape(input_body%verts), order=(/2,1/) )
     ELSE
         WRITE(*,*) "Error in setting up verts in input_body%verts."
@@ -219,7 +205,7 @@ IMPLICIT NONE
         input_joint(i)%body1 = i - 1
         ALLOCATE(input_joint(i)%q_init(1))
         input_joint(i)%q_init = init_angle
-        input_joint(i)%shape1 = (/  0.0_dp, ang, 0.0_dp, &
+        input_joint(i)%shape1 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
                                     height, 0.0_dp, 0.0_dp /)
         input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
                                     0.0_dp, 0.0_dp, 0.0_dp /)
@@ -254,4 +240,4 @@ IMPLICIT NONE
     CALL assemble_system
 
 
-END SUBROUTINE config_3d_hinged
+END SUBROUTINE config_2d_linkobj

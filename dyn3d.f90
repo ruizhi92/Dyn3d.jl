@@ -36,6 +36,7 @@ PROGRAM dyn3d
     USE module_ode_methods
     USE module_prescribed_motion
     USE module_embed_system
+    USE module_config_files
     USE module_write_structure
 
 IMPLICIT NONE
@@ -68,7 +69,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     ! add_body, add_joint and assemble them
-    CALL config_3d_hinged
+!    CALL config_3d_hinged
+    CALL config_2d_linkobj
 
     ! initialize system
     ALLOCATE(y_init(2*system%np))
@@ -122,7 +124,7 @@ IMPLICIT NONE
         ! print time
         IF(MOD(i,100) == 1) THEN
             WRITE(*,*) ' '
-            WRITE(*,*) 'at t= ', system%soln%t(i)
+            WRITE(*,*) 'at t= ', system%soln%t(i), ', solution is:'
             WRITE(*,*) system%soln%y(i,:)
         END IF
 

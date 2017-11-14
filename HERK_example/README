@@ -1,0 +1,1 @@
+Note: when not in use, please zip all files in this folder, to avoid any possible conflicit with the cmake build in the root folder for dyn3d. This conflicit is possible because of the use of GLOB_RECURSE.

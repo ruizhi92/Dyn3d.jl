@@ -5,7 +5,10 @@
 !                    order follow joint_id
 !                 2. Create the system structure
 !                 3. Hierarchically connect body_system and joint_system
-!                    by filling in child, parent, subtree and support
+!                    by filling in child, parent, subtree and support. Also
+!                    maps the joint system to body system by hierarchy
+!                    relation system%P_map. This matrix consists
+!                    of many [1], [-1] and [0] blocks.
 !                 4. Physically connect the body and joint system by
 !                    updating the location of the local body coordinate.
 !                    Also update related properties like x_c etc.
@@ -129,9 +132,11 @@ IMPLICIT NONE
     ! joint_system(i)%global_up
     last = 0
     DO i = 1,system%njoint
-        ALLOCATE(joint_system(i)%global_up(joint_system(i)%np))
-        joint_system(i)%global_up = last + (/(j, j=1,joint_system(i)%np)/)
-        last = joint_system(i)%global_up(joint_system(i)%np)
+        IF(joint_system(i)%np > 0) THEN
+            ALLOCATE(joint_system(i)%global_up(joint_system(i)%np))
+            joint_system(i)%global_up = last + (/(j, j=1,joint_system(i)%np)/)
+            last = joint_system(i)%global_up(joint_system(i)%np)
+        END IF
     END DO
 
     ! i_udof_p
@@ -186,7 +191,7 @@ IMPLICIT NONE
 
 
     !--------------------------------------------------------------------
-    !  Step 3: Fill in child, parent, subtree, support info
+    !  Step 3: Fill in child, parent, subtree, support info, and P_map
     !--------------------------------------------------------------------
     ! loop through every joint, find nchild for every body, then allocate
     ! child_id. Assign parent_id
@@ -223,6 +228,31 @@ IMPLICIT NONE
     ! being the parent of its parent
     ! subtree for a joint is itself, its child joint, and every joint
     ! being the child of its child
+
+    ! allocate and initialize P_map
+    ALLOCATE(system%P_map(6*system%nbody,6*system%nbody))
+    system%P_map(:,:) = 0
+
+    ! construct P_map
+    DO i = 1,system%nbody
+        DO j = 1,system%njoint
+
+            ! fill in parent blocks
+            IF(j == i) THEN
+                system%P_map(6*(i-1)+1:6*i,6*(j-1)+1:6*j) = 1
+            END IF
+
+            ! fill in child blocks
+            IF(body_system(i)%nchild /= 0) THEN
+                DO child_count = 1,body_system(i)%nchild
+                    system%P_map(6*(i-1)+1:6*i, &
+                          6*(body_system(i)%child_id(child_count)-1)+1: &
+                          6*body_system(i)%child_id(child_count)) = -1
+                END DO
+            END IF
+
+        END DO
+    END DO
 
 
     !--------------------------------------------------------------------

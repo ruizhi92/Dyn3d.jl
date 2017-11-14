@@ -266,6 +266,15 @@ IMPLICIT NONE
             WRITE(2017,'(2I5)') system%kinmap(i,:)
         END DO
     END IF
+    WRITE(2017,'(A)') 'P_map:'
+    IF(ALLOCATED(system%P_map)) THEN
+        DO i = 1, SIZE(system%P_map,1)
+            DO j = 1, SIZE(system%P_map,2)
+                WRITE(2017,'(I5)',ADVANCE="NO") system%P_map(i,j)
+            END DO
+            WRITE(2017,'(/)')
+        END DO
+    END IF
 
     WRITE(*,*) 'Structure info output done.'
     CLOSE(2017)
