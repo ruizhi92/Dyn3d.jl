@@ -5,7 +5,8 @@
 !
 !  Details      ：
 !
-!  Input        : input_joint: input body info from configure files
+!  Input        : ij: the joint with the i-th index
+!                 config_j: input body info from configure files
 !
 !  Input/output :
 !
@@ -16,9 +17,7 @@
 !                 qdot -- updated in 'init_system'
 !                 Xj -- calculated in 'jcalc'
 !
-!  Remarks      : The body inertia inertia_j is calculated and stored here
-!                 , due to the same id of the body and the joint it
-!                 connects to.
+!  Remarks      :
 !
 !  References   :
 !
@@ -80,7 +79,6 @@ IMPLICIT NONE
               np => joint_system(ij)%np, &
               na => joint_system(ij)%na, &
               joint_dof => joint_system(ij)%joint_dof, &
-!              subtree => joint_system(ij)%subtree, &
               Xp_to_j => joint_system(ij)%Xp_to_j, &
               Xj_to_ch => joint_system(ij)%Xj_to_ch)
 
@@ -92,6 +90,22 @@ IMPLICIT NONE
             ALLOCATE(joint_system(ij)%S(6,nudof))
             joint_system(ij)%S = reshape( (/ 0, 0, 1, 0, 0, 0 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
+            joint_system(ij)%S_full = reshape( (/ 0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 1, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0 /), &
+                         (/6,6/), order=(/2,1/) )
+            joint_system(ij)%T_full = reshape( (/ 1, 0, 0, 0, 0, 0, &
+                                                  0, 1, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 1, 0, 0, &
+                                                  0, 0, 0, 0, 1, 0, &
+                                                  0, 0, 0, 0, 0, 1 /), &
+                         (/6,6/), order=(/2,1/) )
+
+
         ELSE IF(joint_type == 'free') THEN
             nudof = 6
             ALLOCATE(joint_system(ij)%udof(nudof))
@@ -104,6 +118,16 @@ IMPLICIT NONE
                                              0, 0, 0, 0, 1, 0, &
                                              0, 0, 0, 0, 0, 1 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
+            joint_system(ij)%S_full = reshape( (/ 1, 0, 0, 0, 0, 0, &
+                                                  0, 1, 0, 0, 0, 0, &
+                                                  0, 0, 1, 0, 0, 0, &
+                                                  0, 0, 0, 1, 0, 0, &
+                                                  0, 0, 0, 0, 1, 0, &
+                                                  0, 0, 0, 0, 0, 1 /), &
+                         (/6,6/), order=(/2,1/) )
+            joint_system(ij)%T_full(:,:) = 0
+
+
         ELSE IF(joint_type == 'cylindrical') THEN
             nudof = 2
             ALLOCATE(joint_system(ij)%udof(nudof))
@@ -112,6 +136,22 @@ IMPLICIT NONE
             joint_system(ij)%S = reshape( (/ 0, 0, 1, 0, 0, 0, &
                                              0, 0, 0, 0, 0, 1 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
+            joint_system(ij)%S_full = reshape( (/ 0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 1, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 1 /), &
+                         (/6,6/), order=(/2,1/) )
+            joint_system(ij)%T_full = reshape( (/ 1, 0, 0, 0, 0, 0, &
+                                                  0, 1, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 1, 0, 0, &
+                                                  0, 0, 0, 0, 1, 0, &
+                                                  0, 0, 0, 0, 0, 0 /), &
+                         (/6,6/), order=(/2,1/) )
+
+
         ELSE IF(joint_type == 'sperical') THEN
             nudof = 3
             ALLOCATE(joint_system(ij)%udof(nudof))
@@ -121,6 +161,22 @@ IMPLICIT NONE
                                              0, 1, 0, 0, 0, 0, &
                                              0, 0, 1, 0, 0, 0 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
+            joint_system(ij)%S_full = reshape( (/ 1, 0, 0, 0, 0, 0, &
+                                                  0, 1, 0, 0, 0, 0, &
+                                                  0, 0, 1, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0 /), &
+                         (/6,6/), order=(/2,1/) )
+            joint_system(ij)%T_full = reshape( (/ 0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 1, 0, 0, &
+                                                  0, 0, 0, 0, 1, 0, &
+                                                  0, 0, 0, 0, 0, 1 /), &
+                         (/6,6/), order=(/2,1/) )
+
+
         ELSE IF(joint_type == 'prismatic') THEN
             nudof = 1
             ALLOCATE(joint_system(ij)%udof(nudof))
@@ -128,6 +184,22 @@ IMPLICIT NONE
             ALLOCATE(joint_system(ij)%S(6,nudof))
             joint_system(ij)%S = reshape( (/ 0, 0, 0, 0, 0, 1 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
+            joint_system(ij)%S_full = reshape( (/ 0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 1 /), &
+                         (/6,6/), order=(/2,1/) )
+            joint_system(ij)%T_full = reshape( (/ 1, 0, 0, 0, 0, 0, &
+                                                  0, 1, 0, 0, 0, 0, &
+                                                  0, 0, 1, 0, 0, 0, &
+                                                  0, 0, 0, 1, 0, 0, &
+                                                  0, 0, 0, 0, 1, 0, &
+                                                  0, 0, 0, 0, 0, 0 /), &
+                         (/6,6/), order=(/2,1/) )
+
+
         ELSE IF(joint_type == 'planar') THEN
             nudof = 3
             ALLOCATE(joint_system(ij)%udof(nudof))
@@ -137,6 +209,20 @@ IMPLICIT NONE
                                              0, 0, 0, 1, 0, 0, &
                                              0, 0, 0, 0, 1, 0 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
+            joint_system(ij)%S_full = reshape( (/ 0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 1, 0, 0, 0, &
+                                                  0, 0, 0, 1, 0, 0, &
+                                                  0, 0, 0, 0, 1, 0, &
+                                                  0, 0, 0, 0, 0, 0 /), &
+                         (/6,6/), order=(/2,1/) )
+            joint_system(ij)%T_full = reshape( (/ 1, 0, 0, 0, 0, 0, &
+                                                  0, 1, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 0, &
+                                                  0, 0, 0, 0, 0, 1 /), &
+                         (/6,6/), order=(/2,1/) )
         END IF
 
         !------- Set np, na, udof_p, udof_a, i_udof_p, i_udof_a --------
@@ -188,12 +274,7 @@ IMPLICIT NONE
 
         !----------- Set up q and qdot -----------
         ! Allocate q and assign initial value
-        ALLOCATE(joint_system(ij)%q(nudof))
-        joint_system(ij)%q = config_j%q_init
-        ! Allocate qdot, not assign value
-        ALLOCATE(joint_system(ij)%qdot(nudof))
-        ! Allocate qdot_pp, not assign value
-        ALLOCATE(joint_system(ij)%qdot_pp(np))
+        joint_system(ij)%qJ(joint_system(ij)%udof,1) = config_j%q_init
 
     END ASSOCIATE
 

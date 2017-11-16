@@ -287,7 +287,7 @@ IMPLICIT NONE
         x_c_temp = MATMUL(TRANSPOSE(rot_old),r_temp_2d(:,1:1))
         body_system(i)%x_c = x_c_temp(:,1)
 
-        ! update Xj_to_c and inertia_j
+        ! update Xj_to_c and inertia_b
         body_system(i)%Xj_to_c = MATMUL(body_system(i)%Xj_to_c, &
                                         Xj_to_ch_old)
         body_system(i)%inertia_c = MATMUL(TRANSPOSE(Xj_to_ch_old), &

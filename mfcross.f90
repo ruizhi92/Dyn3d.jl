@@ -4,7 +4,7 @@
 !  Purpose      : Cross product between Plucker motion vector and force
 !                 vector. Given motion vector v and force vector f in
 !                 Plucker coordinates,
-!                 compute p = v x* f
+!                 compute p = v (x*) f
 !
 !  Details      ：
 !

@@ -80,7 +80,7 @@ IMPLICIT NONE
     ! initialize verts_i, it need to be changed later on
     body_system(ib)%verts_i = body_system(ib)%verts
 
-    !---------- Calculate mass, x_c, inertia_c, inertia_j -------
+    !---------- Calculate mass, x_c, inertia_c, inertia_b -------
     ASSOCIATE(verts => body_system(ib)%verts)
         Xc = 0.0_dp
         Zc = 0.0_dp
@@ -151,8 +151,8 @@ IMPLICIT NONE
     theta = (/ 0.0_dp, 0.0_dp, 0.0_dp/)
     CALL trans_matrix(body_system(ib)%x_c, theta, body_system(ib)%Xj_to_c)
 
-    !------------ Set up inertia_j ------------
-    body_system(ib)%inertia_j = MATMUL(TRANSPOSE(body_system(ib)%Xj_to_c), &
+    !------------ Set up inertia_b ------------
+    body_system(ib)%inertia_b = MATMUL(TRANSPOSE(body_system(ib)%Xj_to_c), &
                                        MATMUL(body_system(ib)%inertia_c, &
                                               body_system(ib)%Xj_to_c))
 END SUBROUTINE add_body

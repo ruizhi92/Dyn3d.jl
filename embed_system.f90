@@ -1,24 +1,25 @@
 !------------------------------------------------------------------------
 !  Subroutine     :          embed_system
 !------------------------------------------------------------------------
-!  Purpose      : This subroutine takes in q_total and qdot_total to
+!  Purpose      : This subroutine takes in q_total and v_total of body to
 !                 update several things.
 !                 1. update the body chain in the inertial system, including
 !                    Xb_to_i, verts_i and x_0 in body_system.
-!                 2. Xj, vJ and cJ got updated by calling subroutine jcalc
-!                 3. updates q and qdot of the passive dofs for the
-!                    joint_system structure to keep it updated.(may not be
-!                    useful)
+!                 2. update qJ and vJ. qJ for a single joint is described in
+!                    its parent body's local body coord, so is vJ.
+!                 3. Xj and vJ got updated by calling subroutine jcalc
 !                 4. update Xp_to_b for every body, which is the transform
 !                    between parent body and the current body, i.e.
 !                    Xp_to_b = Xj_to_ch*Xj*Xp_to_j
-
+!
 !
 !  Details      ：
 !
-!  Input        : The total q vector, which contains all unconstrained dof
-!                 , including both active ones from prescribed motion and
-!                 passive ones solved from the last timestep.
+!  Input        : q_total: contains all body position in inertial coord,
+!                          lining up by body index order. Dimension of q
+!                          is (6*nb,1) solved from the last time step.
+!                 v_total: similar, velocity
+!
 !  Input/output :
 !
 !  Output       : No explicit output. Module data got updated
@@ -33,10 +34,10 @@
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2017 Sep
+!  Ruizhi Yang, 2017 Nov
 !------------------------------------------------------------------------
 
-SUBROUTINE embed_system(q_total,qdot_total)
+SUBROUTINE embed_system(q_total,v_total)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -51,7 +52,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
-    REAL(dp),DIMENSION(:),ALLOCATABLE,INTENT(IN)    :: q_total,qdot_total
+    REAL(dp),DIMENSION(:),ALLOCATABLE,INTENT(IN)    :: q_total,v_total
 
     !--------------------------------------------------------------------
     !  Local variables
@@ -75,7 +76,7 @@ IMPLICIT NONE
 
     ! insert q and qdot values into joint_system structure
     joint_system(1)%q = q_total(joint_system(1)%udofmap)
-    joint_system(1)%qdot = qdot_total(joint_system(1)%udofmap)
+    joint_system(1)%qdot = v_total(joint_system(1)%udofmap)
 
     ! call jcalc to update Xj and possibly qdot
     CALL jcalc(joint_system(1)%joint_id)
@@ -117,7 +118,7 @@ IMPLICIT NONE
 
             ! insert q and qdot values into joint_system structure
             joint_system(child_id)%q = q_total(joint_system(child_id)%udofmap)
-            joint_system(child_id)%qdot = qdot_total(joint_system(child_id)%udofmap)
+            joint_system(child_id)%qdot = v_total(joint_system(child_id)%udofmap)
 
             ! call jcalc to update Xj and possibly qdot
             CALL jcalc(joint_system(child_id)%joint_id)

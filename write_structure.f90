@@ -85,9 +85,9 @@ IMPLICIT NONE
         DO j = 1, SIZE(body_system(i)%inertia_c,1)
             WRITE(2017,'(6F9.5)') body_system(i)%inertia_c(j,:)
         END DO
-        WRITE(2017,'(A)') 'inertia_j:'
-        DO j = 1, SIZE(body_system(i)%inertia_j,1)
-            WRITE(2017,'(6F9.5)') body_system(i)%inertia_j(j,:)
+        WRITE(2017,'(A)') 'inertia_b:'
+        DO j = 1, SIZE(body_system(i)%inertia_b,1)
+            WRITE(2017,'(6F9.5)') body_system(i)%inertia_b(j,:)
         END DO
         WRITE(2017,'(A)') 'Xj_to_c:'
         DO j = 1, SIZE(body_system(i)%Xj_to_c,1)
@@ -103,14 +103,15 @@ IMPLICIT NONE
         END DO
 
         WRITE(2017,'(/)')
+        WRITE(2017,'(A,6F9.5)') 'q:', body_system(i)%q(:,1)
         WRITE(2017,'(A,6F9.5)') 'v:', body_system(i)%v(:,1)
         WRITE(2017,'(A,6F9.5)') 'c:', body_system(i)%c(:,1)
-        WRITE(2017,'(A,6F9.5)') 'pA:', body_system(i)%pA(:,1)
-
-        WRITE(2017,'(A)') 'Ib_A:'
-        DO j = 1, SIZE(body_system(i)%Ib_A,1)
-            WRITE(2017,'(6F9.5)') body_system(i)%Ib_A(j,:)
-        END DO
+!        WRITE(2017,'(A,6F9.5)') 'pA:', body_system(i)%pA(:,1)
+!
+!        WRITE(2017,'(A)') 'Ib_A:'
+!        DO j = 1, SIZE(body_system(i)%Ib_A,1)
+!            WRITE(2017,'(6F9.5)') body_system(i)%Ib_A(j,:)
+!        END DO
 
         WRITE(2017,'(/)')
     END DO
@@ -171,18 +172,12 @@ IMPLICIT NONE
                 WRITE(2017,'(6I5)') joint_system(i)%S(j,:)
             END DO
         END IF
-        WRITE(2017,'(A)') 'q:'
-        IF(ALLOCATED(joint_system(i)%q)) THEN
-            WRITE(2017,'(F9.5)') joint_system(i)%q
-        END IF
-        WRITE(2017,'(A)') 'qdot:'
-        IF(ALLOCATED(joint_system(i)%qdot)) THEN
-            WRITE(2017,'(F9.5)') joint_system(i)%qdot
-        END IF
-        WRITE(2017,'(A)') 'qdot_pp:'
-        IF(ALLOCATED(joint_system(i)%qdot_pp)) THEN
-            WRITE(2017,'(F9.5)') joint_system(i)%qdot_pp
-        END IF
+        WRITE(2017,'(A)') 'qJ:'
+        WRITE(2017,'(F9.5)') joint_system(i)%qJ(:,1)
+        WRITE(2017,'(A)') 'vJ:'
+        WRITE(2017,'(F9.5)') joint_system(i)%vJ(:,1)
+        WRITE(2017,'(A)') 'cJ:'
+        WRITE(2017,'(F9.5)') joint_system(i)%cJ(:,1)
         WRITE(2017,'(A)') 'Xj:'
         DO j = 1, SIZE(joint_system(i)%Xj,1)
             WRITE(2017,'(6F9.5)') joint_system(i)%Xj(j,:)
@@ -215,9 +210,6 @@ IMPLICIT NONE
                 WRITE(2017,'(/)')
             END IF
         END DO
-
-        WRITE(2017,'(A,6F9.5)') 'vJ:', joint_system(i)%vJ(:,1)
-        WRITE(2017,'(A,6F9.5)') 'cJ:', joint_system(i)%cJ(:,1)
 
         WRITE(2017,'(/)')
     END DO

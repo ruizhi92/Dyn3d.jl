@@ -60,22 +60,11 @@ IMPLICIT NONE
     !  INTERFACE FUNCTION
     !--------------------------------------------------------------------
     INTERFACE
-        SUBROUTINE y_of_q(t_i,q_i,y_i)
+        SUBROUTINE interface_func(t_i,y_i)
             USE module_constants, ONLY:dp
               REAL(dp),INTENT(IN)                           :: t_i
-              REAL(dp),DIMENSION(:),INTENT(IN)              :: q_i
               REAL(dp),DIMENSION(:,:),INTENT(OUT)           :: y_i
-        END SUBROUTINE y_of_q
-    END INTERFACE
-
-    INTERFACE
-        SUBROUTINE y_of_qv(t_i,q_i,v_i,y_i)
-            USE module_constants, ONLY:dp
-              REAL(dp),INTENT(IN)                           :: t_i
-              REAL(dp),DIMENSION(:),INTENT(IN)              :: q_i
-              REAL(dp),DIMENSION(:),INTENT(IN)              :: v_i
-              REAL(dp),DIMENSION(:,:),INTENT(OUT)           :: y_i
-        END SUBROUTINE y_of_qv
+        END SUBROUTINE interface_func
     END INTERFACE
 
     !--------------------------------------------------------------------
@@ -84,8 +73,7 @@ IMPLICIT NONE
     REAL(dp),INTENT(IN)                           :: t_0,tol,h_0
     REAL(dp),DIMENSION(:),INTENT(IN)              :: q_0,v_0
     INTEGER,INTENT(IN)                            :: q_dim,lambda_dim,stage
-    PROCEDURE(y_of_q),INTENT(IN),POINTER          :: M,G,GT,gti
-    PROCEDURE(y_of_qv),INTENT(IN),POINTER         :: f
+    PROCEDURE(interface_func),INTENT(IN),POINTER  :: M,G,GT,gti,f
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: q_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: lambda_out
     REAL(dp),INTENT(OUT)                          :: h_out
@@ -164,13 +152,13 @@ IMPLICIT NONE
         END DO
 
         ! calculate M, f and GT at Q(i-1,:)
-        CALL M(t_im1, Q(i-1,:), M_im1)
-        CALL f(t_im1, Q(i-1,:), V(i-1,:), f_im1)
-        CALL GT(t_im1, Q(i-1,:), GT_im1)
+        CALL M(t_im1, M_im1)
+        CALL f(t_im1, f_im1)
+        CALL GT(t_im1, GT_im1)
 
         ! calculate G and gti at Q(i,:)
-        CALL G(t_i, Q(i,:), G_i)
-        CALL gti(t_i, Q(i,:), gti_i)
+        CALL G(t_i, G_i)
+        CALL gti(t_i, gti_i)
 
         ! construct LHS matrix
         LHS(:,:) = 0.0_dp

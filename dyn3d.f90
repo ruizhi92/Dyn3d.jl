@@ -32,12 +32,13 @@ PROGRAM dyn3d
     USE module_constants
     USE module_data_type
     USE module_init_system
-    USE module_artic_rhs_3d
+!    USE module_artic_rhs_3d
     USE module_ode_methods
     USE module_prescribed_motion
-    USE module_embed_system
+!    USE module_embed_system
     USE module_config_files
     USE module_write_structure
+    USE module_input_for_HERK
 
 IMPLICIT NONE
 
@@ -45,11 +46,10 @@ IMPLICIT NONE
     !  INTERFACE FUNCTION
     !--------------------------------------------------------------------
     INTERFACE
-        SUBROUTINE interface_func(t_i,y_im1,dydt_i)
+        SUBROUTINE interface_func(t_i,y_i)
             USE module_constants, ONLY:dp
               REAL(dp),INTENT(IN)                           :: t_i
-              REAL(dp),DIMENSION(:),INTENT(IN)              :: y_im1
-              REAL(dp),DIMENSION(:),INTENT(OUT)             :: dydt_i
+              REAL(dp),DIMENSION(:,:),INTENT(OUT)           :: y_i
         END SUBROUTINE interface_func
     END INTERFACE
 
@@ -59,18 +59,22 @@ IMPLICIT NONE
     INTEGER                                   :: i
     REAL(dp)                                  :: dt
     REAL(dp),DIMENSION(:),ALLOCATABLE         :: y_init
-    PROCEDURE(interface_func),POINTER         :: f => artic_rhs_3d
     CHARACTER(LEN = max_char)                 :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: motion
     REAL(dp),DIMENSION(:),ALLOCATABLE         :: q_total,qdot_total
 
+    PROCEDURE(interface_func),POINTER         :: M_local => HERK_func_M
+    PROCEDURE(interface_func),POINTER         :: G_local => HERK_func_G
+    PROCEDURE(interface_func),POINTER         :: GT_local => HERK_func_GT
+    PROCEDURE(interface_func),POINTER         :: gti_local => HERK_func_gti
+    PROCEDURE(interface_func),POINTER         :: f_local => HERK_func_f
     !--------------------------------------------------------------------
     !  Construct and init system
     !--------------------------------------------------------------------
 
     ! add_body, add_joint and assemble them
-!    CALL config_3d_hinged
-    CALL config_2d_linkobj
+    CALL config_3d_hinged
+!    CALL config_2d_linkobj
 
     ! initialize system
     ALLOCATE(y_init(2*system%np))
@@ -92,43 +96,43 @@ IMPLICIT NONE
     ! construct y for the first timestep using y_init
     dt = system%params%dt
 
-    ! do loop until nstep
-    DO i = 2, system%params%nstep+1
-        ! construct time
-        system%soln%t(i) = system%soln%t(i-1) + dt
-
-        ! solve ode, input t_im1, y_im1 and dydt_im1
-        CALL rk4( 2*system%np, system%soln%t(i-1), dt, system%soln%y(i-1,:), &
-                  f, system%soln%y(i,:))
-
-        ! the motion table is created in init_system, only need to refer here
-        mode = 'refer'
-        CALL prescribed_motion(mode, &
-            system%soln%t(i),motion)
-
-        ! update the system state with ode solution
-        q_total(:) = 0.0_dp
-        qdot_total(:) = 0.0_dp
-
-        ! insert passive vector position from input of last timestep
-        q_total(system%i_udof_p) = system%soln%y(i, 1:system%np)
-        qdot_total(system%i_udof_p) = system%soln%y(i, system%np+1 : 2*system%np)
-
-        ! impose the prescribed active motion
-        q_total(system%i_udof_a) = motion(:,1)
-        qdot_total(system%i_udof_a) = motion(:,2)
-
-        ! update the current setup of the system
-        CALL embed_system(q_total,qdot_total)
-
-        ! print time
-        IF(MOD(i,100) == 1) THEN
-            WRITE(*,*) ' '
-            WRITE(*,*) 'at t= ', system%soln%t(i), ', solution is:'
-            WRITE(*,*) system%soln%y(i,:)
-        END IF
-
-    END DO
+!    ! do loop until nstep
+!    DO i = 2, system%params%nstep+1
+!        ! construct time
+!        system%soln%t(i) = system%soln%t(i-1) + dt
+!
+!        ! solve ode, input t_im1, y_im1 and dydt_im1
+!        CALL rk4( 2*system%np, system%soln%t(i-1), dt, system%soln%y(i-1,:), &
+!                  f, system%soln%y(i,:))
+!
+!        ! the motion table is created in init_system, only need to refer here
+!        mode = 'refer'
+!        CALL prescribed_motion(mode, &
+!            system%soln%t(i),motion)
+!
+!        ! update the system state with ode solution
+!        q_total(:) = 0.0_dp
+!        qdot_total(:) = 0.0_dp
+!
+!        ! insert passive vector position from input of last timestep
+!        q_total(system%i_udof_p) = system%soln%y(i, 1:system%np)
+!        qdot_total(system%i_udof_p) = system%soln%y(i, system%np+1 : 2*system%np)
+!
+!        ! impose the prescribed active motion
+!        q_total(system%i_udof_a) = motion(:,1)
+!        qdot_total(system%i_udof_a) = motion(:,2)
+!
+!        ! update the current setup of the system
+!        CALL embed_system(q_total,qdot_total)
+!
+!        ! print time
+!        IF(MOD(i,100) == 1) THEN
+!            WRITE(*,*) ' '
+!            WRITE(*,*) 'at t= ', system%soln%t(i), ', solution is:'
+!            WRITE(*,*) system%soln%y(i,:)
+!        END IF
+!
+!    END DO
 
     !--------------------------------------------------------------------
     !  Write data

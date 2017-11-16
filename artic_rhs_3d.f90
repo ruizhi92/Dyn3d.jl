@@ -37,7 +37,7 @@ SUBROUTINE artic_rhs_3d(t_i,y_im1,dydt_i)
     USE module_data_type
     USE module_basic_matrix_operations
     USE module_prescribed_motion
-    USE module_embed_system
+!    USE module_embed_system
     USE module_six_dimension_cross
 
 IMPLICIT NONE
@@ -133,11 +133,11 @@ IMPLICIT NONE
 
         ! initialize the articulated inertia of each body to be equal to its
         ! own inertia
-        body_system(i)%Ib_A = body_system(i)%inertia_j
+        body_system(i)%Ib_A = body_system(i)%inertia_b
 
         ! compute part of bias force pA
         CALL mfcross(body_system(i)%v, &
-                     MATMUL(body_system(i)%inertia_j,body_system(i)%v), &
+                     MATMUL(body_system(i)%inertia_b,body_system(i)%v), &
                      body_system(i)%pA)
 
         ! add zero external force. fex_i is expressed in the inertial frame
@@ -213,7 +213,7 @@ IMPLICIT NONE
 
 !IF(joint_system(i)%joint_id == 3) THEN
 !    WRITE(*,*) 'This joint_id is: ', joint_system(i)%joint_id
-!    WRITE(*,*) 'inertia_j of body 3: ',body_system(i)%inertia_j(1,:)
+!    WRITE(*,*) 'inertia_b of body 3: ',body_system(i)%inertia_b(1,:)
 !    WRITE(*,*) 'Ib_A of body 3: ',body_system(i)%Ib_A(1,:)
 !    WRITE(*,*) 'U of body 3: ',body_system(i)%U
 !    WRITE(*,*) 'Hpinv of body 3: ',body_system(i)%Hpinv

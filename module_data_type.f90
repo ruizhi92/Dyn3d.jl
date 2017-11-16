@@ -160,17 +160,13 @@ IMPLICIT NONE
     !    inertia_c: body inertia at center
     !    Xj_to_c: transform matrix from the joint(same id with this body)
     !             to body center
-    !    inertia_j -- body inertia at it's origin, i.e. at the joint it connects
-    !              to. This body's body_id equals to the same joint_id.
-    !    support: body hierarchy number before this body
+    !    inertia_b -- body inertia at it's origin, i.e. at the joint it connects
+    !              to. This inertia is described in local body coord.
     !    Xb_to_i -- transform from body(at its first point) to inertia system
-    !    Xp_to_b -- transform between the parent body and the current body
+    !    Xp_to_b -- transform from the parent body to the current body
+    !    1 -- body position expressed in [theta_x,theta_y,theta_z,x,y,z]
     !    v -- body velocity expressed in [wx,wy,wz,ux,uy,uz]
     !    c -- body acceleration of the local single body
-    !    a --  body acceleration of assembled chained body
-    !    pA -- momentum of chained body
-    !    Ib_A -- inertia of chained body
-    !    U,Hp,Hpinv,uu -- some intermediate variables in Pass 2 and Pass 3
         INTEGER                                 :: body_id,parent_id
         INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
         INTEGER                                 :: nchild,nverts
@@ -178,18 +174,22 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(3)                   :: x_c,x_0
         REAL(dp)                                :: mass
         REAL(dp),DIMENSION(6,6)                 :: Xj_to_c
-        REAL(dp),DIMENSION(6,6)                 :: inertia_c,inertia_j
+        REAL(dp),DIMENSION(6,6)                 :: inertia_c,inertia_b
         REAL(dp),DIMENSION(6,6)                 :: Xb_to_i
         REAL(dp),DIMENSION(6,6)                 :: Xp_to_b
-        !REAL(dp),DIMENSION(:),ALLOCATABLE       :: support
-        REAL(dp),DIMENSION(6,1)                 :: v,c,a,pA
-        REAL(dp),DIMENSION(6,6)                 :: Ib_A
-        REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: U,Hp,Hpinv,uu
+        REAL(dp),DIMENSION(6,1)                 :: q,v,c
     END TYPE
 
 
     TYPE single_joint
     !------------------------ TYPE single_joint ------------------------
+    ! joint_type -- 'revolute','free' etc.
+    ! joint_id -- index of this joint
+    ! body1 -- the index of the parent body of this joint
+    ! shape1 -- the coord of this joint described in the local body coord
+    !           of the parent body of this joint
+    ! shape2 -- the coord of this joint described in the local body coord
+    !           of the child body of this joint
     ! nudof -- For a single joint, the total number of unconstrained dof
     ! np -- For a single joint, the total number of unconstrained passive dof
     ! na -- For a single joint, the total number of unconstrained active dof
@@ -211,18 +211,17 @@ IMPLICIT NONE
     ! global_up -- after assembling all passive dofs of all joints, the index
     !              of the current joint passive dof in that "all dof" vector
     ! S -- the dof basis matrix for every joint, depending on joint type
+    ! S_full -- the expression of S in fully 6-dimension way
+    ! T_full -- the constrained part other than S
+    ! joint_dof -- described in details in add_joint
+    ! qJ -- position vector of this joint in the parent body's body coord
+    ! vJ -- joint velocity in the parent body's body coord, which is S*qdot
+    ! cJ -- acceleration vector of this joint in the parent body's body coord
+    ! Note that qJ,vJ and cJ are stored in full 6-dimension. Those constrained
+    ! dofs are given value 0.
     ! Xj -- 6d transformation matrix, consider joint rotation only
-    ! subtree: joint hierarchy number after this joint(including self)
     ! Xp_to_j -- transform matrix, considering parent body to the joint
     ! xj_to_ch -- transform matrix, considering joint to the child body
-    ! q -- position vector of this joint
-    ! qdot -- velocity vector of this joint, this is called alpha in Matlab
-    ! qdot_pp -- the passive part of rate of change of q vector in the parent
-    !            body's body coordinate, called qdot_p in Matlab
-    ! vJ -- joint velocity in the parent body's body coord, which is S*qdot
-    ! cJ -- joint acceleration due to time variation of S, which is kept at
-    !       0 most of the time
-
         CHARACTER(LEN = max_char)               :: joint_type
         INTEGER                                 :: joint_id
         INTEGER                                 :: body1
@@ -233,11 +232,10 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
         INTEGER,DIMENSION(:),ALLOCATABLE        :: global_up
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
+        INTEGER,DIMENSION(6,6)                  :: S_full,T_full
         TYPE(dof),DIMENSION(:),ALLOCATABLE      :: joint_dof
-        REAL(dp),DIMENSION(:),ALLOCATABLE       :: q,qdot,qdot_pp
+        REAL(dp),DIMENSION(6,1)                 :: qJ,vJ,cJ
         REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
-        !REAL(dp),DIMENSION(:),ALLOCATABLE       :: subtree
-        REAL(dp),DIMENSION(6,1)                 :: vJ,cJ
 
     END TYPE
 
@@ -254,9 +252,9 @@ IMPLICIT NONE
     TYPE system_solution
     ! to be used in the overall_system structure
     ! defines a structure storing solution. The dimension of t depends on
-    ! nstep, and the dimension of y depends on system.npassive. Should have
-    ! t(nstep),y(nstep,2*system%np). The q for every dof is a scalar,
-    ! so is qdot.
+    ! nstep, and the dimension of y depends on system.nbody. Should have
+    ! t(nstep),y(nstep,2*6*system%nbody).
+    ! y = [q,v] for all bodies in the system
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: t
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: y
     END TYPE
