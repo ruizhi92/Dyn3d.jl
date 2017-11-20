@@ -223,6 +223,7 @@ IMPLICIT NONE
     OPEN(2017,file = fullname)
 
     WRITE(2017,'(A,2/)') 'system structure'
+    WRITE(2017,'(A,I5)') 'nbody:', system%nbody
     WRITE(2017,'(A,I5)') 'njoint:', system%njoint
     WRITE(2017,'(A,3F9.5)') 'params%gravity:', system%params%gravity
     WRITE(2017,'(A,F9.5)') 'params%dt:', system%params%dt

@@ -112,7 +112,7 @@ IMPLICIT NONE
     ALLOCATE(f_im1(q_dim,1))
     ALLOCATE(GT_im1(q_dim,lambda_dim))
     ALLOCATE(G_i(lambda_dim,q_dim))
-    ALLOCATE(gti_i(lambda_dim,lambda_dim))
+    ALLOCATE(gti_i(lambda_dim,1))
 
     ! LHS, x and RHS
     ALLOCATE(LHS(q_dim+lambda_dim,q_dim+lambda_dim))
@@ -153,12 +153,17 @@ IMPLICIT NONE
 
         ! calculate M, f and GT at Q(i-1,:)
         CALL M(t_im1, M_im1)
+WRITE(*,*) '1'
         CALL f(t_im1, f_im1)
+WRITE(*,*) '2'
         CALL GT(t_im1, GT_im1)
+WRITE(*,*) '3'
 
         ! calculate G and gti at Q(i,:)
         CALL G(t_i, G_i)
+WRITE(*,*) '4'
         CALL gti(t_i, gti_i)
+WRITE(*,*) '5'
 
         ! construct LHS matrix
         LHS(:,:) = 0.0_dp
@@ -184,7 +189,8 @@ IMPLICIT NONE
 
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
         CALL lu(LHS,RHS,x)
-
+WRITE(*,*) '6'
+WRITE(*,*) x
         Vdot(i-1,:) = x(1:q_dim)
         lambda(i-1,:) = x(q_dim+1:q_dim+lambda_dim)
 
@@ -195,7 +201,8 @@ IMPLICIT NONE
         DO j = 1, i-1
             V(i,:) = V(i,:) + h_0*A(i,j)*Vdot(j,:)
         END DO
-
+WRITE(*,*) 'Time now is: ',t_i
+STOP
     END DO
 
     ! use norm2(V(stage+1,:)-V(stage,:)) to determine next timestep h_out

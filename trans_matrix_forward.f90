@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------
-!  Subroutine	    :            trans_matrix
+!  Subroutine	    :            trans_matrix_forward
 !------------------------------------------------------------------------
 !  Purpose      : Do coordinate transform for 6D Plucker coordinates.
 !				  Generates the transform matrix X from A coordinates
@@ -41,7 +41,7 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-SUBROUTINE trans_matrix(r,theta,X,Xinv,rot,tr)
+SUBROUTINE trans_matrix_forward(r,theta,X,Xinv,rot,tr)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -140,4 +140,4 @@ IMPLICIT NONE
     IF(PRESENT(rot)) rot = op_rot
     IF(PRESENT(tr)) tr = op_tr
 
-END SUBROUTINE trans_matrix
+END SUBROUTINE trans_matrix_forward

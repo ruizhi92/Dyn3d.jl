@@ -75,5 +75,6 @@ IMPLICIT NONE
             END DO
         END IF
     END DO
-
+!WRITE(*,*) active_motion
+!WRITE(*,*) 'note here'
 END SUBROUTINE prescribed_motion_refer

@@ -28,11 +28,13 @@ MODULE module_trans_matrix
 
 IMPLICIT NONE
 
-    INTERFACE trans_matrix_inter
-        MODULE PROCEDURE trans_matrix
+    INTERFACE trans_matrix
+        MODULE PROCEDURE trans_matrix_forward
+        MODULE PROCEDURE trans_matrix_backward
     END INTERFACE
 
     CONTAINS
-    INCLUDE "trans_matrix.f90"
+    INCLUDE "trans_matrix_forward.f90"
+    INCLUDE "trans_matrix_backward.f90"
 
 END MODULE module_trans_matrix

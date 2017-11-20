@@ -185,7 +185,7 @@ IMPLICIT NONE
     nstep = system%params%nstep
     ALLOCATE(system%time(nstep))
     ALLOCATE(system%soln%t(nstep+1))
-    ALLOCATE(system%soln%y(nstep+1,2*system%np))
+    ALLOCATE(system%soln%y(nstep+1,2*6*system%nbody))
     system%soln%t(:) = 0.0_dp
     system%soln%y(:,:) = 0.0_dp
 

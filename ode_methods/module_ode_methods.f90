@@ -26,12 +26,13 @@
 
 MODULE module_ode_methods
 
+    USE module_HERK
+
 IMPLICIT NONE
 
     INTERFACE rk4
         MODULE PROCEDURE rk4_v
     END INTERFACE
-
 
     CONTAINS
     INCLUDE 'rk4_v.f90'
