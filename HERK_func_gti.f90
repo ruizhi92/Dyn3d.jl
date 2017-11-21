@@ -47,7 +47,6 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i
     CHARACTER(LEN = max_char)                     :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: motion
 

@@ -49,8 +49,8 @@ IMPLICIT NONE
     !  Local variables
     !------------------------------------------------------------------------
     REAL(dp)                        :: tf
-    INTEGER                         :: nbody,i,j,ndof,njoint,nstep
-    REAL(dp)                        :: height,rhob
+    INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme
+    REAL(dp)                        :: height,rhob,tol
     REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
     TYPE(dof),ALLOCATABLE           :: joint1_dof(:)
@@ -65,6 +65,10 @@ IMPLICIT NONE
     tf = 1.0_dp
     ! total number of steps
     nstep = 1000
+    ! numerical tolerance for HERK solver error estimate
+    tol = 1e-4_dp
+    ! scheme choice of HERK solver
+    scheme = 4
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
@@ -236,6 +240,8 @@ IMPLICIT NONE
     system%params%nstep = nstep
     system%params%dt = tf / system%params%nstep
     system%params%tf = tf
+    system%params%tol = tol
+    system%params%scheme = scheme
 
     CALL assemble_system
 

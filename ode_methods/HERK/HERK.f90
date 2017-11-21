@@ -20,8 +20,9 @@
 !                 lambda_dim: dimension of lambda vector
 !                 h_0: input timestep
 !                 tol: tolerance to adjust timestep
-!                 stage: coefficient table to be referred to in
+!                 scheme: coefficient table to be referred to in
 !                             HERK_pick_order
+!                 stage: stage of the scheme
 !                 M(:,:), G(:,:), GT(:,:): function pointer
 !                 f(:), gti(:): function pointer
 
@@ -44,15 +45,17 @@
 !  Ruizhi Yang, 2017 Nov
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK(t_0, q_0, v_0, q_dim, lambda_dim, h_0, tol, stage, M, f, G, &
-                GT, gti, q_out, v_out, vdot_out, lambda_out, h_out)
+SUBROUTINE HERK(t_0, q_0, v_0, q_dim, lambda_dim, h_0, tol, &
+                scheme, stage, M, f, G, GT, gti, &
+                q_out, v_out, vdot_out, lambda_out, h_out)
 
     !--------------------------------------------------------------------
     !  MODULE
     !--------------------------------------------------------------------
     USE module_constants
     USE module_basic_matrix_operations
-    USE module_HERK_pick_order
+    USE module_HERK_pick_scheme
+    USE module_HERK_update_system
 
 IMPLICIT NONE
 
@@ -67,13 +70,22 @@ IMPLICIT NONE
         END SUBROUTINE interface_func
     END INTERFACE
 
+!    INTERFACE
+!        SUBROUTINE inter_embed
+!            USE module_constants, ONLY:dp
+!              REAL(dp),INTENT(IN)                           :: t_i
+!        END SUBROUTINE inter_embed
+!    END INTERFACE
+
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
     REAL(dp),INTENT(IN)                           :: t_0,tol,h_0
     REAL(dp),DIMENSION(:),INTENT(IN)              :: q_0,v_0
-    INTEGER,INTENT(IN)                            :: q_dim,lambda_dim,stage
+    INTEGER,INTENT(IN)                            :: q_dim,lambda_dim
+    INTEGER,INTENT(IN)                            :: scheme
     PROCEDURE(interface_func),INTENT(IN),POINTER  :: M,G,GT,gti,f
+!    PROCEDURE(inter_embed),INTENT(IN),POINTER     :: embed_sys
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: q_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: lambda_out
     REAL(dp),INTENT(OUT)                          :: h_out
@@ -81,7 +93,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i,j
+    INTEGER                                       :: i,j,stage
     REAL(dp)                                      :: t_i,t_im1
     REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: A
     REAL(dp),ALLOCATABLE,DIMENSION(:)             :: b,c
@@ -95,6 +107,10 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
+
+    ! determine stage of the chosen scheme to do allocation
+    CALL HERK_determine_stage(scheme,stage)
+
     ! HERK coefficients
     ALLOCATE(A(stage+1,stage))
     ALLOCATE(b(stage))
@@ -125,7 +141,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     ! get HERK coefficients
-    CALL HERK_pick_order(stage, A(1:stage,:), b, c)
+    CALL HERK_pick_scheme(scheme, A(1:stage,:), b, c)
     A(stage+1,:) = b
     c(stage+1) = 1.0_dp
 
@@ -158,6 +174,16 @@ WRITE(*,*) '1'
 WRITE(*,*) '2'
         CALL GT(t_im1, GT_im1)
 WRITE(*,*) '3'
+
+        ! update body chain position q using Q(i,:) then embed system.
+        ! from now on system properties related to q:
+        !     1. Xb_to_i used in GT and M for the next loop
+        !     2. the same Xb_to_i used the the following G
+        !     2. qJ used in f
+        ! are updated to t_i
+
+!        CALL embed_sys(Q(i,:))
+        CALL HERK_update_system_q(Q(i,:))
 
         ! calculate G and gti at Q(i,:)
         CALL G(t_i, G_i)
@@ -201,6 +227,12 @@ WRITE(*,*) x
         DO j = 1, i-1
             V(i,:) = V(i,:) + h_0*A(i,j)*Vdot(j,:)
         END DO
+
+        ! fill the updated v and c info in body_system to be used
+        ! in f in the next loop
+!        CALL embed_sys(V(i,:), Vdot(i,:))
+        CALL HERK_update_system_vc(V(i,:), Vdot(i,:))
+
 WRITE(*,*) 'Time now is: ',t_i
 STOP
     END DO

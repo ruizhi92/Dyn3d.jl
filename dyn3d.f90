@@ -37,7 +37,8 @@ PROGRAM dyn3d
     USE module_embed_system
     USE module_config_files
     USE module_write_structure
-    USE module_input_for_HERK
+    USE module_HERK_input_func
+    USE module_HERK_pick_scheme
 
 IMPLICIT NONE
 
@@ -52,22 +53,31 @@ IMPLICIT NONE
         END SUBROUTINE interface_func
     END INTERFACE
 
+    INTERFACE
+        SUBROUTINE inter_embed(t_i)
+            USE module_constants, ONLY:dp
+              REAL(dp),INTENT(IN)                           :: t_i
+        END SUBROUTINE inter_embed
+    END INTERFACE
+
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                   :: i,j,k,stage
-    REAL(dp)                                  :: dt,tol
-    CHARACTER(LEN = max_char)                 :: mode
-    REAL(dp),DIMENSION(:),ALLOCATABLE         :: q_total,v_total
-    REAL(dp),DIMENSION(:),ALLOCATABLE         :: q_out,v_out,vdot_out
-    REAL(dp),DIMENSION(:),ALLOCATABLE         :: lambda_out
-    REAL(dp)                                  :: h_out
+    INTEGER                                 :: i,j,k,stage,scheme
+    INTEGER                                 :: q_dim,lambda_dim
+    REAL(dp)                                :: dt,tol
+    CHARACTER(LEN = max_char)               :: mode
+    REAL(dp),DIMENSION(:),ALLOCATABLE       :: q_total,v_total
+    REAL(dp),DIMENSION(:),ALLOCATABLE       :: q_out,v_out,vdot_out
+    REAL(dp),DIMENSION(:),ALLOCATABLE       :: lambda_out
+    REAL(dp)                                :: h_out
 
-    PROCEDURE(interface_func),POINTER         :: M => HERK_func_M
-    PROCEDURE(interface_func),POINTER         :: G => HERK_func_G
-    PROCEDURE(interface_func),POINTER         :: GT => HERK_func_GT
-    PROCEDURE(interface_func),POINTER         :: gti => HERK_func_gti
-    PROCEDURE(interface_func),POINTER         :: f => HERK_func_f
+    PROCEDURE(interface_func),POINTER       :: M => HERK_func_M
+    PROCEDURE(interface_func),POINTER       :: G => HERK_func_G
+    PROCEDURE(interface_func),POINTER       :: GT => HERK_func_GT
+    PROCEDURE(interface_func),POINTER       :: gti => HERK_func_gti
+    PROCEDURE(interface_func),POINTER       :: f => HERK_func_f
+!    PROCEDURE(inter_embed),POINTER          :: embed_sys => HERK_update_system
 
 
     !--------------------------------------------------------------------
@@ -121,9 +131,14 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     ! HERK solver coefficients
-    tol = 1e-4_dp
-    stage = 3
+    tol = system%params%tol
+    scheme = system%params%scheme
     dt = system%params%dt
+    q_dim = 6*system%nbody
+    lambda_dim = 6*system%nbody
+
+    ! determine stage of the chosen scheme
+    CALL HERK_determine_stage(scheme,stage)
 
     ! do loop until nstep
     DO i = 2, 2
@@ -137,8 +152,8 @@ IMPLICIT NONE
         END DO
 
 
-        CALL HERK(system%soln%t(i-1), q_total, v_total, 6*system%nbody, &
-                  6*system%nbody, dt, tol, stage, M, f, G, &
+        CALL HERK(system%soln%t(i-1), q_total, v_total, q_dim, lambda_dim, &
+                  dt, tol, scheme, stage, M, f, G, &
                   GT, gti, q_out, v_out, vdot_out, lambda_out, h_out)
 
 

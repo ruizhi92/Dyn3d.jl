@@ -72,6 +72,11 @@ IMPLICIT NONE
     A_temp = A
     DO i = 1,n
        aamax = MAXVAL(ABS(A_temp(i,1:n))) ! Row maximum
+       ! check singularity
+       IF (aamax <= tiny) THEN
+           WRITE(*,*) 'ERROR STOP: Singular matrix in lu.'
+           STOP
+       END IF
        vv(i) = 1.0_dp/aamax ! Scaling parameters
     END DO
     DO j = 1,n

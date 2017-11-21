@@ -1,0 +1,65 @@
+!------------------------------------------------------------------------
+!  Subroutine     :          HERK_update_system_q
+!------------------------------------------------------------------------
+!  Purpose      : This subroutine takes in full vector of q, unzip it to
+!                 update body_system%q, and then call embed_system
+!
+!
+!
+!  Details      ：
+!
+!  Input        : q: contains all body position in inertial coord,
+!                    lining up by body index order. Dimension of q
+!                    is (6*nb,1) solved from the last time step.
+!
+!  Input/output :
+!
+!  Output       : q, Xb_to_i, qJ etc. got updated in body_system
+!
+!  Remarks      :
+!
+!  References   :
+!
+!  Revisions    :
+!------------------------------------------------------------------------
+!  whirl vortex-based immersed boundary library
+!  SOFIA Laboratory
+!  University of California, Los Angeles
+!  Los Angeles, California 90095  USA
+!  Ruizhi Yang, 2017 Nov
+!------------------------------------------------------------------------
+
+SUBROUTINE HERK_update_system_q(q)
+
+    !--------------------------------------------------------------------
+    !  MODULE
+    !--------------------------------------------------------------------
+    USE module_constants
+    USE module_data_type
+    USE module_embed_system
+
+IMPLICIT NONE
+
+    !--------------------------------------------------------------------
+    !  Argument
+    !--------------------------------------------------------------------
+    REAL(dp),DIMENSION(:)                            :: q
+
+    !--------------------------------------------------------------------
+    !  Local variables
+    !--------------------------------------------------------------------
+    INTEGER                                         :: i
+
+    !--------------------------------------------------------------------
+    !  Algorithm
+    !--------------------------------------------------------------------
+
+    ! update body_system%q using input argument q
+    DO i = 1, system%nbody
+        body_system(i)%q(:,1) = q(6*(i-1)+1:6*i)
+    END DO
+
+    ! embed the system to update Xb_to_i and qJ
+    CALL embed_system
+
+END SUBROUTINE HERK_update_system_q

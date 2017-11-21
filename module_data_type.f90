@@ -245,8 +245,8 @@ IMPLICIT NONE
     ! defines a small structure to store some physical and numerical
     ! constants.
         REAL(dp),DIMENSION(3)                   :: gravity
-        REAL(dp)                                :: dt,tf
-        INTEGER                                 :: nstep
+        REAL(dp)                                :: dt,tf,tol
+        INTEGER                                 :: nstep,scheme
     END TYPE
 
     TYPE system_solution

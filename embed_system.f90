@@ -17,14 +17,11 @@
 !
 !  Details      ：
 !
-!  Input        : q: contains all body position in inertial coord,
-!                    lining up by body index order. Dimension of q
-!                    is (6*nb,1) solved from the last time step.
-!                 v: similar, velocity
+!  Input        : No explicit input. only use body_system%q
 !
 !  Input/output :
 !
-!  Output       : No explicit output. Module data got updated
+!  Output       : No explicit output. Module data got updated as above
 !
 !  Remarks      :
 !

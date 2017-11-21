@@ -44,6 +44,7 @@ SUBROUTINE assemble_system
     USE module_data_type
     USE module_trans_matrix
     USE module_basic_matrix_operations
+    USE module_HERK_pick_scheme
 
 IMPLICIT NONE
 
@@ -53,7 +54,7 @@ IMPLICIT NONE
     TYPE(single_joint),ALLOCATABLE              :: joint_temp(:)
     TYPE(single_body),ALLOCATABLE               :: body_temp(:)
     INTEGER                                     :: i,j,count,last,child_count
-    INTEGER                                     :: nstep,cj
+    INTEGER                                     :: nstep,cj,stage
     REAL(dp),DIMENSION(3,3)                     :: rot_old
     REAL(dp),DIMENSION(3)                       :: r_old,r_temp
     REAL(dp),DIMENSION(3,1)                     :: r_temp_2d,child_temp
@@ -176,9 +177,9 @@ IMPLICIT NONE
         END DO
     END DO
 
-    ! kindata
-    ! note here that the allocation is specified to RK4 ode method
-    ALLOCATE(system%kindata(2*system%params%nstep+1, 1+3*system%na))
+    ! kindata is allocated according to HERK scheme choice
+    CALL HERK_determine_stage(system%params%scheme,stage)
+    ALLOCATE(system%kindata((stage-1)*system%params%nstep+1, 1+3*system%na))
 
     ! params got assigned in config files
     ! Allocate time, soln

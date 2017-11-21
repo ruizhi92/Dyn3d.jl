@@ -1,9 +1,8 @@
 !------------------------------------------------------------------------
-!  Subroutine     :            HERK_pick_order
+!  Subroutine     :            HERK_pick_scheme
 !------------------------------------------------------------------------
 !  Purpose      : This subroutine provides a set of HERK coefficients,
-!                 which are expressed in Butcher table form. Different
-!                 order of accuracy are expressed.
+!                 which are expressed in Butcher table form.
 !
 !  Details      ：
 !
@@ -29,7 +28,7 @@
 !  Ruizhi Yang, 2017 Oct
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK_pick_order(m, A, b, c)
+SUBROUTINE HERK_pick_scheme(m, A, b, c)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -89,13 +88,14 @@ IMPLICIT NONE
             ! Scheme A of HERK in Liska's paper
             A = RESHAPE( (/ 0.0_dp, 0.0_dp, 0.0_dp, & ! line 1
                             0.5_dp, 0.0_dp, 0.0_dp, & ! line 2
-                            SQRT(3.0_dp)/3.0_dp, (3-SQRT(3.0_dp)/3.0_dp), 0.0_dp /), & ! line 3
+                            SQRT(3.0_dp)/3.0_dp, (3-SQRT(3.0_dp))/3.0_dp, 0.0_dp /), & ! line 3
                         (/3,3/), order=(/2,1/) )
             c = (/ 0.0_dp, 0.5_dp, 1.0_dp /)
-            b = (/ (3+SQRT(3.0_dp)/6.0_dp), -SQRT(3.0_dp)/3.0_dp, (3+SQRT(3.0_dp)/6.0_dp) /)
+            b = (/ (3+SQRT(3.0_dp))/6.0_dp, -SQRT(3.0_dp)/3.0_dp, (3+SQRT(3.0_dp))/6.0_dp /)
 !            s = 3
 !            p = 2
 
     END SELECT
 
-END SUBROUTINE HERK_pick_order
+END SUBROUTINE HERK_pick_scheme
+
