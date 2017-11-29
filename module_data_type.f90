@@ -200,6 +200,7 @@ IMPLICIT NONE
     !         cylindrical joint: [3 6]
     !         spherical joint: [1 2 3]
     !         prismatic joint: 6
+    ! cdof -- the constrained part other than udof
     ! udof_p -- the passive ones in the udof
     ! udof_a --  the ones in udof with active prescribed motion
     ! i_udof_p -- the index of udof_p in udof. For example, if we have a
@@ -210,9 +211,9 @@ IMPLICIT NONE
     !            refers to the index of the current dof in the "total array"
     ! global_up -- after assembling all passive dofs of all joints, the index
     !              of the current joint passive dof in that "all dof" vector
-    ! S -- the dof basis matrix for every joint, depending on joint type
-    ! S_full -- the expression of S in fully 6-dimension way
-    ! T_full -- the constrained part other than S
+    ! S -- the dof basis matrix for every body, depending on joint type only
+    !      , expressed in 6 lines and nudof columns
+    ! T -- the other part of S
     ! joint_dof -- described in details in add_joint
     ! qJ -- position vector of this joint in the parent body's body coord
     ! vJ -- joint velocity in the parent body's body coord, which is S*qdot
@@ -226,13 +227,15 @@ IMPLICIT NONE
         INTEGER                                 :: joint_id
         INTEGER                                 :: body1
         REAL(dp),DIMENSION(6)                   :: shape1,shape2
-        INTEGER                                 :: nudof,np,na
-        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,udof_p,udof_a
+        INTEGER                                 :: nudof,ncdof
+        INTEGER                                 :: np,na
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,cdof
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_p,udof_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: cdofmap
         INTEGER,DIMENSION(:),ALLOCATABLE        :: global_up
-        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S
-        INTEGER,DIMENSION(6,6)                  :: S_full,T_full
+        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S,T
         TYPE(dof),DIMENSION(:),ALLOCATABLE      :: joint_dof
         REAL(dp),DIMENSION(6,1)                 :: qJ,vJ,cJ
         REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
@@ -266,6 +269,11 @@ IMPLICIT NONE
     ! params -- look at TYPE system_params
     ! time -- the time array that the ODE system is solved at
     ! soln -- look at TYPE system_solution
+    ! ndof -- total number of dofs of the system, which is 6*system%nbody
+    ! nudof -- total number of unconstrained dofs of the system
+    ! ncdof -- total number of constrained dofs of the system
+    ! np -- total number of passive unconstrained dofs of the system
+    ! na -- total number of active unconstrained dofs of the system
     ! the rest parameters have similar definitions with those in the
     ! joint_system structure. The difference is that variables here
     ! take the index considering the whole system, lining up all joints
@@ -293,8 +301,10 @@ IMPLICIT NONE
         TYPE(system_params)                     :: params
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: time
         TYPE(system_solution)                   :: soln
-        INTEGER                                 :: nudof,np,na
-        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,udof_p,udof_a
+        INTEGER                                 :: ndof
+        INTEGER                                 :: nudof,ncdof,np,na
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,cdof
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_p,udof_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: kinmap
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: kindata

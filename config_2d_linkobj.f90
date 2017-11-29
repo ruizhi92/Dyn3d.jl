@@ -68,7 +68,7 @@ IMPLICIT NONE
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
-    scheme = 4
+    scheme = 3
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
@@ -216,9 +216,7 @@ IMPLICIT NONE
 
         ! revolute joint only has one unconstrained dof
         ALLOCATE(input_joint(i)%joint_dof(1))
-        DO j = 1, 1
-            input_joint(i)%joint_dof(j) = default_dof_passive
-        END DO
+        input_joint(i)%joint_dof(1) = default_dof_passive
     END DO
 
 

@@ -92,12 +92,12 @@ IMPLICIT NONE
     !  Allocation
     !--------------------------------------------------------------------
 
-    ALLOCATE(q_total(6*system%nbody))
-    ALLOCATE(v_total(6*system%nbody))
-    ALLOCATE(q_out(6*system%nbody))
-    ALLOCATE(v_out(6*system%nbody))
-    ALLOCATE(vdot_out(6*system%nbody))
-    ALLOCATE(lambda_out(6*system%nbody))
+    ALLOCATE(q_total(system%ndof))
+    ALLOCATE(v_total(system%ndof))
+    ALLOCATE(q_out(system%ndof))
+    ALLOCATE(v_out(system%ndof))
+    ALLOCATE(vdot_out(system%ndof))
+    ALLOCATE(lambda_out(system%ncdof))
 
     !--------------------------------------------------------------------
     !  Construct and init system
@@ -107,7 +107,7 @@ IMPLICIT NONE
     CALL init_system
 
     ! write initial condition
-    WRITE(*,*) 'At t=0, body position is:'
+    WRITE(*,*) 'At t=0, body position q is:'
     DO i = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
         DO j = 1, 6
@@ -115,13 +115,33 @@ IMPLICIT NONE
         END DO
         WRITE(*,'(/)')
     END DO
-    WRITE(*,*) 'At t=0, body velocity is:'
+    WRITE(*,*) 'At t=0, body velocity v is:'
     DO i = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
         DO j = 1, 6
             WRITE(*,'(F9.5)',ADVANCE="NO") &
-                system%soln%y(1,6*system%nbody+6*(i-1)+j)
+                system%soln%y(1,system%ndof+6*(i-1)+j)
         END DO
+        WRITE(*,'(/)')
+    END DO
+    WRITE(*,*) 'At t=0, body acceleration vdot is:'
+    DO i = 1, system%nbody
+        WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
+        DO j = 1, 6
+            WRITE(*,'(F9.5)',ADVANCE="NO") &
+                system%soln%y(1,2*system%ndof+6*(i-1)+j)
+        END DO
+        WRITE(*,'(/)')
+    END DO
+    WRITE(*,*) 'At t=0, Lagrange multiplier lambda is:'
+    DO i = 1, system%nbody
+        WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
+        IF (joint_system(i)%ncdof /= 0) THEN
+            DO j = 1, joint_system(i)%ncdof
+                WRITE(*,'(F9.5)',ADVANCE="NO") &
+                    system%soln%y(1,3*system%ndof+joint_system(i)%cdofmap(j))
+            END DO
+        END IF
         WRITE(*,'(/)')
     END DO
     WRITE(*,*) '--------------------------------------------------------'
@@ -134,8 +154,8 @@ IMPLICIT NONE
     tol = system%params%tol
     scheme = system%params%scheme
     dt = system%params%dt
-    q_dim = 6*system%nbody
-    lambda_dim = 6*system%nbody
+    q_dim = system%ndof
+    lambda_dim = system%ncdof
 
     ! determine stage of the chosen scheme
     CALL HERK_determine_stage(scheme,stage)
@@ -145,7 +165,7 @@ IMPLICIT NONE
         ! construct time
         system%soln%t(i) = system%soln%t(i-1) + dt
 
-    ! construct input for HERK
+        ! construct input for HERK
         DO j = 1, system%nbody
             q_total(6*(j-1)+1:6*j) = body_system(j)%q(:,1)
             v_total(6*(j-1)+1:6*j) = body_system(j)%v(:,1)
@@ -168,9 +188,9 @@ IMPLICIT NONE
             body_system(j)%c(:,1) = vdot_out(6*(j-1)+1:6*j)
         END DO
 
-!        ! update the current setup of the system
-!        CALL embed_system
-
+        ! update the current setup of the system
+        CALL embed_system
+STOP
         ! write final solution
         IF(i == 2) THEN
             WRITE(*,*) 'At t= ',system%soln%t(i),' body position is:'
@@ -186,7 +206,7 @@ IMPLICIT NONE
                 WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
                 DO j = 1, 6
                     WRITE(*,'(F9.5)',ADVANCE="NO") &
-                        system%soln%y(i,6*system%nbody+6*(k-1)+j)
+                        system%soln%y(i,system%ndof+6*(k-1)+j)
                 END DO
                 WRITE(*,'(/)')
             END DO

@@ -1,0 +1,8 @@
+Remaining problem:
+
+1. tau_total in HERK_func_f.f90 is now determined by passive and active dof. But I feel that this should not be determined by this. Active dof can also have resistance over the unconstrained dof.
+
+
+2. gti should be the active motion constraint on the constrained dof.
+
+3. Where should the active motion of unconstrained dof be specified?

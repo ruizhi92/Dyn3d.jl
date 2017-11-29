@@ -173,6 +173,7 @@ WRITE(*,*) '1'
         CALL f(t_im1, f_im1)
 WRITE(*,*) '2'
         CALL GT(t_im1, GT_im1)
+CALL write_matrix(GT_im1)
 WRITE(*,*) '3'
 
         ! update body chain position q using Q(i,:) then embed system.
@@ -187,8 +188,10 @@ WRITE(*,*) '3'
 
         ! calculate G and gti at Q(i,:)
         CALL G(t_i, G_i)
+CALL write_matrix(G_i)
 WRITE(*,*) '4'
         CALL gti(t_i, gti_i)
+CALL write_matrix(gti_i)
 WRITE(*,*) '5'
 
         ! construct LHS matrix
@@ -214,6 +217,7 @@ WRITE(*,*) '5'
         RHS(q_dim+1:q_dim+lambda_dim) = RHS_temp(:,1)
 
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
+!CALL write_matrix(LHS)
         CALL lu(LHS,RHS,x)
 WRITE(*,*) '6'
 WRITE(*,*) x

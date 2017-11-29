@@ -49,18 +49,20 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     CHARACTER(LEN = max_char)                     :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: motion
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: y_temp
 
     !--------------------------------------------------------------------
     !  ALLOCATION
     !--------------------------------------------------------------------
     ALLOCATE(motion(system%na,3))
+    ALLOCATE(y_temp(6*system%nbody,1))
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
 
     ! initialize gti (M is y_i)
-    y_i(:,1) = 0.0_dp
+    y_temp(:,1) = 0.0_dp
 
     ! pick the active dof of active joint and assign prescribed velocity.
     ! the other passive dofs are assigned to be 0. gti is then the negative
@@ -69,11 +71,14 @@ IMPLICIT NONE
     ! the motion table is created in init_system, only need to refer here
     mode = 'refer'
     CALL prescribed_motion(mode,t_i,motion)
-    y_i(system%udof_a,1) = motion(:,2)
+    y_temp(system%udof_a,1) = motion(:,2)
+
+    y_i = y_temp(system%udof,:)
 
     !--------------------------------------------------------------------
     !  DEALLOCATION
     !--------------------------------------------------------------------
     DEALLOCATE(motion)
+    DEALLOCATE(y_temp)
 
 END SUBROUTINE HERK_func_gti

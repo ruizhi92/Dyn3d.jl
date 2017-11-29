@@ -60,7 +60,7 @@ IMPLICIT NONE
     !  Allocation
     !--------------------------------------------------------------------
     ALLOCATE(X_total(6*system%nbody,6*system%nbody))
-    ALLOCATE(T_total(6*system%nbody,6*system%nbody))
+    ALLOCATE(T_total(system%ncdof,6*system%nbody))
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -73,8 +73,9 @@ IMPLICIT NONE
     !  of each joint in local body coord
     T_total(:,:) = 0
     DO i = 1,system%nbody
-        T_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = &
-                          TRANSPOSE(joint_system(i)%T_full)
+        IF(joint_system(i)%ncdof /= 0) THEN
+            T_total(6*(i-1)+1:6*i, joint_system(i)%cdofmap) = TRANSPOSE(joint_system(i)%T)
+        END IF
     END DO
 
     ! construct X_total, whose diagonal block is the inverse of

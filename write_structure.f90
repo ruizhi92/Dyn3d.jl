@@ -135,12 +135,17 @@ IMPLICIT NONE
         WRITE(2017,'(A,6F9.5)') 'shape1:', joint_system(i)%shape1(:)
         WRITE(2017,'(A,6F9.5)') 'shape2:', joint_system(i)%shape2(:)
         WRITE(2017,'(A,I5)') 'nudof:', joint_system(i)%nudof
+        WRITE(2017,'(A,I5)') 'ncdof:', joint_system(i)%ncdof
         WRITE(2017,'(A,I5)') 'np:', joint_system(i)%np
         WRITE(2017,'(A,I5)') 'na:', joint_system(i)%na
 
         WRITE(2017,'(A)') 'udof:'
         IF(ALLOCATED(joint_system(i)%udof)) THEN
             WRITE(2017,'(I5)') joint_system(i)%udof
+        END IF
+        WRITE(2017,'(A)') 'cdof:'
+        IF(ALLOCATED(joint_system(i)%cdof)) THEN
+            WRITE(2017,'(I5)') joint_system(i)%cdof
         END IF
         WRITE(2017,'(A)') 'udof_p:'
         IF(ALLOCATED(joint_system(i)%udof_p)) THEN
@@ -162,6 +167,10 @@ IMPLICIT NONE
         IF(ALLOCATED(joint_system(i)%udofmap)) THEN
             WRITE(2017,'(I5)') joint_system(i)%udofmap
         END IF
+        WRITE(2017,'(A)') 'cdofmap:'
+        IF(ALLOCATED(joint_system(i)%cdofmap)) THEN
+            WRITE(2017,'(I5)') joint_system(i)%cdofmap
+        END IF
         WRITE(2017,'(A)') 'global_up:'
         IF(ALLOCATED(joint_system(i)%global_up)) THEN
             WRITE(2017,'(I5)') joint_system(i)%global_up
@@ -170,6 +179,12 @@ IMPLICIT NONE
         IF(ALLOCATED(joint_system(i)%S)) THEN
             DO j = 1, SIZE(joint_system(i)%S,1)
                 WRITE(2017,'(6I5)') joint_system(i)%S(j,:)
+            END DO
+        END IF
+        WRITE(2017,'(A)') 'T:'
+        IF(ALLOCATED(joint_system(i)%T)) THEN
+            DO j = 1, SIZE(joint_system(i)%T,1)
+                WRITE(2017,'(6I5)') joint_system(i)%T(j,:)
             END DO
         END IF
         WRITE(2017,'(A)') 'qJ:'
@@ -230,12 +245,17 @@ IMPLICIT NONE
     WRITE(2017,'(A,F9.5)') 'params%tf:', system%params%tf
     WRITE(2017,'(A,I5)') 'params%nstep:', system%params%nstep
     WRITE(2017,'(A,I5)') 'nudof:', system%nudof
+    WRITE(2017,'(A,I5)') 'ncdof:', system%ncdof
     WRITE(2017,'(A,I5)') 'np:', system%np
     WRITE(2017,'(A,I5)') 'na:', system%na
 
     WRITE(2017,'(A)') 'udof:'
     IF(ALLOCATED(system%udof)) THEN
         WRITE(2017,'(I5)') system%udof
+    END IF
+    WRITE(2017,'(A)') 'cdof:'
+    IF(ALLOCATED(system%cdof)) THEN
+        WRITE(2017,'(I5)') system%cdof
     END IF
     WRITE(2017,'(A)') 'udof_p:'
     IF(ALLOCATED(system%udof_p)) THEN

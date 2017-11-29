@@ -49,8 +49,8 @@ IMPLICIT NONE
     !  ALLOCATION
     !--------------------------------------------------------------------
     ALLOCATE(motion(system%na,3))
-    ALLOCATE(q_total(6*system%nbody))
-    ALLOCATE(v_total(6*system%nbody))
+    ALLOCATE(q_total(system%ndof))
+    ALLOCATE(v_total(system%ndof))
 
     !--------------------------------------------------------------------
     !  Construct q and v of body system
@@ -71,6 +71,8 @@ IMPLICIT NONE
     END DO
 
     ! manually adjust to verify the same case
+!    body_system(2)%q(4:5,1) = (/ 0.3535533905932738, 0.3535533905932738/)
+
     body_system(2)%q(4:5,1) = (/ 0.1767766952966369, 0.1767766952966369/)
     body_system(3)%q(4:5,1) = (/ 0.3535533905932738, 0.3535533905932738/)
     body_system(4)%q(4:5,1) = (/ 0.5303300858899107, 0.5303300858899107/)
@@ -100,13 +102,14 @@ IMPLICIT NONE
     END DO
 
     system%soln%t(1) = 0.0_dp
-    system%soln%y(1,1:6*system%nbody) = q_total
-    system%soln%y(1,6*system%nbody+1:2*6*system%nbody) = v_total
+    system%soln%y(1,1:system%ndof) = q_total
+    system%soln%y(1,system%ndof+1:2*system%ndof) = v_total
+    system%soln%y(1,2*system%ndof+1:3*system%ndof) = 0.0_dp
+    system%soln%y(1,3*system%ndof+1:3*system%ndof+system%ncdof) = 0.0_dp
 
     !--------------------------------------------------------------------
     !  DEALLOCATION
     !--------------------------------------------------------------------
-
     DEALLOCATE(motion)
     DEALLOCATE(q_total)
     DEALLOCATE(v_total)

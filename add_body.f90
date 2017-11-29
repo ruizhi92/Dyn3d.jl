@@ -155,4 +155,10 @@ IMPLICIT NONE
     body_system(ib)%inertia_b = MATMUL(TRANSPOSE(body_system(ib)%Xj_to_c), &
                                        MATMUL(body_system(ib)%inertia_c, &
                                               body_system(ib)%Xj_to_c))
+
+    !------------ initialize q,v,c in 6-d ------------
+    body_system(ib)%q(:,:) = 0.0_dp
+    body_system(ib)%v(:,:) = 0.0_dp
+    body_system(ib)%c(:,:) = 0.0_dp
+
 END SUBROUTINE add_body

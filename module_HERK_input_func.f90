@@ -28,6 +28,7 @@
 
 MODULE module_HERK_input_func
 
+    USE module_six_dimension_cross
     USE module_HERK_update_system
 
 IMPLICIT NONE

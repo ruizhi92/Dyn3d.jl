@@ -53,7 +53,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     TYPE(single_joint),ALLOCATABLE              :: joint_temp(:)
     TYPE(single_body),ALLOCATABLE               :: body_temp(:)
-    INTEGER                                     :: i,j,count,last,child_count
+    INTEGER                                     :: i,j,k,count,last,child_count
     INTEGER                                     :: nstep,cj,stage
     REAL(dp),DIMENSION(3,3)                     :: rot_old
     REAL(dp),DIMENSION(3)                       :: r_old,r_temp
@@ -82,12 +82,15 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Step 2: Create system structure
     !--------------------------------------------------------------------
-    ! nudof, np and na
+    ! ndof, nudof, ncdof, np and na
+    system%ndof = 6*system%nbody
     system%nudof = 0
+    system%ncdof = 0
     system%np = 0
     system%na = 0
     DO i = 1,system%njoint
         system%nudof = system%nudof + joint_system(i)%nudof
+        system%ncdof = system%ncdof + joint_system(i)%ncdof
         system%np = system%np + joint_system(i)%np
         system%na = system%na + joint_system(i)%na
     END DO
@@ -98,6 +101,16 @@ IMPLICIT NONE
     DO i = 1,system%njoint
         DO j = 1,joint_system(i)%nudof
         system%udof(count) = 6*(i-1) + joint_system(i)%udof(j)
+        count = count + 1
+        END DO
+    END DO
+
+    ! cdof
+    count = 1
+    ALLOCATE(system%cdof(system%ncdof))
+    DO i = 1,system%njoint
+        DO j = 1,joint_system(i)%ncdof
+        system%cdof(count) = 6*(i-1) + joint_system(i)%cdof(j)
         count = count + 1
         END DO
     END DO
@@ -125,9 +138,21 @@ IMPLICIT NONE
     ! joint_system(i)%udofmap
     last = 0
     DO i = 1,system%njoint
-        ALLOCATE(joint_system(i)%udofmap(joint_system(i)%nudof))
-        joint_system(i)%udofmap = last + (/(j, j=1,joint_system(i)%nudof)/)
-        last = joint_system(i)%udofmap(joint_system(i)%nudof)
+        IF(joint_system(i)%nudof /= 0) THEN
+            ALLOCATE(joint_system(i)%udofmap(joint_system(i)%nudof))
+            joint_system(i)%udofmap = last + (/(j, j=1,joint_system(i)%nudof)/)
+            last = joint_system(i)%udofmap(joint_system(i)%nudof)
+        END IF
+    END DO
+
+    ! joint_system(i)%cdofmap
+    last = 0
+    DO i = 1,system%njoint
+        IF(joint_system(i)%ncdof /= 0) THEN
+            ALLOCATE(joint_system(i)%cdofmap(joint_system(i)%ncdof))
+            joint_system(i)%cdofmap = last + (/(j, j=1,joint_system(i)%ncdof)/)
+            last = joint_system(i)%cdofmap(joint_system(i)%ncdof)
+        END IF
     END DO
 
     ! joint_system(i)%global_up
@@ -186,7 +211,7 @@ IMPLICIT NONE
     nstep = system%params%nstep
     ALLOCATE(system%time(nstep))
     ALLOCATE(system%soln%t(nstep+1))
-    ALLOCATE(system%soln%y(nstep+1,2*6*system%nbody))
+    ALLOCATE(system%soln%y(nstep+1,3*system%ndof+system%ncdof))
     system%soln%t(:) = 0.0_dp
     system%soln%y(:,:) = 0.0_dp
 
@@ -240,15 +265,19 @@ IMPLICIT NONE
 
             ! fill in parent blocks
             IF(j == i) THEN
-                system%P_map(6*(i-1)+1:6*i,6*(j-1)+1:6*j) = 1
+                DO k = 6*(i-1)+1, 6*i
+                    system%P_map(k,k) = 1
+                END DO
             END IF
 
             ! fill in child blocks
             IF(body_system(i)%nchild /= 0) THEN
                 DO child_count = 1,body_system(i)%nchild
-                    system%P_map(6*(i-1)+1:6*i, &
-                          6*(body_system(i)%child_id(child_count)-1)+1: &
-                          6*body_system(i)%child_id(child_count)) = -1
+                    DO k = 1, 6
+                    system%P_map(6*(i-1)+k, &
+                          6*(body_system(i)%child_id(child_count)-1)+k) &
+                          = -1
+                    END DO
                 END DO
             END IF
 
