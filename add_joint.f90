@@ -70,6 +70,7 @@ IMPLICIT NONE
     joint_system(ij)%joint_dof = config_j%joint_dof
 
     !--------------- Using abbr. for joint_system variable -------------
+    ! note: variables that are not yet allocated can not use ASSOCIATE
     ASSOCIATE(joint_type => joint_system(ij)%joint_type, &
               joint_id => joint_system(ij)%joint_id, &
               body1 => joint_system(ij)%body1, &
@@ -77,6 +78,8 @@ IMPLICIT NONE
               shape2 => joint_system(ij)%shape2, &
               nudof => joint_system(ij)%nudof, &
               ncdof => joint_system(ij)%ncdof, &
+              nudof_HERK => joint_system(ij)%nudof_HERK, &
+              ncdof_HERK => joint_system(ij)%ncdof_HERK, &
               np => joint_system(ij)%np, &
               na => joint_system(ij)%na, &
               joint_dof => joint_system(ij)%joint_dof, &
@@ -85,9 +88,6 @@ IMPLICIT NONE
 
         !-------- Set nudof, udof and S depending on joint_type --------
 
-        !---------------------------------------------------------------
-        ! This part need to be modified
-        !---------------------------------------------------------------
         IF(joint_type == 'revolute') THEN
             nudof = 1
             ncdof = 6-nudof
@@ -210,26 +210,27 @@ IMPLICIT NONE
             ALLOCATE(joint_system(ij)%T(6,ncdof))
             joint_system(ij)%S = reshape( (/ 0, 0, 0, &
                                              0, 0, 0, &
-                                             0, 0, 0, &
                                              1, 0, 0, &
                                              0, 1, 0, &
-                                             0, 0, 1 /), &
+                                             0, 0, 1, &
+                                             0, 0, 0 /), &
                          shape(joint_system(ij)%S), order=(/2,1/) )
             joint_system(ij)%T = reshape( (/ 1, 0, 0, &
                                              0, 1, 0, &
-                                             0, 0, 1, &
                                              0, 0, 0, &
                                              0, 0, 0, &
-                                             0, 0, 0 /), &
+                                             0, 0, 0, &
+                                             0, 0, 1 /), &
                          shape(joint_system(ij)%T), order=(/2,1/) )
 
         END IF
 
-        !------- Set np, na, udof_p, udof_a, i_udof_p, i_udof_a --------
+        !------- Set dof index according to joint type --------
         ! np and na
         np = 0
         na = 0
 
+        ! np and na
         DO i = 1,nudof
             IF(joint_dof(i)%dof_type == 'passive') THEN
                 np = np + 1
@@ -254,17 +255,88 @@ IMPLICIT NONE
             END DO
         END IF
 
-        ! udof_a and i_udof_a
+        ! udof_a
         count = 1
         IF(na /= 0) THEN
             ALLOCATE(joint_system(ij)%udof_a(na))
-            ALLOCATE(joint_system(ij)%i_udof_a(na))
             DO j = 1,nudof
                 IF(joint_dof(j)%dof_type == 'active') THEN
                     joint_system(ij)%udof_a(count) = joint_dof(j)%dof_id
-                    joint_system(ij)%i_udof_a(count) = j
                     count = count + 1
                 END IF
+            END DO
+        END IF
+
+        !------- Set dof index modified by active motion --------
+
+        ! nudof_HERK and ncdof_HERK, modified by active motion
+        nudof_HERK = nudof
+        ncdof_HERK = ncdof
+        DO i = 1,nudof
+            IF(joint_dof(i)%dof_type == 'active') THEN
+                nudof_HERK = nudof_HERK - 1
+                ncdof_HERK = ncdof_HERK + 1
+            END IF
+        END DO
+
+        ! cdof_HERK, modified by active motion
+        IF(ncdof_HERK /= 0) THEN
+            ALLOCATE(joint_system(ij)%cdof_HERK(ncdof_HERK))
+        END IF
+        count = 1
+        DO i = 1, 6
+            IF(ncdof/=0) THEN
+                IF(ANY(joint_system(ij)%cdof==i)) THEN
+                joint_system(ij)%cdof_HERK(count) = i
+                count = count +1
+                END IF
+            ELSE IF(na/=0) THEN
+                IF(ANY(joint_system(ij)%udof_a==i)) THEN
+                joint_system(ij)%cdof_HERK(count) = i
+                count = count +1
+                END IF
+            END IF
+        END DO
+
+        ! udof_HERK, modified by active motion
+        IF(nudof_HERK /= 0) THEN
+            ALLOCATE(joint_system(ij)%udof_HERK(nudof_HERK))
+        END IF
+        count = 1
+        DO i = 1, 6
+            IF(ncdof/=0) THEN
+                IF(.NOT. ANY(joint_system(ij)%cdof==i)) THEN
+                joint_system(ij)%udof_HERK(count) = i
+                count = count +1
+                END IF
+            ELSE IF(na/=0) THEN
+                IF(.NOT. ANY(joint_system(ij)%udof_a==i)) THEN
+                joint_system(ij)%udof_HERK(count) = i
+                count = count +1
+                END IF
+            END IF
+        END DO
+
+        ! cdof_HERK_a, seems to be the same with udof_a
+        count = 1
+        IF(na /= 0) THEN
+            ALLOCATE(joint_system(ij)%cdof_HERK_a(na))
+            DO j = 1,nudof
+                IF(joint_dof(j)%dof_type == 'active') THEN
+                    joint_system(ij)%cdof_HERK_a(count) = joint_dof(j)%dof_id
+                    count = count + 1
+                END IF
+            END DO
+        END IF
+
+
+        ! T_HERK
+        IF(ncdof_HERK /= 0) THEN
+            ALLOCATE(joint_system(ij)%T_HERK(6,ncdof_HERK))
+            joint_system(ij)%T_HERK(:,:) = 0
+            count = 1
+            DO i = 1, ncdof_HERK
+            joint_system(ij)%T_HERK(joint_system(ij)%cdof_HERK(i),i) = 1
             END DO
         END IF
 

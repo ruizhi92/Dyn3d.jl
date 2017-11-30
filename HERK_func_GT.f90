@@ -58,8 +58,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
-    ALLOCATE(X_total(6*system%nbody,6*system%nbody))
-    ALLOCATE(T_total(6*system%nbody,system%ncdof))
+    ALLOCATE(X_total(system%ndof,system%ndof))
+    ALLOCATE(T_total(system%ndof,system%ncdof_HERK))
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -72,12 +72,11 @@ IMPLICIT NONE
     ! local body coord
     T_total(:,:) = 0
     DO i = 1,system%nbody
-        IF(joint_system(i)%ncdof /= 0) THEN
-            T_total(6*(i-1)+1:6*i, joint_system(i)%cdofmap) = joint_system(i)%T
+        IF(joint_system(i)%ncdof_HERK /= 0) THEN
+            T_total(6*(i-1)+1:6*i, joint_system(i)%cdof_HERK_map) = &
+                    joint_system(i)%T_HERK
         END IF
     END DO
-WRITE(*,*) 'T_total'
-CALL write_matrix(REAL(T_total,8))
 
     ! construct X_total, whose diagonal block is the inverse transpose of
     ! each Xb_to_i
@@ -92,16 +91,9 @@ CALL write_matrix(REAL(T_total,8))
     y_i = MATMUL(system%P_map, &
                  MATMUL(X_total,T_total))
 
-WRITE(*,*) 'X^(-T)'
-CALL write_matrix(X_total)
-
-WRITE(*,*) 'X^(-T) * T_total'
-CALL write_matrix(MATMUL(X_total,T_total))
-
-WRITE(*,*) 'P * X^(-T) * T_total'
-CALL write_matrix(y_i)
-WRITE(*,*) ''
-
+!WRITE(*,*) 'GT'
+!CALL write_matrix(y_i)
+!WRITE(*,(/))
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------

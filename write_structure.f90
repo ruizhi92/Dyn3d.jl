@@ -134,6 +134,7 @@ IMPLICIT NONE
         WRITE(2017,'(A,I5)') 'body1:', joint_system(i)%body1
         WRITE(2017,'(A,6F9.5)') 'shape1:', joint_system(i)%shape1(:)
         WRITE(2017,'(A,6F9.5)') 'shape2:', joint_system(i)%shape2(:)
+        WRITE(2017,'(/)')
         WRITE(2017,'(A,I5)') 'nudof:', joint_system(i)%nudof
         WRITE(2017,'(A,I5)') 'ncdof:', joint_system(i)%ncdof
         WRITE(2017,'(A,I5)') 'np:', joint_system(i)%np
@@ -159,21 +160,9 @@ IMPLICIT NONE
         IF(ALLOCATED(joint_system(i)%i_udof_p)) THEN
             WRITE(2017,'(I5)') joint_system(i)%i_udof_p
         END IF
-        WRITE(2017,'(A)') 'i_udof_a:'
-        IF(ALLOCATED(joint_system(i)%i_udof_a)) THEN
-            WRITE(2017,'(I5)') joint_system(i)%i_udof_a
-        END IF
         WRITE(2017,'(A)') 'udofmap:'
         IF(ALLOCATED(joint_system(i)%udofmap)) THEN
             WRITE(2017,'(I5)') joint_system(i)%udofmap
-        END IF
-        WRITE(2017,'(A)') 'cdofmap:'
-        IF(ALLOCATED(joint_system(i)%cdofmap)) THEN
-            WRITE(2017,'(I5)') joint_system(i)%cdofmap
-        END IF
-        WRITE(2017,'(A)') 'global_up:'
-        IF(ALLOCATED(joint_system(i)%global_up)) THEN
-            WRITE(2017,'(I5)') joint_system(i)%global_up
         END IF
         WRITE(2017,'(A)') 'S:'
         IF(ALLOCATED(joint_system(i)%S)) THEN
@@ -187,6 +176,31 @@ IMPLICIT NONE
                 WRITE(2017,'(6I5)') joint_system(i)%T(j,:)
             END DO
         END IF
+
+        WRITE(2017,'(/)')
+        WRITE(2017,'(A,I5)') 'nudof_HERK:', joint_system(i)%nudof_HERK
+        WRITE(2017,'(A,I5)') 'ncdof_HERK:', joint_system(i)%ncdof_HERK
+
+        WRITE(2017,'(A)') 'udof_HERK:'
+        IF(ALLOCATED(joint_system(i)%udof_HERK)) THEN
+            WRITE(2017,'(I5)') joint_system(i)%udof_HERK
+        END IF
+        WRITE(2017,'(A)') 'cdof_HERK:'
+        IF(ALLOCATED(joint_system(i)%cdof_HERK)) THEN
+            WRITE(2017,'(I5)') joint_system(i)%cdof_HERK
+        END IF
+        WRITE(2017,'(A)') 'cdof_HERK_map:'
+        IF(ALLOCATED(joint_system(i)%cdof_HERK_map)) THEN
+            WRITE(2017,'(I5)') joint_system(i)%cdof_HERK_map
+        END IF
+        WRITE(2017,'(A)') 'T_HERK:'
+        IF(ALLOCATED(joint_system(i)%T_HERK)) THEN
+            DO j = 1, SIZE(joint_system(i)%T_HERK,1)
+                WRITE(2017,'(6I5)') joint_system(i)%T_HERK(j,:)
+            END DO
+        END IF
+
+        WRITE(2017,'(/)')
         WRITE(2017,'(A)') 'qJ:'
         WRITE(2017,'(F9.5)') joint_system(i)%qJ(:,1)
         WRITE(2017,'(A)') 'vJ:'
@@ -215,6 +229,8 @@ IMPLICIT NONE
                 WRITE(2017,'(A,F9.5)') 'stiff: ',joint_system(i)%joint_dof(j)%stiff
                 WRITE(2017,'(A,F9.5)') 'damp: ',joint_system(i)%joint_dof(j)%damp
             ELSE IF(joint_system(i)%joint_dof(j)%dof_type == 'active') THEN
+                WRITE(2017,'(A,F9.5)') 'stiff: ',joint_system(i)%joint_dof(j)%stiff
+                WRITE(2017,'(A,F9.5)') 'damp: ',joint_system(i)%joint_dof(j)%damp
                 WRITE(2017,'(2A)') 'motion_type:', TRIM(joint_system(i)%joint_dof(j)%motion_type)
                 IF(ALLOCATED(joint_system(i)%joint_dof(j)%motion_params)) THEN
                     WRITE(2017,'(A)',ADVANCE="NO") 'motion_params: '
@@ -269,16 +285,26 @@ IMPLICIT NONE
     IF(ALLOCATED(system%i_udof_p)) THEN
         WRITE(2017,'(I5)') system%i_udof_p
     END IF
-    WRITE(2017,'(A)') 'i_udof_a:'
-    IF(ALLOCATED(system%i_udof_a)) THEN
-        WRITE(2017,'(I5)') system%i_udof_a
-    END IF
     WRITE(2017,'(A)') 'kinmap:'
     IF(ALLOCATED(system%kinmap)) THEN
         DO i = 1, SIZE(system%kinmap,1)
             WRITE(2017,'(2I5)') system%kinmap(i,:)
         END DO
     END IF
+
+    WRITE(2017,'(/)')
+    WRITE(2017,'(A,I5)') 'nudof_HERK:', system%nudof_HERK
+    WRITE(2017,'(A,I5)') 'ncdof_HERK:', system%ncdof_HERK
+    WRITE(2017,'(A)') 'udof_HERK:'
+    IF(ALLOCATED(system%udof_HERK)) THEN
+        WRITE(2017,'(I5)') system%udof_HERK
+    END IF
+    WRITE(2017,'(A)') 'cdof_HERK:'
+    IF(ALLOCATED(system%cdof_HERK)) THEN
+        WRITE(2017,'(I5)') system%cdof_HERK
+    END IF
+
+    WRITE(2017,'(/)')
     WRITE(2017,'(A)') 'P_map:'
     IF(ALLOCATED(system%P_map)) THEN
         DO i = 1, SIZE(system%P_map,1)

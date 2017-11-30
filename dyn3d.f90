@@ -97,7 +97,7 @@ IMPLICIT NONE
     ALLOCATE(q_out(system%ndof))
     ALLOCATE(v_out(system%ndof))
     ALLOCATE(vdot_out(system%ndof))
-    ALLOCATE(lambda_out(system%ncdof))
+    ALLOCATE(lambda_out(system%ncdof_HERK))
 
     !--------------------------------------------------------------------
     !  Construct and init system
@@ -111,7 +111,7 @@ IMPLICIT NONE
     DO i = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
         DO j = 1, 6
-            WRITE(*,'(F9.5)',ADVANCE="NO") system%soln%y(1,6*(i-1)+j)
+            WRITE(*,'(F12.5)',ADVANCE="NO") system%soln%y(1,6*(i-1)+j)
         END DO
         WRITE(*,'(/)')
     END DO
@@ -119,7 +119,7 @@ IMPLICIT NONE
     DO i = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
         DO j = 1, 6
-            WRITE(*,'(F9.5)',ADVANCE="NO") &
+            WRITE(*,'(F12.5)',ADVANCE="NO") &
                 system%soln%y(1,system%ndof+6*(i-1)+j)
         END DO
         WRITE(*,'(/)')
@@ -128,7 +128,7 @@ IMPLICIT NONE
     DO i = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
         DO j = 1, 6
-            WRITE(*,'(F9.5)',ADVANCE="NO") &
+            WRITE(*,'(F12.5)',ADVANCE="NO") &
                 system%soln%y(1,2*system%ndof+6*(i-1)+j)
         END DO
         WRITE(*,'(/)')
@@ -138,8 +138,8 @@ IMPLICIT NONE
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",i," :"
         IF (joint_system(i)%ncdof /= 0) THEN
             DO j = 1, joint_system(i)%ncdof
-                WRITE(*,'(F9.5)',ADVANCE="NO") &
-                    system%soln%y(1,3*system%ndof+joint_system(i)%cdofmap(j))
+                WRITE(*,'(F12.5)',ADVANCE="NO") &
+                    system%soln%y(1,3*system%ndof+joint_system(i)%cdof_HERK_map(j))
             END DO
         END IF
         WRITE(*,'(/)')
@@ -155,7 +155,7 @@ IMPLICIT NONE
     scheme = system%params%scheme
     dt = system%params%dt
     q_dim = system%ndof
-    lambda_dim = system%ncdof
+    lambda_dim = system%ncdof_HERK
 
     ! determine stage of the chosen scheme
     CALL HERK_determine_stage(scheme,stage)
@@ -190,14 +190,14 @@ IMPLICIT NONE
 
         ! update the current setup of the system
         CALL embed_system
-STOP
+
         ! write final solution
         IF(i == 2) THEN
             WRITE(*,*) 'At t= ',system%soln%t(i),' body position is:'
             DO k = 1, system%nbody
                 WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
                 DO j = 1, 6
-                    WRITE(*,'(F9.5)',ADVANCE="NO") system%soln%y(i,6*(k-1)+j)
+                    WRITE(*,'(F12.5)',ADVANCE="NO") system%soln%y(i,6*(k-1)+j)
                 END DO
                 WRITE(*,'(/)')
             END DO
@@ -205,7 +205,7 @@ STOP
             DO k = 1, system%nbody
                 WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
                 DO j = 1, 6
-                    WRITE(*,'(F9.5)',ADVANCE="NO") &
+                    WRITE(*,'(F12.5)',ADVANCE="NO") &
                         system%soln%y(i,system%ndof+6*(k-1)+j)
                 END DO
                 WRITE(*,'(/)')

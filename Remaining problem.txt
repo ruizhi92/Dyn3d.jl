@@ -6,3 +6,7 @@ Remaining problem:
 2. gti should be the active motion constraint on the constrained dof.
 
 3. Where should the active motion of unconstrained dof be specified?
+
+
+
+The 'constrained dof' in Jourdain's principle should be the naturally constrained dof, decided only by joint type.

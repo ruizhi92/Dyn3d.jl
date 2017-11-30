@@ -60,5 +60,7 @@ IMPLICIT NONE
         y_i(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = MATMUL(body_system(i)%Xb_to_i &
                                              , body_system(i)%inertia_b)
     END DO
-
+!WRITE(*,*) 'M'
+!CALL write_matrix(y_i)
+!WRITE(*,(/))
 END SUBROUTINE HERK_func_M

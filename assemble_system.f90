@@ -82,15 +82,19 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Step 2: Create system structure
     !--------------------------------------------------------------------
-    ! ndof, nudof, ncdof, np and na
+    ! ndof, nudof, ncdof, nudof_HERK, ncdof_HERK, np and na
     system%ndof = 6*system%nbody
     system%nudof = 0
     system%ncdof = 0
+    system%nudof_HERK = 0
+    system%ncdof_HERK = 0
     system%np = 0
     system%na = 0
     DO i = 1,system%njoint
         system%nudof = system%nudof + joint_system(i)%nudof
         system%ncdof = system%ncdof + joint_system(i)%ncdof
+        system%nudof_HERK = system%nudof_HERK + joint_system(i)%nudof_HERK
+        system%ncdof_HERK = system%ncdof_HERK + joint_system(i)%ncdof_HERK
         system%np = system%np + joint_system(i)%np
         system%na = system%na + joint_system(i)%na
     END DO
@@ -115,6 +119,37 @@ IMPLICIT NONE
         END DO
     END DO
 
+    ! udof_HERK
+    count = 1
+    ALLOCATE(system%udof_HERK(system%nudof_HERK))
+    DO i = 1,system%njoint
+        DO j = 1,joint_system(i)%nudof_HERK
+        system%udof_HERK(count) = 6*(i-1) + joint_system(i)%udof_HERK(j)
+        count = count + 1
+        END DO
+    END DO
+
+    ! cdof_HERK
+    count = 1
+    ALLOCATE(system%cdof_HERK(system%ncdof_HERK))
+    DO i = 1,system%njoint
+        DO j = 1,joint_system(i)%ncdof_HERK
+        system%cdof_HERK(count) = 6*(i-1) + joint_system(i)%cdof_HERK(j)
+        count = count + 1
+        END DO
+    END DO
+
+    ! joint_system(i)%cdof_HERK_map
+    last = 0
+    DO i = 1,system%njoint
+        IF(joint_system(i)%ncdof_HERK /= 0) THEN
+            ALLOCATE(joint_system(i)%cdof_HERK_map(joint_system(i)%ncdof_HERK))
+            joint_system(i)%cdof_HERK_map = last + &
+                            (/(j, j=1,joint_system(i)%ncdof_HERK)/)
+            last = joint_system(i)%cdof_HERK_map(joint_system(i)%ncdof_HERK)
+        END IF
+    END DO
+
     ! udof_p
     count = 1
     ALLOCATE(system%udof_p(system%np))
@@ -135,6 +170,16 @@ IMPLICIT NONE
         END DO
     END DO
 
+    ! cdof_HERK_a
+    count = 1
+    ALLOCATE(system%cdof_HERK_a(system%na))
+    DO i = 1,system%njoint
+        DO j = 1,joint_system(i)%na
+        system%cdof_HERK_a(count) = 6*(i-1) + joint_system(i)%cdof_HERK_a(j)
+        count = count + 1
+        END DO
+    END DO
+
     ! joint_system(i)%udofmap
     last = 0
     DO i = 1,system%njoint
@@ -145,26 +190,6 @@ IMPLICIT NONE
         END IF
     END DO
 
-    ! joint_system(i)%cdofmap
-    last = 0
-    DO i = 1,system%njoint
-        IF(joint_system(i)%ncdof /= 0) THEN
-            ALLOCATE(joint_system(i)%cdofmap(joint_system(i)%ncdof))
-            joint_system(i)%cdofmap = last + (/(j, j=1,joint_system(i)%ncdof)/)
-            last = joint_system(i)%cdofmap(joint_system(i)%ncdof)
-        END IF
-    END DO
-
-    ! joint_system(i)%global_up
-    last = 0
-    DO i = 1,system%njoint
-        IF(joint_system(i)%np > 0) THEN
-            ALLOCATE(joint_system(i)%global_up(joint_system(i)%np))
-            joint_system(i)%global_up = last + (/(j, j=1,joint_system(i)%np)/)
-            last = joint_system(i)%global_up(joint_system(i)%np)
-        END IF
-    END DO
-
     ! i_udof_p
     ALLOCATE(system%i_udof_p(system%np))
     count = 1
@@ -172,18 +197,6 @@ IMPLICIT NONE
         DO j = 1,system%nudof
             IF(system%udof(j) == system%udof_p(i)) THEN
                 system%i_udof_p(count) = j
-                count = count + 1
-            END IF
-        END DO
-    END DO
-
-    ! i_udof_a
-    ALLOCATE(system%i_udof_a(system%na))
-    count = 1
-    DO i = 1,system%na
-        DO j = 1,system%nudof
-            IF(system%udof(j) == system%udof_a(i)) THEN
-                system%i_udof_a(count) = j
                 count = count + 1
             END IF
         END DO
@@ -211,7 +224,7 @@ IMPLICIT NONE
     nstep = system%params%nstep
     ALLOCATE(system%time(nstep))
     ALLOCATE(system%soln%t(nstep+1))
-    ALLOCATE(system%soln%y(nstep+1,3*system%ndof+system%ncdof))
+    ALLOCATE(system%soln%y(nstep+1,3*system%ndof+system%ncdof_HERK))
     system%soln%t(:) = 0.0_dp
     system%soln%y(:,:) = 0.0_dp
 

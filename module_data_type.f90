@@ -206,11 +206,9 @@ IMPLICIT NONE
     ! i_udof_p -- the index of udof_p in udof. For example, if we have a
     !                 free joint with udof=[1 2 3 4 5 6] and udof_p=3, then
     !                 index_udof_p = 3, index_udof_a = [1 2 4 5 6]
-    ! i_udof_a -- see above
+    ! cdof_HERK_a -- the index of active dof in the cdof_HERK array
     ! udofmap -- list all the udof of all joints in an "total array", udofmap
     !            refers to the index of the current dof in the "total array"
-    ! global_up -- after assembling all passive dofs of all joints, the index
-    !              of the current joint passive dof in that "all dof" vector
     ! S -- the dof basis matrix for every body, depending on joint type only
     !      , expressed in 6 lines and nudof columns
     ! T -- the other part of S
@@ -228,14 +226,17 @@ IMPLICIT NONE
         INTEGER                                 :: body1
         REAL(dp),DIMENSION(6)                   :: shape1,shape2
         INTEGER                                 :: nudof,ncdof
+        INTEGER                                 :: nudof_HERK,ncdof_HERK
         INTEGER                                 :: np,na
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,cdof
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_HERK,cdof_HERK
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_p,udof_a
-        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: cdof_HERK_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
-        INTEGER,DIMENSION(:),ALLOCATABLE        :: cdofmap
-        INTEGER,DIMENSION(:),ALLOCATABLE        :: global_up
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: cdof_HERK_map
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S,T
+        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: T_HERK
         TYPE(dof),DIMENSION(:),ALLOCATABLE      :: joint_dof
         REAL(dp),DIMENSION(6,1)                 :: qJ,vJ,cJ
         REAL(dp),DIMENSION(6,6)                 :: Xj,Xp_to_j,Xj_to_ch
@@ -303,9 +304,12 @@ IMPLICIT NONE
         TYPE(system_solution)                   :: soln
         INTEGER                                 :: ndof
         INTEGER                                 :: nudof,ncdof,np,na
+        INTEGER                                 :: nudof_HERK,ncdof_HERK
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,cdof
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_HERK,cdof_HERK
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: cdof_HERK_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_p,udof_a
-        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: kinmap
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: kindata
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: P_map

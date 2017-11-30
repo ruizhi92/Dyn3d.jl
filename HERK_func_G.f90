@@ -59,8 +59,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
-    ALLOCATE(X_total(6*system%nbody,6*system%nbody))
-    ALLOCATE(T_total(system%ncdof,6*system%nbody))
+    ALLOCATE(X_total(system%ndof,system%ndof))
+    ALLOCATE(T_total(system%ncdof_HERK,system%ndof))
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -73,8 +73,9 @@ IMPLICIT NONE
     !  of each joint in local body coord
     T_total(:,:) = 0
     DO i = 1,system%nbody
-        IF(joint_system(i)%ncdof /= 0) THEN
-            T_total(6*(i-1)+1:6*i, joint_system(i)%cdofmap) = TRANSPOSE(joint_system(i)%T)
+        IF(joint_system(i)%ncdof_HERK /= 0) THEN
+            T_total(joint_system(i)%cdof_HERK_map, 6*(i-1)+1:6*i) = &
+                    TRANSPOSE(joint_system(i)%T_HERK)
         END IF
     END DO
 
@@ -91,7 +92,9 @@ IMPLICIT NONE
     y_i = MATMUL(T_total, &
                  MATMUL(X_total, &
                         TRANSPOSE(system%P_map)))
-
+!WRITE(*,*) 'G'
+!CALL write_matrix(y_i)
+!WRITE(*,(/))
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------

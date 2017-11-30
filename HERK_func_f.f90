@@ -50,7 +50,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i,j,dofid,dofid_full
+    INTEGER                                       :: i,j,dofid
     REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_trinv
     REAL(dp),DIMENSION(6,1)                       :: p_temp,g_temp
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
@@ -98,7 +98,7 @@ IMPLICIT NONE
         X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_trinv
     END DO
 
-    ! construct T_total, whose diagonal block of is transpose to the
+    ! construct S_total, whose diagonal block of is transpose to the
     ! constrained dof of each joint in local body coord
     S_total(:,:) = 0
     DO i = 1,system%nbody
@@ -106,25 +106,25 @@ IMPLICIT NONE
             S_total(6*(i-1)+1:6*i, joint_system(i)%udofmap) = joint_system(i)%S
         END IF
     END DO
-    ! construct tau_total, this is related only to passive spring force
+
+    ! construct tau_total, this is related only to spring force
+    ! tau is only determined by if a unconstrained dof has resistance - damp and
+    ! stiff or now. Both active dof and passive dof can have tau term
     tau_total(:,:) = 0.0_dp
     DO i = 1,system%nbody
-        IF(joint_system(i)%np /= 0) THEN
-        DO j = 1, joint_system(i)%np
+        DO j = 1, joint_system(i)%nudof
             ! find index of the dof in the unconstrained list of this joint
-            dofid = joint_system(i)%i_udof_p(j)
-            dofid_full = joint_system(i)%joint_dof(dofid)%dof_id
-            tau_total(system%i_udof_p(joint_system(i)%global_up(j)),1) = &
-                                    - joint_system(i)%joint_dof(dofid)%stiff * &
-                                     joint_system(i)%qJ(dofid_full,1) &
-                                     - joint_system(i)%joint_dof(dofid)%damp * &
-                                     joint_system(i)%vJ(dofid_full,1)
+            dofid = joint_system(i)%joint_dof(j)%dof_id
+
+            tau_total(joint_system(i)%udofmap(j),1) = &
+                                    - joint_system(i)%joint_dof(j)%stiff * &
+                                     joint_system(i)%qJ(dofid,1) &
+                                     - joint_system(i)%joint_dof(j)%damp * &
+                                     joint_system(i)%vJ(dofid,1)
         END DO
-        END IF
     END DO
-WRITE(*,*) SIZE(p_total)
-WRITE(*,*) SIZE(system%P_map)
-WRITE(*,*) SIZE(X_total)
+
+
 WRITE(*,*) SIZE(S_total,1),SIZE(S_total,2)
 WRITE(*,*) SIZE(tau_total)
 
