@@ -170,24 +170,24 @@ IMPLICIT NONE
         ! calculate M, f and GT at Q(i-1,:)
         CALL M(t_im1, M_im1)
 
-WRITE(*,*) '1'
-WRITE(*,*) 'M_im1'
-CALL write_matrix(M_im1)
-WRITE(*,'(/)')
-
+!WRITE(*,*) '1'
+!WRITE(*,*) 'M_im1'
+!CALL write_matrix(M_im1)
+!WRITE(*,'(/)')
+!
         CALL f(t_im1, f_im1)
-
-WRITE(*,*) '2'
-WRITE(*,*) 'f_im1'
-CALL write_matrix(f_im1)
-WRITE(*,'(/)')
-
+!
+!WRITE(*,*) '2'
+!WRITE(*,*) 'f_im1'
+!CALL write_matrix(f_im1)
+!WRITE(*,'(/)')
+!
         CALL GT(t_im1, GT_im1)
-
-WRITE(*,*) '3'
-WRITE(*,*) 'GT_im1'
-CALL write_matrix(GT_im1)
-WRITE(*,'(/)')
+!
+!WRITE(*,*) '3'
+!WRITE(*,*) 'GT_im1'
+!CALL write_matrix(GT_im1)
+!WRITE(*,'(/)')
 
         ! update body chain position q using Q(i,:) then embed system.
         ! from now on system properties related to q:
@@ -202,17 +202,17 @@ WRITE(*,'(/)')
         ! calculate G and gti at Q(i,:)
         CALL G(t_i, G_i)
 
-WRITE(*,*) '4'
-WRITE(*,*) 'G_i'
-CALL write_matrix(G_i)
-WRITE(*,'(/)')
-
+!WRITE(*,*) '4'
+!WRITE(*,*) 'G_i'
+!CALL write_matrix(G_i)
+!WRITE(*,'(/)')
+!
         CALL gti(t_i, gti_i)
-
-WRITE(*,*) '5'
-WRITE(*,*) 'gti_i'
-CALL write_matrix(gti_i)
-WRITE(*,'(/)')
+!
+!WRITE(*,*) '5'
+!WRITE(*,*) 'gti_i'
+!CALL write_matrix(gti_i)
+!WRITE(*,'(/)')
 
         ! construct LHS matrix
         LHS(:,:) = 0.0_dp
@@ -236,18 +236,8 @@ WRITE(*,'(/)')
         RHS_temp = -1.0_dp/(h_0*A(i,i-1))*(MATMUL(G_i,V_temp) + gti_i)
         RHS(q_dim+1:q_dim+lambda_dim) = RHS_temp(:,1)
 
-CALL write_matrix(LHS)
-WRITE(*,'(/)')
-
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
         CALL lu(LHS,RHS,x)
-
-WRITE(*,*) '6'
-WRITE(*,*) 'x'
-DO j = 1, SIZE(x)
-    WRITE(*,"(f12.4)",ADVANCE="NO") x(j)
-END DO
-WRITE(*,'(/)')
 
         Vdot(i-1,:) = x(1:q_dim)
         lambda(i-1,:) = x(q_dim+1:q_dim+lambda_dim)
@@ -264,8 +254,6 @@ WRITE(*,'(/)')
         ! in f in the next loop
 !        CALL embed_sys(V(i,:), Vdot(i,:))
         CALL HERK_update_system_vc(V(i,:), Vdot(i,:))
-
-WRITE(*,*) 'Time now is: ',t_i
 
     END DO
 
