@@ -169,25 +169,26 @@ IMPLICIT NONE
 
         ! calculate M, f and GT at Q(i-1,:)
         CALL M(t_im1, M_im1)
-
+WRITE(*,*) '------------------------------------------------'
+WRITE(*,*) 'Round ',i,' in HERK'
 !WRITE(*,*) '1'
 !WRITE(*,*) 'M_im1'
 !CALL write_matrix(M_im1)
 !WRITE(*,'(/)')
 !
         CALL f(t_im1, f_im1)
-!
-!WRITE(*,*) '2'
-!WRITE(*,*) 'f_im1'
-!CALL write_matrix(f_im1)
-!WRITE(*,'(/)')
-!
+
+WRITE(*,*) '2'
+WRITE(*,*) 'f_im1'
+CALL write_matrix(f_im1)
+WRITE(*,'(/)')
+
         CALL GT(t_im1, GT_im1)
-!
-!WRITE(*,*) '3'
-!WRITE(*,*) 'GT_im1'
-!CALL write_matrix(GT_im1)
-!WRITE(*,'(/)')
+
+WRITE(*,*) '3'
+WRITE(*,*) 'GT_im1'
+CALL write_matrix(GT_im1)
+WRITE(*,'(/)')
 
         ! update body chain position q using Q(i,:) then embed system.
         ! from now on system properties related to q:
@@ -202,17 +203,17 @@ IMPLICIT NONE
         ! calculate G and gti at Q(i,:)
         CALL G(t_i, G_i)
 
-!WRITE(*,*) '4'
-!WRITE(*,*) 'G_i'
-!CALL write_matrix(G_i)
-!WRITE(*,'(/)')
-!
+WRITE(*,*) '4'
+WRITE(*,*) 'G_i'
+CALL write_matrix(G_i)
+WRITE(*,'(/)')
+
         CALL gti(t_i, gti_i)
-!
-!WRITE(*,*) '5'
-!WRITE(*,*) 'gti_i'
-!CALL write_matrix(gti_i)
-!WRITE(*,'(/)')
+
+WRITE(*,*) '5'
+WRITE(*,*) 'gti_i'
+CALL write_matrix(gti_i)
+WRITE(*,'(/)')
 
         ! construct LHS matrix
         LHS(:,:) = 0.0_dp

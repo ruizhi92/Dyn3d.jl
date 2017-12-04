@@ -92,9 +92,7 @@ IMPLICIT NONE
     y_i = MATMUL(T_total, &
                  MATMUL(X_total, &
                         TRANSPOSE(system%P_map)))
-!WRITE(*,*) 'G'
-!CALL write_matrix(y_i)
-!WRITE(*,(/))
+
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------

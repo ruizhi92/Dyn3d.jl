@@ -49,7 +49,7 @@ IMPLICIT NONE
     !  Local variables
     !------------------------------------------------------------------------
     REAL(dp)                        :: tf
-    INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme
+    INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme,ndim
     REAL(dp)                        :: height,rhob,tol
     REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
@@ -60,11 +60,14 @@ IMPLICIT NONE
     !  Assign local variables
     !--------------------------------------------------------------------
 
+    !------------------ problem dimension -------------------
+    ndim = 2
+
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 1.0_dp
+    tf = 0.002_dp
     ! total number of steps
-    nstep = 1000
+    nstep = 2
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -234,6 +237,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Assign system constants
     !--------------------------------------------------------------------
+    system%ndim = ndim
     system%params%gravity = gravity
     system%params%nstep = nstep
     system%params%dt = tf / system%params%nstep

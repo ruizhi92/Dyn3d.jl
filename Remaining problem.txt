@@ -10,3 +10,12 @@ Remaining problem:
 
 
 The 'constrained dof' in Jourdain's principle should be the naturally constrained dof, decided only by joint type.
+
+
+12/4/2017
+deleted -- call jcalc to update vJ and qJ in embed_system
+-- is there any fault in updating qJ?
+-- init_system not complete
+-- Block LU not complete
+done -- Make a movie
+-- clean up the code

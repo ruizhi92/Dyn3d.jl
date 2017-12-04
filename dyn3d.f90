@@ -111,7 +111,7 @@ IMPLICIT NONE
     DO k = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
         DO j = 1, 6
-            WRITE(*,'(F12.5)',ADVANCE="NO") system%soln%y(1,6*(k-1)+j)
+            WRITE(*,'(F12.6)',ADVANCE="NO") system%soln%y(1,6*(k-1)+j)
         END DO
         WRITE(*,'(/)')
     END DO
@@ -119,7 +119,7 @@ IMPLICIT NONE
     DO k = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
         DO j = 1, 6
-            WRITE(*,'(F12.5)',ADVANCE="NO") &
+            WRITE(*,'(F12.6)',ADVANCE="NO") &
                 system%soln%y(1,system%ndof+6*(k-1)+j)
         END DO
         WRITE(*,'(/)')
@@ -128,7 +128,7 @@ IMPLICIT NONE
     DO k = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
         DO j = 1, 6
-            WRITE(*,'(F12.5)',ADVANCE="NO") &
+            WRITE(*,'(F12.6)',ADVANCE="NO") &
                 system%soln%y(1,2*system%ndof+6*(k-1)+j)
         END DO
         WRITE(*,'(/)')
@@ -136,9 +136,9 @@ IMPLICIT NONE
     WRITE(*,*) 'At t=0, Lagrange multiplier lambda is:'
     DO k = 1, system%nbody
         WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
-        IF (joint_system(k)%ncdof /= 0) THEN
-            DO j = 1, joint_system(k)%ncdof
-                WRITE(*,'(F12.5)',ADVANCE="NO") &
+        IF (joint_system(k)%ncdof_HERK /= 0) THEN
+            DO j = 1, joint_system(k)%ncdof_HERK
+                WRITE(*,'(F12.6)',ADVANCE="NO") &
                     system%soln%y(1,3*system%ndof+joint_system(k)%cdof_HERK_map(j))
             END DO
         END IF
@@ -160,8 +160,8 @@ IMPLICIT NONE
     ! determine stage of the chosen scheme
     CALL HERK_determine_stage(scheme,stage)
 
-    ! do loop until nstep
-    DO i = 2, 10000
+    ! do loop until nstep+1
+    DO i = 2, system%params%nstep+1
 
         ! construct time
         system%soln%t(i) = system%soln%t(i-1) + dt
@@ -201,48 +201,49 @@ IMPLICIT NONE
         system%soln%y(i,1:system%ndof) = q_total
         system%soln%y(i,system%ndof+1:2*system%ndof) = v_total
         system%soln%y(i,2*system%ndof+1:3*system%ndof) = c_total
-        system%soln%y(i,3*system%ndof+1:3*system%ndof+system%ncdof) = 0.0_dp
-
+        system%soln%y(i,3*system%ndof+1:3*system%ndof+system%ncdof_HERK) = lambda_out
 
         ! write solution
-        WRITE(*,*) 'At t=',system%soln%t(i), ' body position q is:'
+!        IF(MOD(i,100) == 1) THEN
+        WRITE(*,'(A,F10.6,A)') 'At t=',system%soln%t(i), ' body position q is:'
         DO k = 1, system%nbody
             WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
             DO j = 1, 6
-                WRITE(*,'(F12.5)',ADVANCE="NO") system%soln%y(i,6*(k-1)+j)
+                WRITE(*,'(F12.6)',ADVANCE="NO") system%soln%y(i,6*(k-1)+j)
             END DO
             WRITE(*,'(/)')
         END DO
-        WRITE(*,*) 'At t=0, body velocity v is:'
+        WRITE(*,'(A,F10.6,A)') 'At t=',system%soln%t(i), ' body velocity v is:'
         DO k = 1, system%nbody
             WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
             DO j = 1, 6
-                WRITE(*,'(F12.5)',ADVANCE="NO") &
+                WRITE(*,'(F12.6)',ADVANCE="NO") &
                     system%soln%y(i,system%ndof+6*(k-1)+j)
             END DO
             WRITE(*,'(/)')
         END DO
-        WRITE(*,*) 'At t=0, body acceleration vdot is:'
+        WRITE(*,'(A,F10.6,A)') 'At t=',system%soln%t(i), ' body acceleration vdot is:'
         DO k = 1, system%nbody
             WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
             DO j = 1, 6
-                WRITE(*,'(F12.5)',ADVANCE="NO") &
+                WRITE(*,'(F12.6)',ADVANCE="NO") &
                     system%soln%y(i,2*system%ndof+6*(k-1)+j)
             END DO
             WRITE(*,'(/)')
         END DO
-        WRITE(*,*) 'At t=0, Lagrange multiplier lambda is:'
+        WRITE(*,'(A,F10.6,A)') 'At t=',system%soln%t(i), ' Lagrange multiplier lambda is:'
         DO k = 1, system%nbody
             WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
-            IF (joint_system(k)%ncdof /= 0) THEN
-                DO j = 1, joint_system(k)%ncdof
-                    WRITE(*,'(F12.5)',ADVANCE="NO") &
+            IF (joint_system(k)%ncdof_HERK /= 0) THEN
+                DO j = 1, joint_system(k)%ncdof_HERK
+                    WRITE(*,'(F12.6)',ADVANCE="NO") &
                         system%soln%y(i,3*system%ndof+joint_system(k)%cdof_HERK_map(j))
                 END DO
             END IF
             WRITE(*,'(/)')
         END DO
         WRITE(*,*) '--------------------------------------------------------'
+!        END IF
 
     END DO
 
@@ -250,6 +251,9 @@ IMPLICIT NONE
     !  Write data
     !--------------------------------------------------------------------
     CALL write_structure
+
+    ! note: need to write_structure before write_Matlab_plot
+    CALL write_Matlab_plot
 
     !--------------------------------------------------------------------
     !  Deallocation

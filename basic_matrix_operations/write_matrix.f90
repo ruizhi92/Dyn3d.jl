@@ -38,7 +38,7 @@ IMPLICIT NONE
 
     DO i = 1, SIZE(A,1)
         DO j = 1, SIZE(A,2)
-            WRITE(*,"(f12.4)",ADVANCE="NO") A(i,j)
+            WRITE(*,"(F12.6)",ADVANCE="NO") A(i,j)
         END DO
         WRITE(*,*) ' '! this is to add a new line
     END DO

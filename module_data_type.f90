@@ -266,6 +266,7 @@ IMPLICIT NONE
 
     TYPE overall_system
     ! This is the structure of the overall system
+    ! ndim -- dimension of this problem
     ! njoint -- number of joint, equals to number of body
     ! params -- look at TYPE system_params
     ! time -- the time array that the ODE system is solved at
@@ -298,6 +299,7 @@ IMPLICIT NONE
     !            and acceleration of each active udof.
     ! P_map -- This matrix maps the hierarchy relation from joint to body.
     !          It consists of many [1], [-1] and [0] blocks.
+        INTEGER                                 :: ndim
         INTEGER                                 :: njoint,nbody
         TYPE(system_params)                     :: params
         REAL(dp),DIMENSION(:),ALLOCATABLE       :: time

@@ -10,7 +10,7 @@
 !                    Xp_to_b(child) = Xi_to_b(child)*Xb_to_i(parent)
 !                 3. By using Xp_to_b = Xj_to_ch*Xj*Xp_to_j
 !                    , update Xj
-!                 4. update qJ and vJ by calling subroutine jcalc. qJ for a joint
+!                 4. update qJ and vJ by trans_matrix_backward. qJ for a joint
 !                    is described in its parent body's local body coord, so is vJ.
 
 !
@@ -85,9 +85,6 @@ IMPLICIT NONE
     ! starting from joint = 1, which is connected to the inertial system
     ! (always true) and is the parent of every other body.
 
-!    ! call jcalc to update Xj and possibly qdot
-!    CALL jcalc(joint_system(1)%joint_id)
-
     ! Xp_to_b using Xp_to_b(1) = Xi_to_b(1)*[1]
     CALL inverse(body_system(1)%Xb_to_i, Xi_to_b)
     body_system(1)%Xp_to_b = Xi_to_b
@@ -110,9 +107,6 @@ IMPLICIT NONE
 
         DO j = 1,body_system(i)%nchild
             child_id = body_system(i)%child_id(j)
-
-!            ! call jcalc to update Xj and possibly qdot
-!            CALL jcalc(joint_system(child_id)%joint_id)
 
             ! update Xp_to_b using Xp_to_b(child) = Xi_to_b(child)*Xb_to_i(parent)
             CALL inverse(body_system(child_id)%Xb_to_i, Xi_to_ch)

@@ -124,11 +124,6 @@ IMPLICIT NONE
         END DO
     END DO
 
-
-WRITE(*,*) SIZE(S_total,1),SIZE(S_total,2)
-WRITE(*,*) SIZE(tau_total)
-
-
     ! f = p_total - P_map*X_total*s_total*tau_total
     y_i = p_total - MATMUL(system%P_map, &
                            MATMUL(X_total, &

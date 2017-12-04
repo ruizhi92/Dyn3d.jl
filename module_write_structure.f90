@@ -1,8 +1,7 @@
 !------------------------------------------------------------------------
 !  Module       :          module_write_structure
 !------------------------------------------------------------------------
-!  Purpose      : This subroutine writes every entry in the body_system,
-!                 joint_system and system structure.
+!  Purpose      : This module packs write_structure and write_MATLAB_plot.
 !
 !  Details      ：
 !
@@ -32,7 +31,12 @@ IMPLICIT NONE
         MODULE PROCEDURE write_structure
     END INTERFACE
 
+    INTERFACE write_MATLAB_plot_inter
+        MODULE PROCEDURE write_MATLAB_plot
+    END INTERFACE
+
     CONTAINS
     INCLUDE 'write_structure.f90'
+    INCLUDE 'write_MATLAB_plot.f90'
 
 END MODULE module_write_structure
