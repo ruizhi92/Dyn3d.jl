@@ -51,52 +51,94 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i
-    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_inv
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
-    INTEGER,DIMENSION(:,:),ALLOCATABLE            :: T_total
+    INTEGER                                       :: i,j,k,child_count,count
+    REAL(dp),DIMENSION(6,6)                       :: A_temp
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: A_total
+    INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
-    ALLOCATE(X_total(system%ndof,system%ndof))
-    ALLOCATE(T_total(system%ncdof_HERK,system%ndof))
+    ALLOCATE(A_total(system%ndof,system%ndof))
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
 
+    debug_flag = 0
+
     ! initialize G (G is y_i)
     y_i(:,:) = 0.0_dp
 
-    ! the diagonal block of T_total is transpose to the constrained dof
-    !  of each joint in local body coord
-    T_total(:,:) = 0
+    ! construct A_temp
+    CALL ones(6,A_temp)
+    A_temp(4,3) = - 1.0_dp/system%nbody*SIN(body_system(1)%q(3,1))
+    A_temp(5,3) = 1.0_dp/system%nbody*COS(body_system(1)%q(3,1))
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'A_temp'
+CALL write_matrix(A_temp)
+END IF
+
+    ! combine A_temp and P_map to get A_total
+    A_total = 0.0_dp
     DO i = 1,system%nbody
-        IF(joint_system(i)%ncdof_HERK /= 0) THEN
-            T_total(joint_system(i)%cdof_HERK_map, 6*(i-1)+1:6*i) = &
-                    TRANSPOSE(joint_system(i)%T_HERK)
+        DO j = 1,system%njoint
+
+            ! fill in parent blocks
+            IF(j == i) THEN
+                DO k = 6*(i-1)+1, 6*i
+                    A_total(k,k) = 1.0_dp
+                END DO
+            END IF
+        END DO
+
+        ! fill in child blocks
+        IF(body_system(i)%nchild /= 0) THEN
+            DO child_count = 1,body_system(i)%nchild
+                A_total(6*(body_system(i)%child_id(child_count)-1)+1: &
+                       6*(body_system(i)%child_id(child_count)-1)+6 &
+                       ,6*(i-1)+1:6*(i-1)+6) &
+                      = -A_temp
+            END DO
         END IF
+
     END DO
 
-    ! construct X_total, whose diagonal block is the inverse of
-    ! each Xb_to_i
-    X_total(:,:) = 0.0_dp
-    DO i = 1,system%nbody
-        X_temp = body_system(i)%Xb_to_i
-        CALL inverse(X_temp, X_temp_inv)
-        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_inv
-    END DO
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'A_total'
+CALL write_matrix(A_total)
+END IF
 
+!    ! the diagonal block of T_total is transpose to the constrained dof
+!    !  of each joint in local body coord
+!    T_total(:,:) = 0
+!    DO i = 1,system%nbody
+!        IF(joint_system(i)%ncdof_HERK /= 0) THEN
+!            T_total(joint_system(i)%cdof_HERK_map, 6*(i-1)+1:6*i) = &
+!                    TRANSPOSE(joint_system(i)%T_HERK)
+!        END IF
+!    END DO
+
+!    count = 0
+!    DO i = 1,system%nbody
+!        DO j = 1,system%njoint
+!            y_i(count+1:count+joint_system(i)%ncdof,6*)
+            y_i(1:6,1:6) = MATMUL(TRANSPOSE(joint_system(1)%T_HERK),A_total(1:6,1:6))
+            y_i(7:11,1:6) = MATMUL(TRANSPOSE(joint_system(2)%T_HERK),A_total(7:12,1:6))
+            y_i(7:11,7:12) = TRANSPOSE(joint_system(2)%T_HERK)
+!    END DO
     ! G = T^(T)*(Xb_to_i)^(-1)*P^(T)
-    y_i = MATMUL(T_total, &
-                 MATMUL(X_total, &
-                        TRANSPOSE(system%P_map)))
+!    y_i = 0.0_dp
 
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'y_i'
+CALL write_matrix(y_i)
+END IF
+!STOP
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------
-    DEALLOCATE(X_total)
-    DEALLOCATE(T_total)
+    DEALLOCATE(A_total)
 
 END SUBROUTINE HERK_func_G

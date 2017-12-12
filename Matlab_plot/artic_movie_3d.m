@@ -127,15 +127,16 @@ if savemovie
     writeVideo(vp,currframe);
 end
 
-for j = 2:length(t)
+for j = 2:floor(length(t)/nskip)
 
+    jj = 1 + nskip*(j-1);
     % Update the system structure at this time level
     % unpack system.data(k,:) in system.body structure
     for i = 1:system.nbody
         for k = 1:system.body(i).nvert
             count1 = (i-1)*12+ 2+3*(k-1);
             count2 = (i-1)*12+ 1+3*k;
-            system.body(i).vert_i(k,:) = system.data(j,count1:count2);
+            system.body(i).vert_i(k,:) = system.data(jj,count1:count2);
         end
     end
 

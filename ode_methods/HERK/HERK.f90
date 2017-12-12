@@ -89,6 +89,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: q_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: lambda_out
     REAL(dp),INTENT(OUT)                          :: h_out
+    INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
     !  Local variables
@@ -140,6 +141,8 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
+    debug_flag = 1
+
     ! get HERK coefficients
     CALL HERK_pick_scheme(scheme, A(1:stage,:), b, c)
     A(stage+1,:) = b
@@ -169,26 +172,40 @@ IMPLICIT NONE
 
         ! calculate M, f and GT at Q(i-1,:)
         CALL M(t_im1, M_im1)
+IF(debug_flag == 1) THEN
 WRITE(*,*) '------------------------------------------------'
 WRITE(*,*) 'Round ',i,' in HERK'
-!WRITE(*,*) '1'
-!WRITE(*,*) 'M_im1'
-!CALL write_matrix(M_im1)
-!WRITE(*,'(/)')
-!
+WRITE(*,*) '1'
+WRITE(*,*) 'M_im1'
+CALL write_matrix(M_im1)
+WRITE(*,'(/)')
+
+END IF
         CALL f(t_im1, f_im1)
 
+IF(debug_flag == 1) THEN
 WRITE(*,*) '2'
 WRITE(*,*) 'f_im1'
 CALL write_matrix(f_im1)
 WRITE(*,'(/)')
+END IF
 
         CALL GT(t_im1, GT_im1)
 
+IF(debug_flag == 1) THEN
 WRITE(*,*) '3'
 WRITE(*,*) 'GT_im1'
 CALL write_matrix(GT_im1)
 WRITE(*,'(/)')
+END IF
+
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) '3.5'
+WRITE(*,*) 'TRANSPOSE of GT_im1'
+CALL write_matrix(TRANSPOSE(GT_im1))
+WRITE(*,'(/)')
+END IF
 
         ! update body chain position q using Q(i,:) then embed system.
         ! from now on system properties related to q:
@@ -200,20 +217,32 @@ WRITE(*,'(/)')
 !        CALL embed_sys(Q(i,:))
         CALL HERK_update_system_q(Q(i,:))
 
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'updated Q(i,:): '
+DO j = 1, SIZE(Q,2)
+WRITE(*,"(F12.7)") Q(i,j)
+END DO
+WRITE(*,'(/)')
+END IF
+
         ! calculate G and gti at Q(i,:)
         CALL G(t_i, G_i)
 
+IF(debug_flag == 1) THEN
 WRITE(*,*) '4'
 WRITE(*,*) 'G_i'
 CALL write_matrix(G_i)
 WRITE(*,'(/)')
+END IF
 
         CALL gti(t_i, gti_i)
 
+IF(debug_flag == 1) THEN
 WRITE(*,*) '5'
 WRITE(*,*) 'gti_i'
 CALL write_matrix(gti_i)
 WRITE(*,'(/)')
+END IF
 
         ! construct LHS matrix
         LHS(:,:) = 0.0_dp
@@ -237,8 +266,24 @@ WRITE(*,'(/)')
         RHS_temp = -1.0_dp/(h_0*A(i,i-1))*(MATMUL(G_i,V_temp) + gti_i)
         RHS(q_dim+1:q_dim+lambda_dim) = RHS_temp(:,1)
 
+IF(debug_flag == 1) THEN
+WRITE(*,*) '5.5'
+WRITE(*,*) 'HERK RHS lambda part: '
+CALL write_matrix(RHS_temp)
+WRITE(*,'(/)')
+END IF
+
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
         CALL lu(LHS,RHS,x)
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) '6'
+WRITE(*,*) 'HERK solution x: '
+DO j = 1, SIZE(x)
+WRITE(*,"(F12.7)") x(j)
+END DO
+WRITE(*,'(/)')
+END IF
 
         Vdot(i-1,:) = x(1:q_dim)
         lambda(i-1,:) = x(q_dim+1:q_dim+lambda_dim)
@@ -250,6 +295,14 @@ WRITE(*,'(/)')
         DO j = 1, i-1
             V(i,:) = V(i,:) + h_0*A(i,j)*Vdot(j,:)
         END DO
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'updated V(i,:): '
+DO j = 1, SIZE(V,2)
+WRITE(*,"(F12.7)") V(i,j)
+END DO
+WRITE(*,'(/)')
+END IF
 
         ! fill the updated v and c info in body_system to be used
         ! in f in the next loop
@@ -266,6 +319,10 @@ WRITE(*,'(/)')
     v_out = V(stage+1,:)
     vdot_out = Vdot(stage,:)
     lambda_out = lambda(stage,:)
+
+IF(debug_flag == 1) THEN
+!STOP
+END IF
 
     !--------------------------------------------------------------------
     !  Deallocation

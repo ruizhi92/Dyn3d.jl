@@ -34,6 +34,7 @@ SUBROUTINE HERK_func_M(t_i,y_i)
     !--------------------------------------------------------------------
     USE module_constants
     USE module_data_type
+    USE module_basic_matrix_operations
 
 IMPLICIT NONE
 
@@ -46,21 +47,31 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i
+    INTEGER                                       :: i,debug_flag
+    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
+
+    debug_flag = 0
 
     ! initialize M (M is y_i)
     y_i(:,:) = 0.0_dp
 
     ! the diagonal block of M is inertia of each body in inertial coord
     DO i = 1,system%nbody
-        y_i(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = MATMUL(body_system(i)%Xb_to_i &
-                                             , body_system(i)%inertia_b)
+        CALL inverse(body_system(i)%Xb_to_i, Xi_to_b)
+        y_i(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = &
+                            MATMUL(TRANSPOSE(Xi_to_b), &
+                                   MATMUL(body_system(i)%inertia_b, &
+                                          Xi_to_b))
     END DO
-!WRITE(*,*) 'M'
-!CALL write_matrix(y_i)
-!WRITE(*,(/))
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'M'
+CALL write_matrix(y_i)
+WRITE(*,'(/)')
+END IF
+
 END SUBROUTINE HERK_func_M

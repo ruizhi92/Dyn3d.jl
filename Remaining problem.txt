@@ -14,8 +14,24 @@ The 'constrained dof' in Jourdain's principle should be the naturally constraine
 
 12/4/2017
 deleted -- call jcalc to update vJ and qJ in embed_system
--- is there any fault in updating qJ?
+No -- is there any fault in updating qJ?
 -- init_system not complete
 -- Block LU not complete
 done -- Make a movie
+-- for system's first joint not fixed with inertia system case, what to change?
 -- clean up the code
+-- Should Ib in M and f be described in local coord or inertial coord?
+
+
+12/11/2017
+Note:
+1. There should be no bias term when solving the system of equations in inertial coordinate. So there should be no mfcross term.
+2. The plate connection problem can be solved by constructing G differently.
+
+
+12/12/2017
+I'm able to give either initial condition on body(described in inertial system) or joint(described locally in body coordinate) just by constructing G and gti differently.
+
+Found that I didn't update vJ in embed_system, that's needed in HERK_func_f
+
+Corrected mistake related to inertia in inertial frame in HERK_func_M and HERK_func_f

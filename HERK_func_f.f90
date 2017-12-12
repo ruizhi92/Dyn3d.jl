@@ -38,6 +38,7 @@ SUBROUTINE HERK_func_f(t_i,y_i)
     USE module_data_type
     USE module_basic_matrix_operations
     USE module_six_dimension_cross
+    USE module_basic_matrix_operations
 
 IMPLICIT NONE
 
@@ -52,10 +53,14 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     INTEGER                                       :: i,j,dofid
     REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_trinv
+    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b
+    REAL(dp),DIMENSION(6,6)                       :: I_inertial
     REAL(dp),DIMENSION(6,1)                       :: p_temp,g_temp
+    REAL(dp),DIMENSION(6,1)                       :: f_ex
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: S_total
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: p_total,tau_total
+    INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
     !  Allocation
@@ -69,29 +74,46 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
+    debug_flag = 0
+
     ! initialize f (f is y_i)
     y_i(:,:) = 0.0_dp
 
     ! compute bias force, accounting for gravity and external force(haven't
     ! been applied yet)
     DO i = 1,system%nbody
-        ! bias force
+
+        ! calculate inertia of a body in inertial frame
+        CALL inverse(body_system(i)%Xb_to_i, Xi_to_b)
+        I_inertial = MATMUL(TRANSPOSE(Xi_to_b), &
+                             MATMUL(body_system(i)%inertia_b, &
+                                    Xi_to_b))
+
+        ! calculate bias force p_temp
         CALL mfcross(body_system(i)%v, &
-                     MATMUL(body_system(i)%inertia_b, body_system(i)%v), &
+                     MATMUL(I_inertial, body_system(i)%v), &
                      p_temp)
+
         ! gravity
         g_temp(1:3,1) = 0.0_dp
         g_temp(4:6,1) = system%params%gravity
 
         ! external force
+        f_ex(:,1) = 0.0_dp
 
         ! summarize
-        p_total(6*(i-1)+1:6*i,:) = p_temp - body_system(i)%mass*g_temp
+        p_total(6*(i-1)+1:6*i,:) = p_temp - body_system(i)%mass*g_temp - f_ex
+
     END DO
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'bias force p_total'
+CALL write_matrix(p_total)
+END IF
 
     ! construct X_total, whose diagonal block is the inverse transpose of
     ! each Xb_to_i
-    X_temp(:,:) = 0.0_dp
+    X_total(:,:) = 0.0_dp
     DO i = 1,system%nbody
         X_temp = body_system(i)%Xb_to_i
         CALL inverse(TRANSPOSE(X_temp), X_temp_trinv)
@@ -124,8 +146,20 @@ IMPLICIT NONE
         END DO
     END DO
 
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'tau_total locally with respect to joint'
+CALL write_matrix(tau_total)
+END IF
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'tau_total globally with respect to body'
+CALL write_matrix(MATMUL(system%P_map, &
+                           MATMUL(X_total, &
+                                  MATMUL(S_total,tau_total))))
+END IF
+
     ! f = p_total - P_map*X_total*s_total*tau_total
-    y_i = p_total - MATMUL(system%P_map, &
+    y_i = - p_total + MATMUL(system%P_map, &
                            MATMUL(X_total, &
                                   MATMUL(S_total,tau_total)))
 

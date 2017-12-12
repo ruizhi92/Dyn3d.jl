@@ -37,6 +37,7 @@ SUBROUTINE HERK_update_system_q(q)
     USE module_constants
     USE module_data_type
     USE module_embed_system
+    USE module_write_structure
 
 IMPLICIT NONE
 
@@ -48,21 +49,30 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                         :: i,count
+    INTEGER                                         :: i,count,debug_flag
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
 
+    debug_flag = 0
+
     ! update body_system%q using input argument q
     count = 0
     DO i = 1, system%nbody
-        body_system(i)%q(joint_system(i)%udof,1) = &
-            q(count+1: count+joint_system(i)%nudof)
-        count = count + joint_system(i)%nudof
+!        body_system(i)%q(joint_system(i)%udof,1) = &
+!            q(count+1: count+joint_system(i)%nudof)
+!        count = count + joint_system(i)%nudof
+
+        body_system(i)%q(:,1) = q(count+1: count+6)
+        count = count + 6
     END DO
 
     ! embed the system to update Xb_to_i and qJ
     CALL embed_system
+
+IF(debug_flag == 1) THEN
+CALL write_structure
+END IF
 
 END SUBROUTINE HERK_update_system_q

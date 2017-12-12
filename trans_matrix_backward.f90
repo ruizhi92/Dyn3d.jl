@@ -75,14 +75,4 @@ IMPLICIT NONE
 
     r = (/ r_cross(3,2), r_cross(1,3), r_cross(2,1) /)
 
-CONTAINS
-
-!    !--------------------------------------------------------------------
-!    !  internal function ATAN2
-!    !--------------------------------------------------------------------
-!    FUNCTION ATAN2(y,x)
-!        REAL(dp)                                     :: x,y,ATAN2
-!        ATAN2 = 
-!
-!    END FUNCTION ATAN2
 END SUBROUTINE trans_matrix_backward

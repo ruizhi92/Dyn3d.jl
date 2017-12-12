@@ -65,9 +65,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 0.002_dp
+    tf = 0.001_dp
     ! total number of steps
-    nstep = 2
+    nstep = 1
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver

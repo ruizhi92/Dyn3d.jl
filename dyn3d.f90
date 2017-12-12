@@ -35,7 +35,6 @@ PROGRAM dyn3d
     USE module_ode_methods
     USE module_prescribed_motion
     USE module_embed_system
-    USE module_config_files
     USE module_write_structure
     USE module_HERK_input_func
     USE module_HERK_pick_scheme

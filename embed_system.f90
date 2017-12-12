@@ -125,7 +125,7 @@ IMPLICIT NONE
     END DO
 
     !--------------------------------------------------------------------
-    !  Update Xj for every joint
+    !  Update qj for every joint
     !--------------------------------------------------------------------
     DO i = 1,system%njoint
         CALL trans_matrix(joint_system(i)%Xj, joint_system(i)%qJ(1:3,1), &

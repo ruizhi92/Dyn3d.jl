@@ -1,12 +1,12 @@
 !------------------------------------------------------------------------
-!  Subroutine     :            HERK_func_GT
+!  Subroutine     :            HERK_func_G
 !------------------------------------------------------------------------
-!  Purpose      : This subroutine construct the input function GT for
-!                 HERK method. GT takes in t_i and return the constraint
+!  Purpose      : This subroutine construct the input function G for
+!                 HERK method. G takes in t_i and return the constraint
 !                 matrix of all joints.
-!                 These constraints arise from local joint dof constraint,
-!                 later being transformed into inertial coord and assembled
-!                 to body form.
+!                 These constraints arise from body velocity relation in
+!                 inertial system, later being transformed into local
+!                 joint constraint.
 !
 !  Details      ：
 !
@@ -14,7 +14,8 @@
 !
 !  Input/output :
 !
-!  Output       : y_i: the coefficient matrix for constraint
+!  Output       : y_i: the coefficient matrix for body velocity in inertial
+!                      system
 !
 !  Remarks      : GT and G may be accessed at different time so we can't
 !                 simply make every TRANSPOSE(G) = GT
@@ -30,7 +31,7 @@
 !  Ruizhi Yang, 2017 Nov
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK_func_GT(t_i,y_i)
+SUBROUTINE HERK_func_G(t_i,y_i)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -51,7 +52,7 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     INTEGER                                       :: i
-    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_trinv
+    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_inv
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: T_total
     INTEGER                                       :: debug_flag
@@ -60,24 +61,24 @@ IMPLICIT NONE
     !  Allocation
     !--------------------------------------------------------------------
     ALLOCATE(X_total(system%ndof,system%ndof))
-    ALLOCATE(T_total(system%ndof,system%ncdof_HERK))
+    ALLOCATE(T_total(system%ncdof_HERK,system%ndof))
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 0
+    debug_flag = 1
 
-    ! initialize GT (GT is y_i)
+    ! initialize G (G is y_i)
     y_i(:,:) = 0.0_dp
 
-    ! the diagonal block of T_total is constrained dof of each joint in
-    ! local body coord
+    ! the diagonal block of T_total is transpose to the constrained dof
+    !  of each joint in local body coord
     T_total(:,:) = 0
     DO i = 1,system%nbody
         IF(joint_system(i)%ncdof_HERK /= 0) THEN
-            T_total(6*(i-1)+1:6*i, joint_system(i)%cdof_HERK_map) = &
-                    joint_system(i)%T_HERK
+            T_total(joint_system(i)%cdof_HERK_map, 6*(i-1)+1:6*i) = &
+                    TRANSPOSE(joint_system(i)%T_HERK)
         END IF
     END DO
 
@@ -86,13 +87,13 @@ WRITE(*,*) 'T_total'
 CALL write_matrix(REAL(T_total,8))
 END IF
 
-    ! construct X_total, whose diagonal block is the inverse transpose of
+    ! construct X_total, whose diagonal block is the inverse of
     ! each Xb_to_i
     X_total(:,:) = 0.0_dp
     DO i = 1,system%nbody
         X_temp = body_system(i)%Xb_to_i
-        CALL inverse(TRANSPOSE(X_temp), X_temp_trinv)
-        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_trinv
+        CALL inverse(X_temp, X_temp_inv)
+        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_inv
     END DO
 
 IF(debug_flag == 1) THEN
@@ -100,21 +101,34 @@ WRITE(*,*) 'X_total'
 CALL write_matrix(X_total)
 END IF
 
-    ! GT = P*(Xb_to_i)^(-T)*T
-    y_i = MATMUL(system%P_map, &
-                 MATMUL(X_total,T_total))
-
 IF(debug_flag == 1) THEN
-WRITE(*,*) 'P * Xb_to_i^-T * T'
-CALL write_matrix(MATMUL(system%P_map, &
-                         MATMUL(X_total, &
-                                REAL(T_total,8))))
+WRITE(*,*) 'T^T*P^T'
+CALL write_matrix(MATMUL(REAL(T_total,8), &
+                        TRANSPOSE(system%P_map)))
 END IF
 
+    ! G = T^(T)*(Xb_to_i)^(-1)*P^(T)
+    y_i = MATMUL(T_total, &
+                 MATMUL(X_total, &
+                        TRANSPOSE(system%P_map)))
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'T^T * Xb_to_i^-1 * P^T'
+CALL write_matrix(MATMUL(REAL(T_total,8), &
+                         MATMUL(X_total, &
+                                TRANSPOSE(system%P_map))))
+END IF
+
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'T^T * P^T * Xb_to_i^-1'
+CALL write_matrix(MATMUL(REAL(T_total,8), &
+                         MATMUL(TRANSPOSE(system%P_map), &
+                                X_total)))
+END IF
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------
     DEALLOCATE(X_total)
     DEALLOCATE(T_total)
 
-END SUBROUTINE HERK_func_GT
+END SUBROUTINE HERK_func_G
