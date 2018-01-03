@@ -303,6 +303,10 @@ IMPLICIT NONE
     IF(ALLOCATED(system%cdof_HERK)) THEN
         WRITE(2017,'(I5)') system%cdof_HERK
     END IF
+    WRITE(2017,'(A)') 'cdof_HERK_a:'
+    IF(ALLOCATED(system%cdof_HERK_a)) THEN
+        WRITE(2017,'(I5)') system%cdof_HERK_a
+    END IF
 
     WRITE(2017,'(/)')
     WRITE(2017,'(A)') 'P_map:'

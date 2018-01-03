@@ -65,13 +65,13 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 0.001_dp
+    tf = 1.7_dp
     ! total number of steps
-    nstep = 1
+    nstep = 1700
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
-    scheme = 3
+    scheme = 4
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies

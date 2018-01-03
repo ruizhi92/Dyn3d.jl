@@ -167,6 +167,9 @@ IMPLICIT NONE
     !    1 -- body position expressed in [theta_x,theta_y,theta_z,x,y,z]
     !    v -- body velocity expressed in [wx,wy,wz,ux,uy,uz]
     !    c -- body acceleration of the local single body
+    !    A - For a single body, A is the transformation matrix for velocity from
+    !        this body's beginning point to the body's ending point. It's valid
+    !        for velocity in the inertial system.
         INTEGER                                 :: body_id,parent_id
         INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
         INTEGER                                 :: nchild,nverts
@@ -178,6 +181,8 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(6,6)                 :: Xb_to_i
         REAL(dp),DIMENSION(6,6)                 :: Xp_to_b
         REAL(dp),DIMENSION(6,1)                 :: q,v,c
+        REAL(dp),DIMENSION(6,6)                 :: A
+
     END TYPE
 
 

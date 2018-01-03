@@ -71,11 +71,18 @@ IMPLICIT NONE
     END DO
 
     ! manually adjust to verify the same case
-   body_system(2)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
-
-!    body_system(2)%q(4:5,1) = (/ 0.1767766952966369_dp, 0.1767766952966369_dp/)
-!    body_system(3)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
-!    body_system(4)%q(4:5,1) = (/ 0.5303300858899107_dp, 0.5303300858899107_dp/)
+    IF(system%nbody == 2) THEN
+    body_system(2)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
+    END IF
+    IF(system%nbody == 3) THEN
+    body_system(2)%q(4:5,1) = (/ 0.2357022603955158_dp, 0.2357022603955158_dp/)
+    body_system(3)%q(4:5,1) = (/ 0.4714045207910316_dp, 0.4714045207910316_dp/)
+    END IF
+    IF(system%nbody == 4) THEN
+    body_system(2)%q(4:5,1) = (/ 0.1767766952966369_dp, 0.1767766952966369_dp/)
+    body_system(3)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
+    body_system(4)%q(4:5,1) = (/ 0.5303300858899107_dp, 0.5303300858899107_dp/)
+    END IF
 
 !    ! a normal way to assign body initial condition
 !    count = 1

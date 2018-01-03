@@ -58,6 +58,11 @@ IMPLICIT NONE
     ! update body_system%v and c using input argument
     count = 0
     DO i = 1, system%nbody
+!        body_system(i)%v(joint_system(i)%udof,1) = &
+!            v(count+1: count+joint_system(i)%nudof)
+!        body_system(i)%c(joint_system(i)%udof,1) = &
+!            v(count+1: count+joint_system(i)%nudof)
+!        count = count + joint_system(i)%nudof
         body_system(i)%v(:,1) = v(count+1: count+6)
         body_system(i)%c(:,1) = c(count+1: count+6)
         count = count + 6

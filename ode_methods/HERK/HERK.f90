@@ -141,7 +141,7 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 1
+    debug_flag = 0
 
     ! get HERK coefficients
     CALL HERK_pick_scheme(scheme, A(1:stage,:), b, c)
@@ -309,6 +309,10 @@ END IF
 !        CALL embed_sys(V(i,:), Vdot(i,:))
         CALL HERK_update_system_vc(V(i,:), Vdot(i,:))
 
+IF(debug_flag == 1) THEN
+STOP
+END IF
+
     END DO
 
     ! use norm2(V(stage+1,:)-V(stage,:)) to determine next timestep h_out
@@ -320,9 +324,6 @@ END IF
     vdot_out = Vdot(stage,:)
     lambda_out = lambda(stage,:)
 
-IF(debug_flag == 1) THEN
-!STOP
-END IF
 
     !--------------------------------------------------------------------
     !  Deallocation

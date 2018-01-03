@@ -34,6 +34,7 @@ SUBROUTINE prescribed_motion_refer(mode,t,active_motion)
     !--------------------------------------------------------------------
     USE module_constants
     USE module_data_type
+    USE module_HERK_pick_scheme
 
 IMPLICIT NONE
 
@@ -47,7 +48,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                         :: i,j,nstep
+    INTEGER                                         :: i,j,nstep,stage
     INTEGER                                         :: j_pos,j_vel,j_acc
 
     !--------------------------------------------------------------------
@@ -63,7 +64,10 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     nstep = system%params%nstep
     ALLOCATE(active_motion(system%na,3))
-    DO i = 1,2*nstep+1
+
+    CALL HERK_determine_stage(system%params%scheme,stage)
+
+    DO i = 1,(stage-1)*nstep+1
         IF(ABS(system%kindata(i,1)-t) < tiny) THEN
             DO j = 1,system%na
                 j_pos = 1 + 3*(j-1) + 1
@@ -75,6 +79,5 @@ IMPLICIT NONE
             END DO
         END IF
     END DO
-!WRITE(*,*) active_motion
-!WRITE(*,*) 'note here'
+
 END SUBROUTINE prescribed_motion_refer

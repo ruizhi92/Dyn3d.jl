@@ -203,7 +203,7 @@ IMPLICIT NONE
         system%soln%y(i,3*system%ndof+1:3*system%ndof+system%ncdof_HERK) = lambda_out
 
         ! write solution
-!        IF(MOD(i,100) == 1) THEN
+        IF(MOD(i,100) == 1) THEN
         WRITE(*,'(A,F10.6,A)') 'At t=',system%soln%t(i), ' body position q is:'
         DO k = 1, system%nbody
             WRITE(*,'(A,I5,A)',ADVANCE="NO") "body ",k," :"
@@ -242,7 +242,7 @@ IMPLICIT NONE
             WRITE(*,'(/)')
         END DO
         WRITE(*,*) '--------------------------------------------------------'
-!        END IF
+        END IF
 
     END DO
 
