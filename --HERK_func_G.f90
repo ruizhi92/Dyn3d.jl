@@ -67,7 +67,7 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 1
+    debug_flag = 0
 
     ! initialize G (G is y_i)
     y_i(:,:) = 0.0_dp

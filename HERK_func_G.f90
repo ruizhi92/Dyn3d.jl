@@ -267,10 +267,10 @@ END IF
             y_i(1:6,1:6) = MATMUL(TRANSPOSE(joint_system(1)%T_HERK),A_total(1:6,1:6))
             y_i(7:11,1:6) = MATMUL(TRANSPOSE(joint_system(2)%T_HERK),A_total(7:12,1:6))
             y_i(7:11,7:12) = TRANSPOSE(joint_system(2)%T_HERK)
-!            y_i(12:16,7:12) = MATMUL(TRANSPOSE(joint_system(3)%T_HERK),A_total(13:18,7:12))
-!            y_i(12:16,13:18) = TRANSPOSE(joint_system(3)%T_HERK)
-!            y_i(17:21,13:18) = MATMUL(TRANSPOSE(joint_system(4)%T_HERK),A_total(19:24,13:18))
-!            y_i(17:21,19:24) = TRANSPOSE(joint_system(4)%T_HERK)
+            y_i(12:16,7:12) = MATMUL(TRANSPOSE(joint_system(3)%T_HERK),A_total(13:18,7:12))
+            y_i(12:16,13:18) = TRANSPOSE(joint_system(3)%T_HERK)
+            y_i(17:21,13:18) = MATMUL(TRANSPOSE(joint_system(4)%T_HERK),A_total(19:24,13:18))
+            y_i(17:21,19:24) = TRANSPOSE(joint_system(4)%T_HERK)
 !    END DO
 
 
