@@ -141,7 +141,7 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 0
+    debug_flag = 1
 
     ! get HERK coefficients
     CALL HERK_pick_scheme(scheme, A(1:stage,:), b, c)

@@ -89,7 +89,7 @@ WRITE(*,*) 'T_total'
 CALL write_matrix(REAL(T_total,8))
 END IF
 
-    ! create A_total with modification to P_map
+    ! create A_total with modification to TRANSPOSE(P_map)
     ! Note: for one body, calculate the ending point velocity by its beginning point
     ! velocity. This is different from a coordinate transform
     A_total = 0.0_dp
@@ -97,12 +97,11 @@ END IF
     ! generate 3*3 identity matrix for use
     CALL ones(3,one)
 
+    ! construct A_total, which has the P_map-like matrix shape
     DO i = 1,system%nbody
 
-        ! construct the P_map-like matrix shape
+        ! fill in child body blocks
         DO j = 1,system%njoint
-
-            ! fill in child body blocks
             IF(j == i) THEN
                 DO k = 6*(i-1)+1, 6*i
                     A_total(k,k) = 1.0_dp

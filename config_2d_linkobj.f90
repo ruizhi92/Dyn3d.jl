@@ -75,7 +75,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 4
+    nbody = 2
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 

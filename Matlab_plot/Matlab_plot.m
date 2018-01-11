@@ -12,4 +12,4 @@ end
 system.data=load('verts_i.dat');
 
 % plot using artic_movie_3d
-artic_movie_3d(system,6,'savemovie','movie.avi');
+artic_movie_3d(system,10,'savemovie','movie.avi');
