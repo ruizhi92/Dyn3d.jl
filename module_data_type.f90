@@ -319,7 +319,7 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: kinmap
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: kindata
-        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: P_map
+        REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: P_map
     END TYPE
 
 

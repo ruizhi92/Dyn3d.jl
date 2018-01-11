@@ -80,7 +80,7 @@ IMPLICIT NONE
     mode = 'refer'
     CALL prescribed_motion(mode,t_i,motion)
 
-    ! assign motion to y_temp, which has full rank
+    ! assign local body motion to y_temp, which has full rank
     y_temp(:,1) = 0.0_dp
     y_temp(system%cdof_HERK_a,1) = - motion(:,2)
 
@@ -88,9 +88,10 @@ IMPLICIT NONE
     ! each Xb_to_i
     X_total(:,:) = 0.0_dp
     DO i = 1,system%nbody
-        X_temp = body_system(i)%Xb_to_i
-        CALL inverse(X_temp, X_temp_inv)
-        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_inv
+!        X_temp = body_system(i)%Xb_to_i
+!        CALL inverse(X_temp, X_temp_inv)
+!        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_inv
+        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = body_system(i)%Xb_to_i
     END DO
 
     ! the diagonal block of T_total is transpose to the constrained dof

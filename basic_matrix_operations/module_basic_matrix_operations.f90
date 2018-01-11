@@ -54,6 +54,10 @@ IMPLICIT NONE
         MODULE PROCEDURE inverse
     END INTERFACE
 
+    INTERFACE xcross_inter
+        MODULE PROCEDURE xcross
+    END INTERFACE
+
     CONTAINS
     INCLUDE 'ones.f90'
     INCLUDE 'zeros.f90'
@@ -61,5 +65,6 @@ IMPLICIT NONE
 !    INCLUDE 'gmres.f90'
     INCLUDE 'lu.f90'
     INCLUDE 'inverse.f90'
+    INCLUDE 'xcross.f90'
 
 END MODULE module_basic_matrix_operations
