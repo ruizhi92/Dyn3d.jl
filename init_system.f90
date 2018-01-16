@@ -83,7 +83,22 @@ IMPLICIT NONE
     body_system(3)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
     body_system(4)%q(4:5,1) = (/ 0.5303300858899107_dp, 0.5303300858899107_dp/)
     END IF
-
+    IF(system%nbody == 6) THEN
+    body_system(3)%q(4:5,1) = (/ 0.2357022603955158_dp, 0.2357022603955158_dp/)
+    body_system(2)%q(4:5,1) = 0.5_dp*body_system(3)%q(4:5,1)
+    body_system(5)%q(4:5,1) = (/ 0.4714045207910316_dp, 0.4714045207910316_dp/)
+    body_system(4)%q(4:5,1) = 0.5_dp*(body_system(3)%q(4:5,1) + body_system(5)%q(4:5,1))
+    body_system(6)%q(4:5,1) = body_system(5)%q(4:5,1) + body_system(2)%q(4:5,1)
+    END IF
+    IF(system%nbody == 8) THEN
+    body_system(3)%q(4:5,1) = (/ 0.1767766952966369_dp, 0.1767766952966369_dp/)
+    body_system(2)%q(4:5,1) = 0.5_dp*body_system(3)%q(4:5,1)
+    body_system(5)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
+    body_system(4)%q(4:5,1) = 0.5_dp*(body_system(3)%q(4:5,1) + body_system(5)%q(4:5,1))
+    body_system(7)%q(4:5,1) = (/ 0.5303300858899107_dp, 0.5303300858899107_dp/)
+    body_system(6)%q(4:5,1) = 0.5_dp*(body_system(5)%q(4:5,1) + body_system(7)%q(4:5,1))
+    body_system(8)%q(4:5,1) = body_system(7)%q(4:5,1) + body_system(2)%q(4:5,1)
+    END IF
 !    ! a normal way to assign body initial condition
 !    count = 1
 !    DO i = 1,system%njoint

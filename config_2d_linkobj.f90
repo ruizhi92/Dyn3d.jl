@@ -65,17 +65,17 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 2.0_dp
+    tf = 3.0_dp
     ! total number of steps
-    nstep = 2000
+    nstep = 3000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
-    scheme = 4
+    scheme = 2
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 2
+    nbody = 8
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -87,7 +87,7 @@ IMPLICIT NONE
     ! stiff - Stiffness of torsion spring on each interior joint
     stiff = 0.03_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.01_dp
+    damp = 0.02_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system

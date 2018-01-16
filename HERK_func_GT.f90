@@ -51,7 +51,7 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     INTEGER                                       :: i,j,k
-    INTEGER                                       :: p_id,ch_id,child_count
+    INTEGER                                       :: ch_id,child_count
     REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_trinv
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: T_total
@@ -72,7 +72,7 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 1
+    debug_flag = 0
 
     ! initialize GT (GT is y_i)
     y_i(:,:) = 0.0_dp
@@ -88,8 +88,8 @@ IMPLICIT NONE
     END DO
 
 IF(debug_flag == 1) THEN
-WRITE(*,*) 'T_total'
-CALL write_matrix(REAL(T_total,8))
+!WRITE(*,*) 'T_total'
+!CALL write_matrix(REAL(T_total,8))
 END IF
 
     ! construct X_total, whose diagonal block is the inverse transpose of
@@ -137,7 +137,7 @@ END IF
             q_temp = body_system(i)%q - body_system(ch_id)%q
             CALL xcross(q_temp(4:6,1), rx)
             A_temp(1:3,1:3) = one
-            A_temp(4:6,1:3) = rx
+            A_temp(1:3,4:6) = rx
             A_temp(4:6,4:6) = one
 
             ! Assign A_temp to parent body

@@ -50,6 +50,17 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     SELECT CASE(m)
 
+        CASE(2)
+            ! Scheme A of HERK in Liska's paper
+            A = RESHAPE( (/ 0.0_dp, 0.0_dp, 0.0_dp, & ! line 1
+                            0.5_dp, 0.0_dp, 0.0_dp, & ! line 2
+                            SQRT(3.0_dp)/3.0_dp, (3-SQRT(3.0_dp))/3.0_dp, 0.0_dp /), & ! line 3
+                        (/3,3/), order=(/2,1/) )
+            c = (/ 0.0_dp, 0.5_dp, 1.0_dp /)
+            b = (/ (3+SQRT(3.0_dp))/6.0_dp, -SQRT(3.0_dp)/3.0_dp, (3+SQRT(3.0_dp))/6.0_dp /)
+!            s = 3
+!            p = 2
+
         CASE(3)
             ! Brasey-Hairer 3-Stage HERK, table 2
             A = RESHAPE( (/ 0.0_dp, 0.0_dp, 0.0_dp, & ! line 1
@@ -83,17 +94,6 @@ IMPLICIT NONE
                    (16.0_dp+SQRT(6.0_dp))/36.0_dp, 1.0_dp/9.0_dp /)
 !            s = 5
 !            p = 4
-
-        CASE(2)
-            ! Scheme A of HERK in Liska's paper
-            A = RESHAPE( (/ 0.0_dp, 0.0_dp, 0.0_dp, & ! line 1
-                            0.5_dp, 0.0_dp, 0.0_dp, & ! line 2
-                            SQRT(3.0_dp)/3.0_dp, (3-SQRT(3.0_dp))/3.0_dp, 0.0_dp /), & ! line 3
-                        (/3,3/), order=(/2,1/) )
-            c = (/ 0.0_dp, 0.5_dp, 1.0_dp /)
-            b = (/ (3+SQRT(3.0_dp))/6.0_dp, -SQRT(3.0_dp)/3.0_dp, (3+SQRT(3.0_dp))/6.0_dp /)
-!            s = 3
-!            p = 2
 
     END SELECT
 

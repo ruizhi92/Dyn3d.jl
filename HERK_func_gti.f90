@@ -52,7 +52,6 @@ IMPLICIT NONE
     CHARACTER(LEN = max_char)                     :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: motion
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total,T_total,y_temp
-    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_inv
     INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
@@ -88,9 +87,6 @@ IMPLICIT NONE
     ! each Xb_to_i
     X_total(:,:) = 0.0_dp
     DO i = 1,system%nbody
-!        X_temp = body_system(i)%Xb_to_i
-!        CALL inverse(X_temp, X_temp_inv)
-!        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_inv
         X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = body_system(i)%Xb_to_i
     END DO
 

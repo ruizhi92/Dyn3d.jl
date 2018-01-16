@@ -55,7 +55,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(6,6)                         :: Xi_to_b,Xi_to_ch
     REAL(dp),DIMENSION(6,1)                         :: q_temp
     REAL(dp),DIMENSION(6,6)                         :: Xj_to_p,Xch_to_j
-    INTEGER                                         :: i,j,child_id,flag
+    INTEGER                                         :: i,j,child_id,flag,p_id
 
     !--------------------------------------------------------------------
     !  Update Xb_to_i, x_0 and verts_i for every body
@@ -127,13 +127,22 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Update qj for every joint
     !--------------------------------------------------------------------
-    DO i = 1,system%njoint
-        CALL trans_matrix(joint_system(i)%Xj, joint_system(i)%qJ(1:3,1), &
-                          joint_system(i)%qJ(4:6,1),flag)
-    IF (flag == 1) THEN
-        WRITE(*,*) &
-        "Error: beta not in the range -pi/2 <= beta <= pi/2 in trans_matrix"
-    END IF
-    END DO
+!    DO i = 1,system%njoint
+!        CALL trans_matrix(joint_system(i)%Xj, joint_system(i)%qJ(1:3,1), &
+!                          joint_system(i)%qJ(4:6,1),flag)
+!    IF (flag == 1) THEN
+!        WRITE(*,*) &
+!        "Error: beta not in the range -pi/2 <= beta <= pi/2 in trans_matrix"
+!    END IF
+!    END DO
 
+    DO i = 1,system%njoint
+        IF(body_system(i)%parent_id == 0) THEN
+            joint_system(i)%qJ = MATMUL(body_system(i)%Xb_to_i,body_system(i)%q)
+        ELSE
+            p_id = body_system(i)%parent_id
+            joint_system(i)%qJ = MATMUL(body_system(i)%Xb_to_i, &
+                (body_system(i)%q - body_system(p_id)%q))
+        END IF
+    END DO
 END SUBROUTINE embed_system
