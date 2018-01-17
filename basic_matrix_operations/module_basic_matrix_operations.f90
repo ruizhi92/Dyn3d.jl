@@ -42,10 +42,6 @@ IMPLICIT NONE
         MODULE PROCEDURE write_matrix
     END INTERFACE
 
-!    INTERFACE gmres_inter
-!        MODULE PROCEDURE gmres
-!    END INTERFACE
-
     INTERFACE lu_inter
         MODULE PROCEDURE lu
     END INTERFACE
@@ -62,7 +58,6 @@ IMPLICIT NONE
     INCLUDE 'ones.f90'
     INCLUDE 'zeros.f90'
     INCLUDE 'write_matrix.f90'
-!    INCLUDE 'gmres.f90'
     INCLUDE 'lu.f90'
     INCLUDE 'inverse.f90'
     INCLUDE 'xcross.f90'

@@ -65,6 +65,7 @@ IMPLICIT NONE
 !        count = count + joint_system(i)%nudof
         body_system(i)%v(:,1) = v(count+1: count+6)
         body_system(i)%c(:,1) = c(count+1: count+6)
+!WRITE(*,*) i, body_system(i)%c(:,1)
         count = count + 6
     END DO
 

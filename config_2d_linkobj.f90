@@ -75,7 +75,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 8
+    nbody = 4
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -87,7 +87,7 @@ IMPLICIT NONE
     ! stiff - Stiffness of torsion spring on each interior joint
     stiff = 0.03_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.02_dp
+    damp = 0.0_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system

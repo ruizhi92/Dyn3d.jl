@@ -54,6 +54,7 @@ SUBROUTINE HERK(t_0, q_0, v_0, q_dim, lambda_dim, h_0, tol, &
     !--------------------------------------------------------------------
     USE module_constants
     USE module_basic_matrix_operations
+    USE module_block_lu
     USE module_HERK_pick_scheme
     USE module_HERK_update_system
 
@@ -266,7 +267,8 @@ WRITE(*,'(/)')
 END IF
 
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
-        CALL lu(LHS,RHS,x)
+        !CALL lu(LHS,RHS,x)
+        CALL block_lu(LHS,RHS,q_dim,lambda_dim,x)
 
 IF(debug_flag == 1) THEN
 WRITE(*,*) '6'
