@@ -332,8 +332,8 @@ IMPLICIT NONE
         ! update Xj_to_c and inertia_b
         body_system(i)%Xj_to_c = MATMUL(body_system(i)%Xj_to_c, &
                                         Xj_to_ch_old)
-        body_system(i)%inertia_c = MATMUL(TRANSPOSE(Xj_to_ch_old), &
-                                          MATMUL(body_system(i)%inertia_c, &
+        body_system(i)%inertia_b = MATMUL(TRANSPOSE(Xj_to_ch_old), &
+                                          MATMUL(body_system(i)%inertia_b, &
                                                  Xj_to_ch_old))
 
         ! for a joint, since its child body's body coordinate changes,

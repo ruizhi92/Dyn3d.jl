@@ -156,7 +156,8 @@ END IF
     ! GT = P*(Xb_to_i)^(-T)*T
     y_i = MATMUL(A_total, &
                  MATMUL(X_total,T_total))
-
+!    y_i = MATMUL(system%P_map, &
+!                 MATMUL(X_total,T_total))
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------

@@ -304,7 +304,7 @@ END IF
         CALL HERK_update_system_vc(V(i,:), Vdot(i,:))
 
 IF(debug_flag == 1) THEN
-STOP
+!STOP
 END IF
 
     END DO

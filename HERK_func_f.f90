@@ -102,7 +102,8 @@ IMPLICIT NONE
         f_ex(:,1) = 0.0_dp
 
         ! summarize
-        p_total(6*(i-1)+1:6*i,:) = p_temp - body_system(i)%mass*g_temp - f_ex
+        !p_total(6*(i-1)+1:6*i,:) = p_temp - body_system(i)%mass*g_temp - f_ex
+        p_total(6*(i-1)+1:6*i,:) = - body_system(i)%mass*g_temp - f_ex
 
     END DO
 
