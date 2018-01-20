@@ -3,7 +3,7 @@ clc;clear all;
 
 % problem definition
 system.ndim = 2;
-system.nbody = 8;
+system.nbody = 6;
 for i = 1:system.nbody
     system.body(i).nvert = 4;
 end

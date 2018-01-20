@@ -81,7 +81,7 @@ IMPLICIT NONE
 
     ! assign local body motion to y_temp, which has full rank
     y_temp(:,1) = 0.0_dp
-    y_temp(system%cdof_HERK_a,1) = - motion(:,2)
+    y_temp(system%cdof_HERK_a,1) = motion(:,2)
 
     ! construct X_total, whose diagonal block is the inverse of
     ! each Xb_to_i
@@ -106,7 +106,7 @@ CALL write_matrix(MATMUL(T_total,X_total))
 END IF
 
     ! final combine
-    y_i = MATMUL(T_total, &
+    y_i = - MATMUL(T_total, &
                  MATMUL(X_total, y_temp))
 
     !--------------------------------------------------------------------

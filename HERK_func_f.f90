@@ -52,7 +52,7 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     INTEGER                                       :: i,j,dofid
-    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_trinv
+    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_inv
     REAL(dp),DIMENSION(6,6)                       :: Xi_to_b
     REAL(dp),DIMENSION(6,6)                       :: I_inertial
     REAL(dp),DIMENSION(6,1)                       :: p_temp,g_temp
@@ -102,8 +102,7 @@ IMPLICIT NONE
         f_ex(:,1) = 0.0_dp
 
         ! summarize
-        !p_total(6*(i-1)+1:6*i,:) = p_temp - body_system(i)%mass*g_temp - f_ex
-        p_total(6*(i-1)+1:6*i,:) = - body_system(i)%mass*g_temp - f_ex
+        p_total(6*(i-1)+1:6*i,:) = p_temp - body_system(i)%mass*g_temp - f_ex
 
     END DO
 
@@ -117,8 +116,8 @@ END IF
     X_total(:,:) = 0.0_dp
     DO i = 1,system%nbody
         X_temp = body_system(i)%Xb_to_i
-        CALL inverse(TRANSPOSE(X_temp), X_temp_trinv)
-        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_trinv
+        CALL inverse(X_temp, X_temp_inv)
+        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = TRANSPOSE(X_temp_inv)
     END DO
 
     ! construct S_total, whose diagonal block of is transpose to the

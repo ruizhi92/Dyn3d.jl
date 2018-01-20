@@ -70,35 +70,11 @@ IMPLICIT NONE
         body_system(i)%v(3,1) = motion(3,2)
     END DO
 
-    ! manually adjust to verify the same case
-    IF(system%nbody == 2) THEN
-    body_system(2)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
-    END IF
-    IF(system%nbody == 3) THEN
-    body_system(2)%q(4:5,1) = (/ 0.2357022603955158_dp, 0.2357022603955158_dp/)
-    body_system(3)%q(4:5,1) = (/ 0.4714045207910316_dp, 0.4714045207910316_dp/)
-    END IF
-    IF(system%nbody == 4) THEN
-    body_system(2)%q(4:5,1) = (/ 0.1767766952966369_dp, 0.1767766952966369_dp/)
-    body_system(3)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
-    body_system(4)%q(4:5,1) = (/ 0.5303300858899107_dp, 0.5303300858899107_dp/)
-    END IF
-    IF(system%nbody == 6) THEN
-    body_system(3)%q(4:5,1) = (/ 0.2357022603955158_dp, 0.2357022603955158_dp/)
-    body_system(2)%q(4:5,1) = 0.5_dp*body_system(3)%q(4:5,1)
-    body_system(5)%q(4:5,1) = (/ 0.4714045207910316_dp, 0.4714045207910316_dp/)
-    body_system(4)%q(4:5,1) = 0.5_dp*(body_system(3)%q(4:5,1) + body_system(5)%q(4:5,1))
-    body_system(6)%q(4:5,1) = body_system(5)%q(4:5,1) + body_system(2)%q(4:5,1)
-    END IF
-    IF(system%nbody == 8) THEN
-    body_system(3)%q(4:5,1) = (/ 0.1767766952966369_dp, 0.1767766952966369_dp/)
-    body_system(2)%q(4:5,1) = 0.5_dp*body_system(3)%q(4:5,1)
-    body_system(5)%q(4:5,1) = (/ 0.3535533905932738_dp, 0.3535533905932738_dp/)
-    body_system(4)%q(4:5,1) = 0.5_dp*(body_system(3)%q(4:5,1) + body_system(5)%q(4:5,1))
-    body_system(7)%q(4:5,1) = (/ 0.5303300858899107_dp, 0.5303300858899107_dp/)
-    body_system(6)%q(4:5,1) = 0.5_dp*(body_system(5)%q(4:5,1) + body_system(7)%q(4:5,1))
-    body_system(8)%q(4:5,1) = body_system(7)%q(4:5,1) + body_system(2)%q(4:5,1)
-    END IF
+    ! For the 2d simple case only
+    DO i = 2, system%nbody
+        body_system(i)%q(4,1) = (i-1)*1.0_dp/system%nbody*COS(body_system(1)%q(3,1))
+        body_system(i)%q(5,1) = (i-1)*1.0_dp/system%nbody*SIN(body_system(1)%q(3,1))
+    END DO
 !    ! a normal way to assign body initial condition
 !    count = 1
 !    DO i = 1,system%njoint

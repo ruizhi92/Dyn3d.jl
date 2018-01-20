@@ -39,6 +39,7 @@ SUBROUTINE HERK_func_G(t_i,y_i)
     USE module_constants
     USE module_data_type
     USE module_basic_matrix_operations
+    USE module_trans_matrix
 
 IMPLICIT NONE
 
@@ -53,8 +54,9 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     INTEGER                                       :: i,j,k,p_id
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: T_total
-    REAL(dp),DIMENSION(6,6)                       :: A_temp
-    REAL(dp),DIMENSION(6,1)                       :: q_temp!,shape1_temp
+    REAL(dp),DIMENSION(6,6)                       :: A_temp,Xi_to_i
+    REAL(dp),DIMENSION(3)                       :: r_temp,theta_temp
+    REAL(dp),DIMENSION(6,1)                       :: q_temp,shape1_temp
     REAL(dp),DIMENSION(3,3)                       :: one,mx,mox
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: A_total
     INTEGER                                       :: debug_flag
@@ -115,21 +117,26 @@ END IF
             ! acquire parent id
             p_id = body_system(i)%parent_id
 
-            ! construct A_temp
-            A_temp(:,:) = 0.0_dp
-
-            q_temp = body_system(i)%q - body_system(p_id)%q
-
+!            ! construct A_temp
+!            A_temp(:,:) = 0.0_dp
+!
+!            q_temp = body_system(i)%q - body_system(p_id)%q
+!
             ! instead of direct minus method, this can be alternatively used
-            !shape1_temp(:,1) = joint_system(i)%shape1
-            !q_temp = MATMUL(body_system(p_id)%Xb_to_i, shape1_temp)
+            shape1_temp(:,1) = joint_system(i)%shape1
+            q_temp = MATMUL(body_system(p_id)%Xb_to_i, shape1_temp)
+!
+!            CALL xcross(q_temp(1:3,1), mx)
+!            CALL xcross(q_temp(4:6,1), mox)
+!            A_temp(1:3,1:3) = one - mx
+!            A_temp(4:6,1:3) = -mox
+!            A_temp(4:6,4:6) = one
 
-            CALL xcross(q_temp(1:3,1), mx)
-            CALL xcross(q_temp(4:6,1), mox)
-            A_temp(1:3,1:3) = one - mx
-            A_temp(4:6,1:3) = -mox
-            A_temp(4:6,4:6) = one
+            r_temp = q_temp(4:6,1)
+            theta_temp = q_temp(1:3,1)
+            CALL trans_matrix(r_temp,theta_temp,A_temp)
 
+!            A_temp = MATMUL(body_system(p_id)%Xb_to_i,joint_system(i)%Xp_to_j)
             ! Assign A_temp to parent body
             A_total(6*(i-1)+1:6*i, 6*(p_id-1)+1:6*p_id) &
                   = - A_temp
@@ -144,6 +151,7 @@ CALL write_matrix(A_total)
 END IF
 
     ! G = T^(T)*A_total
+!    y_i = MATMUL(T_total, TRANSPOSE(system%P_map))
     y_i = MATMUL(T_total, A_total)
 
     !--------------------------------------------------------------------

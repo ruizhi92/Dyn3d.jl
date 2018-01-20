@@ -38,6 +38,7 @@ SUBROUTINE HERK_func_GT(t_i,y_i)
     USE module_constants
     USE module_data_type
     USE module_basic_matrix_operations
+    USE module_trans_matrix
 
 IMPLICIT NONE
 
@@ -55,8 +56,9 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_trinv
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: T_total
-    REAL(dp),DIMENSION(6,6)                       :: A_temp
-    REAL(dp),DIMENSION(6,1)                       :: q_temp
+    REAL(dp),DIMENSION(6,6)                       :: A_temp,AA_temp
+    REAL(dp),DIMENSION(3)                       :: r_temp,theta_temp
+    REAL(dp),DIMENSION(6,1)                       :: q_temp,shape1_temp
     REAL(dp),DIMENSION(3,3)                       :: one,rx
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: A_total
     INTEGER                                       :: debug_flag
@@ -132,13 +134,31 @@ END IF
             ! acquire parent id
             ch_id = body_system(i)%child_id(child_count)
 
-            ! construct A_temp
+
+!            ! construct A_temp
             A_temp(:,:) = 0.0_dp
             q_temp = body_system(i)%q - body_system(ch_id)%q
             CALL xcross(q_temp(4:6,1), rx)
             A_temp(1:3,1:3) = one
             A_temp(1:3,4:6) = rx
             A_temp(4:6,4:6) = one
+IF(debug_flag == 1) THEN
+CALL write_matrix(A_temp)
+WRITE(*,*) '-------------------'
+END IF
+
+!            shape1_temp(:,1) = - joint_system(ch_id)%shape1
+!            q_temp = MATMUL(body_system(i)%Xb_to_i, shape1_temp)
+!
+!            r_temp = q_temp(4:6,1)
+!            theta_temp = q_temp(1:3,1)
+!            CALL trans_matrix(r_temp,theta_temp,AA_temp)
+!            CALL inverse(TRANSPOSE(AA_temp),A_temp)
+
+IF(debug_flag == 1) THEN
+CALL write_matrix(A_temp)
+WRITE(*,*) '-----------------------------------------------'
+END IF
 
             ! Assign A_temp to parent body
             A_total(6*(i-1)+1:6*i, 6*(ch_id-1)+1:6*ch_id) &
