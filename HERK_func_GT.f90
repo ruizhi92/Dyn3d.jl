@@ -109,7 +109,7 @@ END IF
             ! acquire child id
             ch_id = body_system(i)%child_id(child_count)
 
-            CALL inverse(body_system(ch_id)%Xp_to_b, A_temp)
+            A_temp = TRANSPOSE(body_system(ch_id)%Xp_to_b)
 
             ! Assign A_temp to parent body
             A_total(6*(i-1)+1:6*i, 6*(ch_id-1)+1:6*ch_id) &

@@ -142,7 +142,7 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 0
+    debug_flag = 1
 
     ! get HERK coefficients
     CALL HERK_pick_scheme(scheme, A(1:stage,:), b, c)
@@ -213,7 +213,7 @@ END IF
 IF(debug_flag == 1) THEN
 WRITE(*,*) 'updated Q(i,:): '
 DO j = 1, SIZE(Q,2)
-WRITE(*,"(F12.7)") Q(i,j)
+WRITE(*,"(F9.5)") Q(i,j)
 END DO
 WRITE(*,'(/)')
 END IF
@@ -274,7 +274,7 @@ IF(debug_flag == 1) THEN
 WRITE(*,*) '6'
 WRITE(*,*) 'HERK solution x: '
 DO j = 1, SIZE(x)
-WRITE(*,"(F12.7)") x(j)
+WRITE(*,"(F9.5)") x(j)
 END DO
 WRITE(*,'(/)')
 END IF
@@ -293,7 +293,7 @@ END IF
 IF(debug_flag == 1) THEN
 WRITE(*,*) 'updated V(i,:): '
 DO j = 1, SIZE(V,2)
-WRITE(*,"(F12.7)") V(i,j)
+WRITE(*,"(F9.5)") V(i,j)
 END DO
 WRITE(*,'(/)')
 END IF
@@ -304,7 +304,7 @@ END IF
         CALL HERK_update_system_vc(V(i,:), Vdot(i,:))
 
 IF(debug_flag == 1) THEN
-!STOP
+STOP
 END IF
 
     END DO

@@ -48,7 +48,6 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     INTEGER                                       :: i,debug_flag
-    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -61,7 +60,6 @@ IMPLICIT NONE
 
     ! the diagonal block of M is inertia of each body in inertial coord
     DO i = 1,system%nbody
-        CALL inverse(body_system(i)%Xb_to_i, Xi_to_b)
         y_i(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = body_system(i)%inertia_b
     END DO
 
