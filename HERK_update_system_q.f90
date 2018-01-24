@@ -59,12 +59,9 @@ IMPLICIT NONE
 
     ! update body_system%q using input argument q
     count = 0
-    DO i = 1, system%nbody
-!        body_system(i)%q(joint_system(i)%udof,1) = &
-!            q(count+1: count+joint_system(i)%nudof)
-!        count = count + joint_system(i)%nudof
 
-        body_system(i)%q(:,1) = q(count+1: count+6)
+    DO i = 1, system%nbody
+       body_system(i)%q(:,1) = q(count+1: count+6)
         count = count + 6
     END DO
 

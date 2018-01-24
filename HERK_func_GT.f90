@@ -38,7 +38,6 @@ SUBROUTINE HERK_func_GT(t_i,y_i)
     USE module_constants
     USE module_data_type
     USE module_basic_matrix_operations
-    USE module_trans_matrix
 
 IMPLICIT NONE
 
@@ -53,20 +52,14 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     INTEGER                                       :: i,j,k
     INTEGER                                       :: ch_id,child_count
-    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_trinv
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: T_total
-    REAL(dp),DIMENSION(6,6)                       :: A_temp,AA_temp
-    REAL(dp),DIMENSION(3)                       :: r_temp,theta_temp
-    REAL(dp),DIMENSION(6,1)                       :: q_temp,shape1_temp
-    REAL(dp),DIMENSION(3,3)                       :: one,rx
+    REAL(dp),DIMENSION(6,6)                       :: A_temp
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: A_total
     INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
-    ALLOCATE(X_total(system%ndof,system%ndof))
     ALLOCATE(T_total(system%ndof,system%ncdof_HERK))
     ALLOCATE(A_total(system%ndof,system%ndof))
 
@@ -90,31 +83,12 @@ IMPLICIT NONE
     END DO
 
 IF(debug_flag == 1) THEN
-!WRITE(*,*) 'T_total'
-!CALL write_matrix(REAL(T_total,8))
-END IF
-
-    ! construct X_total, whose diagonal block is the inverse transpose of
-    ! each Xb_to_i
-    X_total(:,:) = 0.0_dp
-    DO i = 1,system%nbody
-        X_temp = body_system(i)%Xb_to_i
-        CALL inverse(TRANSPOSE(X_temp), X_temp_trinv)
-        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = X_temp_trinv
-    END DO
-
-IF(debug_flag == 1) THEN
-WRITE(*,*) 'X_total'
-CALL write_matrix(X_total)
+WRITE(*,*) 'T_total'
+CALL write_matrix(REAL(T_total,8))
 END IF
 
     ! create A_total with modification to P_map
-    ! Note: for one body, calculate the beginning point force by its ending point
-    ! force(including torque). This is different from a coordinate transform
     A_total = 0.0_dp
-
-    ! generate 3*3 identity matrix for use
-    CALL ones(3,one)
 
     ! construct A_total, which has the P_map-like matrix shape
     DO i = 1,system%nbody
@@ -128,37 +102,14 @@ END IF
             END IF
         END DO
 
-        ! fill in child joint blocks except
+        ! fill in child joint blocks except the first body
         IF(body_system(i)%nchild /= 0) THEN
         DO child_count = 1,body_system(i)%nchild
-            ! acquire parent id
+
+            ! acquire child id
             ch_id = body_system(i)%child_id(child_count)
 
-
-!            ! construct A_temp
-            A_temp(:,:) = 0.0_dp
-            q_temp = body_system(i)%q - body_system(ch_id)%q
-            CALL xcross(q_temp(4:6,1), rx)
-            A_temp(1:3,1:3) = one
-            A_temp(1:3,4:6) = rx
-            A_temp(4:6,4:6) = one
-IF(debug_flag == 1) THEN
-CALL write_matrix(A_temp)
-WRITE(*,*) '-------------------'
-END IF
-
-!            shape1_temp(:,1) = - joint_system(ch_id)%shape1
-!            q_temp = MATMUL(body_system(i)%Xb_to_i, shape1_temp)
-!
-!            r_temp = q_temp(4:6,1)
-!            theta_temp = q_temp(1:3,1)
-!            CALL trans_matrix(r_temp,theta_temp,AA_temp)
-!            CALL inverse(TRANSPOSE(AA_temp),A_temp)
-
-IF(debug_flag == 1) THEN
-CALL write_matrix(A_temp)
-WRITE(*,*) '-----------------------------------------------'
-END IF
+            CALL inverse(body_system(ch_id)%Xp_to_b, A_temp)
 
             ! Assign A_temp to parent body
             A_total(6*(i-1)+1:6*i, 6*(ch_id-1)+1:6*ch_id) &
@@ -174,14 +125,11 @@ CALL write_matrix(A_total)
 END IF
 
     ! GT = P*(Xb_to_i)^(-T)*T
-    y_i = MATMUL(A_total, &
-                 MATMUL(X_total,T_total))
-!    y_i = MATMUL(system%P_map, &
-!                 MATMUL(X_total,T_total))
+    y_i = MATMUL(A_total, T_total)
+
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------
-    DEALLOCATE(X_total)
     DEALLOCATE(T_total)
     DEALLOCATE(A_total)
 

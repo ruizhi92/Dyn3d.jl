@@ -59,7 +59,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Write verts_i
     !--------------------------------------------------------------------
-    outfile = 'verts_i.dat'
+    outfile = 'verts.dat'
     fullname = TRIM(outfolder)//'/'//TRIM(outfile)
     OPEN(2018,file = fullname)
 

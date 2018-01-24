@@ -51,14 +51,13 @@ IMPLICIT NONE
     INTEGER                                       :: i
     CHARACTER(LEN = max_char)                     :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: motion
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total,T_total,y_temp
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: T_total,y_temp
     INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
     !  ALLOCATION
     !--------------------------------------------------------------------
     ALLOCATE(motion(system%na,3))
-    ALLOCATE(X_total(system%ndof,system%ndof))
     ALLOCATE(T_total(system%ncdof_HERK,system%ndof))
     ALLOCATE(y_temp(system%ndof,1))
 
@@ -83,13 +82,6 @@ IMPLICIT NONE
     y_temp(:,1) = 0.0_dp
     y_temp(system%cdof_HERK_a,1) = motion(:,2)
 
-    ! construct X_total, whose diagonal block is the inverse of
-    ! each Xb_to_i
-    X_total(:,:) = 0.0_dp
-    DO i = 1,system%nbody
-        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = body_system(i)%Xb_to_i
-    END DO
-
     ! the diagonal block of T_total is transpose to the constrained dof
     !  of each joint in local body coord
     T_total(:,:) = 0
@@ -100,20 +92,13 @@ IMPLICIT NONE
         END IF
     END DO
 
-IF(debug_flag == 1) THEN
-WRITE(*,*) 'T*X'
-CALL write_matrix(MATMUL(T_total,X_total))
-END IF
-
     ! final combine
-    y_i = - MATMUL(T_total, &
-                 MATMUL(X_total, y_temp))
+    y_i = - MATMUL(T_total, y_temp)
 
     !--------------------------------------------------------------------
     !  DEALLOCATION
     !--------------------------------------------------------------------
     DEALLOCATE(motion)
-    DEALLOCATE(X_total)
     DEALLOCATE(T_total)
     DEALLOCATE(y_temp)
 

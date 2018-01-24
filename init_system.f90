@@ -71,10 +71,16 @@ IMPLICIT NONE
     END DO
 
     ! For the 2d simple case only
+!    DO i = 2, system%nbody
+!        body_system(i)%q(4,1) = (i-1)*1.0_dp/system%nbody*COS(body_system(1)%q(3,1))
+!        body_system(i)%q(5,1) = (i-1)*1.0_dp/system%nbody*SIN(body_system(1)%q(3,1))
+!    END DO
+
+
     DO i = 2, system%nbody
-        body_system(i)%q(4,1) = (i-1)*1.0_dp/system%nbody*COS(body_system(1)%q(3,1))
-        body_system(i)%q(5,1) = (i-1)*1.0_dp/system%nbody*SIN(body_system(1)%q(3,1))
+        body_system(i)%q(:,1) = 0.0_dp
     END DO
+
 !    ! a normal way to assign body initial condition
 !    count = 1
 !    DO i = 1,system%njoint

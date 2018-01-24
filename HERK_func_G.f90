@@ -39,7 +39,6 @@ SUBROUTINE HERK_func_G(t_i,y_i)
     USE module_constants
     USE module_data_type
     USE module_basic_matrix_operations
-    USE module_trans_matrix
 
 IMPLICIT NONE
 
@@ -54,18 +53,15 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     INTEGER                                       :: i,j,k,p_id
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: T_total
-    REAL(dp),DIMENSION(6,6)                       :: A_temp,Xi_to_i
-    REAL(dp),DIMENSION(3)                       :: r_temp,theta_temp
-    REAL(dp),DIMENSION(6,1)                       :: q_temp,shape1_temp
-    REAL(dp),DIMENSION(3,3)                       :: one,mx,mox
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: A_total
+    REAL(dp),DIMENSION(6,6)                       :: B_temp
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: B_total
     INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
     ALLOCATE(T_total(system%ncdof_HERK,system%ndof))
-    ALLOCATE(A_total(system%ndof,system%ndof))
+    ALLOCATE(B_total(system%ndof,system%ndof))
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -91,22 +87,19 @@ WRITE(*,*) 'T_total'
 CALL write_matrix(REAL(T_total,8))
 END IF
 
-    ! create A_total with modification to TRANSPOSE(P_map)
+    ! create B_total with modification to TRANSPOSE(P_map)
     ! Note: for one body, calculate the ending point velocity by its beginning point
     ! velocity. This is different from a coordinate transform
-    A_total = 0.0_dp
+    B_total = 0.0_dp
 
-    ! generate 3*3 identity matrix for use
-    CALL ones(3,one)
-
-    ! construct A_total, which has the P_map-like matrix shape
+    ! construct B_total, which has the P_map-like matrix shape
     DO i = 1,system%nbody
 
         ! fill in child body blocks
         DO j = 1,system%njoint
             IF(j == i) THEN
                 DO k = 6*(i-1)+1, 6*i
-                    A_total(k,k) = 1.0_dp
+                    B_total(k,k) = 1.0_dp
                 END DO
             END IF
         END DO
@@ -117,47 +110,29 @@ END IF
             ! acquire parent id
             p_id = body_system(i)%parent_id
 
-!            ! construct A_temp
-!            A_temp(:,:) = 0.0_dp
-!
-!            q_temp = body_system(i)%q - body_system(p_id)%q
-!
-            ! instead of direct minus method, this can be alternatively used
-            shape1_temp(:,1) = joint_system(i)%shape1
-            q_temp = MATMUL(body_system(p_id)%Xb_to_i, shape1_temp)
-!
-!            CALL xcross(q_temp(1:3,1), mx)
-!            CALL xcross(q_temp(4:6,1), mox)
-!            A_temp(1:3,1:3) = one - mx
-!            A_temp(4:6,1:3) = -mox
-!            A_temp(4:6,4:6) = one
+            ! construct B_temp
+            B_temp(:,:) = body_system(i)%Xp_to_b
 
-            r_temp = q_temp(4:6,1)
-            theta_temp = q_temp(1:3,1)
-            CALL trans_matrix(r_temp,theta_temp,A_temp)
-
-!            A_temp = MATMUL(body_system(p_id)%Xb_to_i,joint_system(i)%Xp_to_j)
-            ! Assign A_temp to parent body
-            A_total(6*(i-1)+1:6*i, 6*(p_id-1)+1:6*p_id) &
-                  = - A_temp
+            ! Assign B_temp to parent body
+            B_total(6*(i-1)+1:6*i, 6*(p_id-1)+1:6*p_id) &
+                  = - B_temp
 
         END IF
 
     END DO
 
 IF(debug_flag == 1) THEN
-WRITE(*,*) 'A_total'
-CALL write_matrix(A_total)
+WRITE(*,*) 'B_total'
+CALL write_matrix(B_total)
 END IF
 
-    ! G = T^(T)*A_total
-!    y_i = MATMUL(T_total, TRANSPOSE(system%P_map))
-    y_i = MATMUL(T_total, A_total)
+    ! G = T^(T)*B_total
+    y_i = MATMUL(T_total, B_total)
 
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------
     DEALLOCATE(T_total)
-    DEALLOCATE(A_total)
+    DEALLOCATE(B_total)
 
 END SUBROUTINE HERK_func_G

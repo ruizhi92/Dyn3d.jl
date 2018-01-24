@@ -62,10 +62,7 @@ IMPLICIT NONE
     ! the diagonal block of M is inertia of each body in inertial coord
     DO i = 1,system%nbody
         CALL inverse(body_system(i)%Xb_to_i, Xi_to_b)
-        y_i(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = &
-                            MATMUL(TRANSPOSE(Xi_to_b), &
-                                   MATMUL(body_system(i)%inertia_b, &
-                                          Xi_to_b))
+        y_i(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = body_system(i)%inertia_b
     END DO
 
 IF(debug_flag == 1) THEN

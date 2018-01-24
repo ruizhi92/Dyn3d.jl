@@ -51,24 +51,23 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i,j,dofid
-    REAL(dp),DIMENSION(6,6)                       :: X_temp,X_temp_inv
-    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b
-    REAL(dp),DIMENSION(6,6)                       :: I_inertial
+    INTEGER                                       :: i,j,k,dofid
+    INTEGER                                       :: ch_id,child_count
+    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b,A_temp
     REAL(dp),DIMENSION(6,1)                       :: p_temp,g_temp
-    REAL(dp),DIMENSION(6,1)                       :: f_ex
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: X_total
+    REAL(dp),DIMENSION(6,1)                       :: f_ex,f_g
     INTEGER,DIMENSION(:,:),ALLOCATABLE            :: S_total
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: p_total,tau_total
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: A_total
     INTEGER                                       :: debug_flag
 
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
-    ALLOCATE(X_total(system%ndof,system%ndof))
     ALLOCATE(S_total(system%ndof,system%nudof))
     ALLOCATE(p_total(system%ndof,1))
     ALLOCATE(tau_total(system%nudof,1))
+    ALLOCATE(A_total(system%ndof,system%ndof))
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -83,26 +82,27 @@ IMPLICIT NONE
     ! been applied yet)
     DO i = 1,system%nbody
 
-        ! calculate inertia of a body in inertial frame
-        CALL inverse(body_system(i)%Xb_to_i, Xi_to_b)
-        I_inertial = MATMUL(TRANSPOSE(Xi_to_b), &
-                             MATMUL(body_system(i)%inertia_b, &
-                                    Xi_to_b))
-
         ! calculate bias force p_temp
         CALL mfcross(body_system(i)%v, &
-                     MATMUL(I_inertial, body_system(i)%v), &
+                     MATMUL(body_system(i)%inertia_b, &
+                            body_system(i)%v), &
                      p_temp)
 
-        ! gravity
+        ! calculate inertia of a body in inertial frame
+        CALL inverse(body_system(i)%Xb_to_i, Xi_to_b)
+
+        ! gravity transformed from inertial coord to local body coord
         g_temp(1:3,1) = 0.0_dp
         g_temp(4:6,1) = system%params%gravity
+        f_g = body_system(i)%mass*g_temp
+        f_g = MATMUL(Xi_to_b, f_g)
 
-        ! external force
+        ! external force described in inertial coord
         f_ex(:,1) = 0.0_dp
+        f_ex = MATMUL(Xi_to_b, f_ex)
 
         ! summarize
-        p_total(6*(i-1)+1:6*i,:) = p_temp - body_system(i)%mass*g_temp - f_ex
+        p_total(6*(i-1)+1:6*i,:) = p_temp - f_g - f_ex
 
     END DO
 
@@ -110,15 +110,6 @@ IF(debug_flag == 1) THEN
 WRITE(*,*) 'bias force p_total'
 CALL write_matrix(p_total)
 END IF
-
-    ! construct X_total, whose diagonal block is the inverse transpose of
-    ! each Xb_to_i
-    X_total(:,:) = 0.0_dp
-    DO i = 1,system%nbody
-        X_temp = body_system(i)%Xb_to_i
-        CALL inverse(X_temp, X_temp_inv)
-        X_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = TRANSPOSE(X_temp_inv)
-    END DO
 
     ! construct S_total, whose diagonal block of is transpose to the
     ! constrained dof of each joint in local body coord
@@ -146,29 +137,54 @@ END IF
         END DO
     END DO
 
-IF(debug_flag == 1) THEN
-WRITE(*,*) 'tau_total locally with respect to joint'
-CALL write_matrix(tau_total)
-END IF
+
+    ! create A_total with modification to P_map
+    A_total = 0.0_dp
+
+    ! construct A_total, which has the P_map-like matrix shape
+    DO i = 1,system%nbody
+
+        ! fill in parent joint blocks
+        DO j = 1,system%njoint
+            IF(j == i) THEN
+                DO k = 6*(i-1)+1, 6*i
+                    A_total(k,k) = 1.0_dp
+                END DO
+            END IF
+        END DO
+
+        ! fill in child joint blocks except the first body
+        IF(body_system(i)%nchild /= 0) THEN
+        DO child_count = 1,body_system(i)%nchild
+
+            ! acquire child id
+            ch_id = body_system(i)%child_id(child_count)
+
+            CALL inverse(body_system(ch_id)%Xp_to_b, A_temp)
+
+            ! Assign A_temp to parent body
+            A_total(6*(i-1)+1:6*i, 6*(ch_id-1)+1:6*ch_id) &
+                  = - A_temp
+        END DO
+        END IF
+
+    END DO
 
 IF(debug_flag == 1) THEN
-WRITE(*,*) 'tau_total globally with respect to body'
-CALL write_matrix(MATMUL(system%P_map, &
-                           MATMUL(X_total, &
-                                  MATMUL(S_total,tau_total))))
+WRITE(*,*) 'A_total'
+CALL write_matrix(A_total)
 END IF
 
-    ! f = p_total - P_map*X_total*s_total*tau_total
-    y_i = - p_total + MATMUL(system%P_map, &
-                           MATMUL(X_total, &
-                                  MATMUL(S_total,tau_total)))
+    ! f = p_total - A_total*s_total*tau_total
+    y_i = - p_total + MATMUL(A_total, &
+                             MATMUL(S_total,tau_total))
 
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------
-    DEALLOCATE(X_total)
     DEALLOCATE(S_total)
     DEALLOCATE(p_total)
     DEALLOCATE(tau_total)
+    DEALLOCATE(A_total)
 
 END SUBROUTINE HERK_func_f

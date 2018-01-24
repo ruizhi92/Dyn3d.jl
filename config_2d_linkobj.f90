@@ -65,9 +65,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 3.0_dp
+    tf = 0.1_dp
     ! total number of steps
-    nstep = 3000
+    nstep = 1
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -75,7 +75,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 6
+    nbody = 3
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
