@@ -38,6 +38,7 @@ PROGRAM dyn3d
     USE module_write_structure
     USE module_HERK_input_func
     USE module_HERK_pick_scheme
+    USE module_basic_matrix_operations
 
 IMPLICIT NONE
 
@@ -69,6 +70,8 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(:),ALLOCATABLE       :: q_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),ALLOCATABLE       :: lambda_out
     REAL(dp)                                :: h_out
+    REAL(dp),DIMENSION(6,6)                 :: Xi_to_b
+    REAL(dp),DIMENSION(6,1)                 :: q_temp
 
     PROCEDURE(interface_func),POINTER       :: M => HERK_func_M
     PROCEDURE(interface_func),POINTER       :: G => HERK_func_G
@@ -167,7 +170,8 @@ IMPLICIT NONE
 
         ! construct input for HERK
         DO j = 1, system%nbody
-            q_total(6*(j-1)+1:6*j) = body_system(j)%q(:,1)
+            CALL inverse(body_system(j)%Xb_to_i,Xi_to_b)
+            q_total(6*(j-1)+1:6*j) = MATMUL(Xi_to_b,body_system(j)%q(:,1))
             v_total(6*(j-1)+1:6*j) = body_system(j)%v(:,1)
         END DO
 
@@ -180,7 +184,8 @@ IMPLICIT NONE
 
         ! apply the solution
         DO j = 1, system%nbody
-            body_system(j)%q(:,1) = q_out(6*(j-1)+1:6*j)
+            q_temp(:,1) = q_out(6*(j-1)+1:6*j)
+            body_system(j)%q = MATMUL(body_system(j)%Xb_to_i, q_temp)
             body_system(j)%v(:,1) = v_out(6*(j-1)+1:6*j)
             body_system(j)%c(:,1) = vdot_out(6*(j-1)+1:6*j)
         END DO
