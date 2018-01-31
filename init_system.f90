@@ -65,21 +65,21 @@ IMPLICIT NONE
     CALL prescribed_motion(mode,0.0_dp,motion)
 
     ! impose the prescribed active motion
-    DO i = 1, system%nbody
+    DO i = 1, 1
         body_system(i)%q(3,1) = motion(3,1)
         body_system(i)%v(3,1) = motion(3,2)
     END DO
 
-    ! For the 2d simple case only
-    DO i = 2, system%nbody
-        body_system(i)%q(4,1) = (i-1)*1.0_dp/system%nbody*COS(body_system(1)%q(3,1))
-        body_system(i)%q(5,1) = (i-1)*1.0_dp/system%nbody*SIN(body_system(1)%q(3,1))
-    END DO
-
-
+!    ! For the 2d simple case only
 !    DO i = 2, system%nbody
-!        body_system(i)%q(:,1) = 0.0_dp
+!        body_system(i)%q(4,1) = (i-1)*1.0_dp/system%nbody*COS(body_system(1)%q(3,1))
+!        body_system(i)%q(5,1) = (i-1)*1.0_dp/system%nbody*SIN(body_system(1)%q(3,1))
 !    END DO
+
+
+    DO i = 2, system%nbody
+        body_system(i)%q(:,1) = 0.0_dp
+    END DO
 
 !    ! a normal way to assign body initial condition
 !    count = 1

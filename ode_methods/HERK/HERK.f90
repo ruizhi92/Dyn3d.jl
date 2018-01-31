@@ -203,7 +203,7 @@ END IF
         ! update body chain position q using Q(i,:) then embed system.
         ! from now on system properties related to q:
         !     1. Xb_to_i used in GT and M for the next loop
-        !     2. the same Xb_to_i used the the following G
+        !     2. Xp_to_b used the the following G
         !     2. qJ used in f
         ! are updated to t_i
 

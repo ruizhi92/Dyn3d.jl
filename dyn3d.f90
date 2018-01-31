@@ -170,8 +170,9 @@ IMPLICIT NONE
 
         ! construct input for HERK
         DO j = 1, system%nbody
-            CALL inverse(body_system(j)%Xb_to_i,Xi_to_b)
-            q_total(6*(j-1)+1:6*j) = MATMUL(Xi_to_b,body_system(j)%q(:,1))
+!            CALL inverse(body_system(j)%Xb_to_i,Xi_to_b)
+!            q_total(6*(j-1)+1:6*j) = MATMUL(Xi_to_b,body_system(j)%q(:,1))
+            q_total(6*(j-1)+1:6*j) = body_system(j)%q(:,1)
             v_total(6*(j-1)+1:6*j) = body_system(j)%v(:,1)
         END DO
 
@@ -184,8 +185,9 @@ IMPLICIT NONE
 
         ! apply the solution
         DO j = 1, system%nbody
-            q_temp(:,1) = q_out(6*(j-1)+1:6*j)
-            body_system(j)%q = MATMUL(body_system(j)%Xb_to_i, q_temp)
+!            q_temp(:,1) = q_out(6*(j-1)+1:6*j)
+!            body_system(j)%q = MATMUL(body_system(j)%Xb_to_i, q_temp)
+            body_system(j)%q(:,1) = q_out(6*(j-1)+1:6*j)
             body_system(j)%v(:,1) = v_out(6*(j-1)+1:6*j)
             body_system(j)%c(:,1) = vdot_out(6*(j-1)+1:6*j)
         END DO
