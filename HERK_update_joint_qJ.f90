@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------
-!  Subroutine     :          HERK_update_system_q
+!  Subroutine     :          HERK_update_joint_qJ
 !------------------------------------------------------------------------
 !  Purpose      : This subroutine takes in full vector of q, unzip it to
 !                 update body_system%q, and then call embed_system
@@ -29,7 +29,7 @@
 !  Ruizhi Yang, 2017 Nov
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK_update_system_q(q)
+SUBROUTINE HERK_update_joint_qJ(qJ)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -44,13 +44,12 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Argument
     !--------------------------------------------------------------------
-    REAL(dp),DIMENSION(:)                            :: q
+    REAL(dp),DIMENSION(:)                            :: qJ
 
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
     INTEGER                                         :: i,count,debug_flag
-    REAL(dp),DIMENSION(6,1)                         :: q_temp
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -58,12 +57,11 @@ IMPLICIT NONE
 
     debug_flag = 0
 
-    ! update body_system%q using input argument q
+    ! update joint_system%qJ using input argument qJ
     count = 0
 
-    DO i = 1, system%nbody
-        q_temp(:,1) = q(count+1: count+6)
-        body_system(i)%q = MATMUL(body_system(i)%Xb_to_i, q_temp)
+    DO i = 1, system%njoint
+        joint_system(i)%qJ(:,1) = qJ(count+1: count+6)
         count = count + 6
     END DO
 
@@ -74,4 +72,4 @@ IF(debug_flag == 1) THEN
 CALL write_structure
 END IF
 
-END SUBROUTINE HERK_update_system_q
+END SUBROUTINE HERK_update_joint_qJ

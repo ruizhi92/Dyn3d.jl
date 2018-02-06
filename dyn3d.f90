@@ -80,6 +80,7 @@ IMPLICIT NONE
     PROCEDURE(interface_func),POINTER       :: f => HERK_func_f
 !    PROCEDURE(inter_embed),POINTER          :: embed_sys => HERK_update_system
 
+    CHARACTER(LEN = max_char)               :: outfile,outfolder,fullname
 
     !--------------------------------------------------------------------
     !  Input config data and construct body chain
@@ -102,11 +103,23 @@ IMPLICIT NONE
     ALLOCATE(lambda_out(system%ncdof_HERK))
 
     !--------------------------------------------------------------------
+    !  Open file for writing verts_i
+    !--------------------------------------------------------------------
+    system%Mfile_idx = 2018
+    outfolder = '../Matlab_plot'
+    outfile = 'verts_i.dat'
+
+    fullname = TRIM(outfolder)//'/'//TRIM(outfile)
+    OPEN(system%Mfile_idx,file = fullname)
+
+    !--------------------------------------------------------------------
     !  Construct and init system
     !--------------------------------------------------------------------
 
     ! initialize system
     CALL init_system
+
+    CALL write_Matlab_plot(1)
 
     ! write initial condition
     WRITE(*,*) 'At t=0, joint displacement qJ is:'
@@ -191,6 +204,8 @@ IMPLICIT NONE
         ! update the current position of the body chain
         CALL embed_system
 
+        CALL write_Matlab_plot(i)
+
         ! update the system state with ode solution
         qJ_total(:) = 0.0_dp
         v_total(:) = 0.0_dp
@@ -255,7 +270,8 @@ IMPLICIT NONE
     CALL write_structure
 
     ! note: need to write_structure before write_Matlab_plot
-    CALL write_Matlab_plot
+    CLOSE(system%Mfile_idx)
+    WRITE(*,*) 'Matlab plot info output done.'
 
     !--------------------------------------------------------------------
     !  Deallocation

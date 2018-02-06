@@ -304,6 +304,7 @@ IMPLICIT NONE
     !            and acceleration of each active udof.
     ! P_map -- This matrix maps the hierarchy relation from joint to body.
     !          It consists of many [1], [-1] and [0] blocks.
+    ! Mfile_idx -- open index of output verts_i file
         INTEGER                                 :: ndim
         INTEGER                                 :: njoint,nbody
         TYPE(system_params)                     :: params
@@ -320,6 +321,8 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:,:),ALLOCATABLE      :: kinmap
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: kindata
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: P_map
+        INTEGER                                 :: Mfile_idx
+
     END TYPE
 
 

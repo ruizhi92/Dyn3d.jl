@@ -274,7 +274,7 @@ END IF
         !CALL lu(LHS,RHS,x)
         CALL block_lu(LHS,RHS,qJ_dim,lambda_dim,x)
 
-IF(debug_flag == 1) THEN
+IF(debug_flag == 1 .or. debug_flag == 2) THEN
 WRITE(*,*) '6'
 WRITE(*,*) 'HERK solution x: '
 DO j = 1, SIZE(x)
@@ -294,7 +294,7 @@ END IF
             V(i,:) = V(i,:) + h_0*A(i,j)*Vdot(j,:)
         END DO
 
-IF(debug_flag == 1) THEN
+IF(debug_flag == 1 .or. debug_flag == 2) THEN
 WRITE(*,*) 'updated V(i,:): '
 DO j = 1, SIZE(V,2)
 WRITE(*,"(F9.5)") V(i,j)
@@ -306,8 +306,16 @@ END IF
         ! and joint_system to be used in the next loop
         CALL HERK_update_joint_vJ_body_v(V(i,:),VJ(i,:))
 
+IF(debug_flag == 1 .or. debug_flag == 2) THEN
+WRITE(*,*) 'updated VJ(i,:): '
+DO j = 1, SIZE(VJ,2)
+WRITE(*,"(F9.5)") VJ(i,j)
+END DO
+WRITE(*,'(/)')
+END IF
+
 IF(debug_flag == 1) THEN
-STOP
+!STOP
 END IF
 
     END DO

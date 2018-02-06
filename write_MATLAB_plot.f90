@@ -28,84 +28,45 @@
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2018 Dec
+!  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
-SUBROUTINE write_Matlab_plot
+SUBROUTINE write_Matlab_plot(i)
 
     !--------------------------------------------------------------------
     !  MODULE
     !--------------------------------------------------------------------
     USE module_constants
     USE module_data_type
-    USE module_trans_matrix
 
 IMPLICIT NONE
 
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    CHARACTER(LEN = max_char)               :: outfile,outfolder,fullname
-    INTEGER                                 :: i,j,k
-    REAL(dp),DIMENSION(6,6)                 :: Xi_to_b
-    REAL(dp),DIMENSION(6,1)                 :: q_temp
+    INTEGER                                 :: i
 
     !--------------------------------------------------------------------
-    !  Set write to file
+    !  Local variables
     !--------------------------------------------------------------------
-    ! note here that we are building in the cmake build folder
-    outfolder = '../Matlab_plot'
+    INTEGER                                 :: j,k,Mfile_idx
 
     !--------------------------------------------------------------------
-    !  Write verts_i
+    !  Write verts_i to file
     !--------------------------------------------------------------------
-    outfile = 'verts_i.dat'
-    fullname = TRIM(outfolder)//'/'//TRIM(outfile)
-    OPEN(2018,file = fullname)
 
-    DO i = 1, system%params%nstep + 1
+    Mfile_idx = system%Mfile_idx
 
-        ! current time in the solution
-        WRITE(2018,'(F9.5)', ADVANCE="NO") system%soln%t(i)
+    ! current time in the solution
+    WRITE(Mfile_idx,'(F9.5)', ADVANCE="NO") system%soln%t(i)
 
-        ! apply the solution, only q is needed
-        DO j = 1, system%nbody
-            body_system(j)%q(:,1) = system%soln%y(i,6*(j-1)+1:6*j)
+    DO j = 1, system%nbody
+        DO k = 1, body_system(j)%nverts
+            WRITE(Mfile_idx,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,1) ! x
+            WRITE(Mfile_idx,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,2) ! y
+            WRITE(Mfile_idx,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,3) ! z
         END DO
-
-        ! calculate verts_i based on solution at the current time
-        DO j = 1, system%nbody
-            ! Xb_to_i
-            CALL trans_matrix(body_system(j)%q(4:6,1),body_system(j)%q(1:3,1), &
-                              Xi_to_b,body_system(j)%Xb_to_i)
-
-            ! x_0
-            body_system(j)%x_0 = body_system(j)%q(4:6,1)
-
-            ! verts_i
-            DO k = 1, body_system(j)%nverts
-                q_temp(1:3,1) = 0.0_dp
-                q_temp(4:6,1) = body_system(j)%verts(k,:)
-                q_temp = MATMUL(body_system(j)%Xb_to_i,q_temp)
-                body_system(j)%verts_i(k,:) = q_temp(4:6,1) + body_system(j)%x_0
-            END DO
-        END DO
-
-        ! write verts_i to file
-        DO j = 1, system%nbody
-            DO k = 1, body_system(j)%nverts
-                WRITE(2018,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,1) ! x
-                WRITE(2018,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,2) ! y
-                WRITE(2018,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,3) ! z
-            END DO
-        END DO
-
-        WRITE(2018,'(/)')
-
     END DO
-
-    CLOSE(2018)
-
-    WRITE(*,*) 'Matlab plot info output done.'
+    WRITE(Mfile_idx,'(/)')
 
 END SUBROUTINE write_Matlab_plot

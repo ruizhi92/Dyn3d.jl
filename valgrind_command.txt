@@ -1,0 +1,1 @@
+valgrind --leak-check=full --undef-value-errors=no -v ./dyn3d

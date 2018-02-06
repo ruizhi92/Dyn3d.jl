@@ -64,6 +64,11 @@ IMPLICIT NONE
     mode = 'refer'
     CALL prescribed_motion(mode,0.0_dp,motion)
 
+    DO i = 1, system%nbody
+        joint_system(i)%qJ(:,1) = 0.0_dp
+        body_system(i)%v(:,1) = 0.0_dp
+    END DO
+
     ! impose the prescribed active motion
     DO i = 1, 1
         joint_system(i)%qJ(3,1) = motion(3,1)
@@ -77,9 +82,6 @@ IMPLICIT NONE
 !    END DO
 
 
-    DO i = 2, system%nbody
-        joint_system(i)%qJ(:,1) = 0.0_dp
-    END DO
 
 !    ! a normal way to assign body initial condition
 !    count = 1

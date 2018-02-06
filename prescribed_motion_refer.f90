@@ -48,7 +48,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                         :: i,j,nstep,stage
+    INTEGER                                         :: i,j,nstep,stage,flag
     INTEGER                                         :: j_pos,j_vel,j_acc
 
     !--------------------------------------------------------------------
@@ -62,6 +62,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
+    flag = 0
+
     nstep = system%params%nstep
     ALLOCATE(active_motion(system%na,3))
 
@@ -69,6 +71,7 @@ IMPLICIT NONE
 
     DO i = 1,(stage-1)*nstep+1
         IF(ABS(system%kindata(i,1)-t) < tiny) THEN
+            flag = 1
             DO j = 1,system%na
                 j_pos = 1 + 3*(j-1) + 1
                 j_vel = 1 + 3*(j-1) + 2
@@ -79,5 +82,11 @@ IMPLICIT NONE
             END DO
         END IF
     END DO
+
+    IF(flag == 0) THEN
+        WRITE(*,*) 'Fail to match active motion at time ',t, &
+           ' in prescribed_motion_refer'
+        STOP
+    END IF
 
 END SUBROUTINE prescribed_motion_refer
