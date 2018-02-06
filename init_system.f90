@@ -43,17 +43,17 @@ IMPLICIT NONE
     INTEGER                                   :: i,j,count
     CHARACTER(LEN = max_char)                 :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: motion
-    REAL(dp),DIMENSION(:),ALLOCATABLE         :: q_total,v_total
+    REAL(dp),DIMENSION(:),ALLOCATABLE         :: qJ_total,v_total
 
     !--------------------------------------------------------------------
     !  ALLOCATION
     !--------------------------------------------------------------------
     ALLOCATE(motion(system%na,3))
-    ALLOCATE(q_total(system%ndof))
+    ALLOCATE(qJ_total(system%ndof))
     ALLOCATE(v_total(system%ndof))
 
     !--------------------------------------------------------------------
-    !  Construct q and v of body system
+    !  Construct qJ and v of body system
     !--------------------------------------------------------------------
 
     ! create the motion table
@@ -66,7 +66,7 @@ IMPLICIT NONE
 
     ! impose the prescribed active motion
     DO i = 1, 1
-        body_system(i)%q(3,1) = motion(3,1)
+        joint_system(i)%qJ(3,1) = motion(3,1)
         body_system(i)%v(3,1) = motion(3,2)
     END DO
 
@@ -78,7 +78,7 @@ IMPLICIT NONE
 
 
     DO i = 2, system%nbody
-        body_system(i)%q(:,1) = 0.0_dp
+        joint_system(i)%qJ(:,1) = 0.0_dp
     END DO
 
 !    ! a normal way to assign body initial condition
@@ -101,12 +101,12 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     DO j = 1, system%nbody
-        q_total(6*(j-1)+1:6*j) = body_system(j)%q(:,1)
+        qJ_total(6*(j-1)+1:6*j) = joint_system(j)%qJ(:,1)
         v_total(6*(j-1)+1:6*j) = body_system(j)%v(:,1)
     END DO
 
     system%soln%t(1) = 0.0_dp
-    system%soln%y(1,1:system%ndof) = q_total
+    system%soln%y(1,1:system%ndof) = qJ_total
     system%soln%y(1,system%ndof+1:2*system%ndof) = v_total
     system%soln%y(1,2*system%ndof+1:3*system%ndof) = 0.0_dp
     system%soln%y(1,3*system%ndof+1:3*system%ndof+system%ncdof) = 0.0_dp
@@ -115,7 +115,7 @@ IMPLICIT NONE
     !  DEALLOCATION
     !--------------------------------------------------------------------
     DEALLOCATE(motion)
-    DEALLOCATE(q_total)
+    DEALLOCATE(qJ_total)
     DEALLOCATE(v_total)
 
 END SUBROUTINE init_system

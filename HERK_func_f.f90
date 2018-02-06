@@ -88,7 +88,7 @@ IMPLICIT NONE
                             body_system(i)%v), &
                      p_temp)
 
-        ! calculate inertia of a body in inertial frame
+        ! transform gravity and external force from inertial coord to body coord
         CALL inverse(body_system(i)%Xb_to_i, Xi_to_b)
 
         ! gravity transformed from inertial coord to local body coord

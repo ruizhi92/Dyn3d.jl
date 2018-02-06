@@ -16,7 +16,7 @@
 !  Input        : t_0: initial time
 !                 q_0(:): initial body position vector
 !                 v_0(:): initial body velocity vector
-!                 q_dim: dimension of the q0 or v0 vector
+!                 qJ_dim: dimension of the q0 or v0 vector
 !                 lambda_dim: dimension of lambda vector
 !                 h_0: input timestep
 !                 tol: tolerance to adjust timestep
@@ -45,9 +45,9 @@
 !  Ruizhi Yang, 2017 Nov
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK(t_0, q_0, v_0, q_dim, lambda_dim, h_0, tol, &
+SUBROUTINE HERK(t_0, qJ_0, v_0, qJ_dim, lambda_dim, h_0, tol, &
                 scheme, stage, M, f, G, GT, gti, &
-                q_out, v_out, vdot_out, lambda_out, h_out)
+                qJ_out, v_out, vdot_out, lambda_out, h_out)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -82,12 +82,12 @@ IMPLICIT NONE
     !  Arguments
     !--------------------------------------------------------------------
     REAL(dp),INTENT(IN)                           :: t_0,tol,h_0
-    REAL(dp),DIMENSION(:),INTENT(IN)              :: q_0,v_0
-    INTEGER,INTENT(IN)                            :: q_dim,lambda_dim
+    REAL(dp),DIMENSION(:),INTENT(IN)              :: qJ_0,v_0
+    INTEGER,INTENT(IN)                            :: qJ_dim,lambda_dim
     INTEGER,INTENT(IN)                            :: scheme
     PROCEDURE(interface_func),INTENT(IN),POINTER  :: M,G,GT,gti,f
 !    PROCEDURE(inter_embed),INTENT(IN),POINTER     :: embed_sys
-    REAL(dp),DIMENSION(:),INTENT(OUT)             :: q_out,v_out,vdot_out
+    REAL(dp),DIMENSION(:),INTENT(OUT)             :: qJ_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: lambda_out
     REAL(dp),INTENT(OUT)                          :: h_out
     INTEGER                                       :: debug_flag
@@ -99,7 +99,8 @@ IMPLICIT NONE
     REAL(dp)                                      :: t_i,t_im1
     REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: A
     REAL(dp),ALLOCATABLE,DIMENSION(:)             :: b,c
-    REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: Q,V,Vdot,lambda,V_temp
+    REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: QJ,V,VJ
+    REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: Vdot,lambda,V_temp
     REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: M_im1,GT_im1,G_i
     REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: f_im1,gti_i
     REAL(dp),ALLOCATABLE,DIMENSION(:,:)           :: LHS
@@ -118,25 +119,26 @@ IMPLICIT NONE
     ALLOCATE(b(stage))
     ALLOCATE(c(stage+1))
 
-    ! internal storage of Q, V, Vdot and V_temp
-    ALLOCATE(Q(stage+1,q_dim))
-    ALLOCATE(V(stage+1,q_dim))
-    ALLOCATE(Vdot(stage,q_dim))
+    ! internal storage of QJ, V, Vdot and V_temp
+    ALLOCATE(QJ(stage+1,qJ_dim))
+    ALLOCATE(V(stage+1,qJ_dim))
+    ALLOCATE(VJ(stage+1,qJ_dim))
+    ALLOCATE(Vdot(stage,qJ_dim))
     ALLOCATE(lambda(stage,lambda_dim))
-    ALLOCATE(V_temp(q_dim,1))
+    ALLOCATE(V_temp(qJ_dim,1))
 
     ! internal storage of function M,f,G,GT,gti
-    ALLOCATE(M_im1(q_dim,q_dim))
-    ALLOCATE(f_im1(q_dim,1))
-    ALLOCATE(GT_im1(q_dim,lambda_dim))
-    ALLOCATE(G_i(lambda_dim,q_dim))
+    ALLOCATE(M_im1(qJ_dim,qJ_dim))
+    ALLOCATE(f_im1(qJ_dim,1))
+    ALLOCATE(GT_im1(qJ_dim,lambda_dim))
+    ALLOCATE(G_i(lambda_dim,qJ_dim))
     ALLOCATE(gti_i(lambda_dim,1))
 
     ! LHS, x and RHS
-    ALLOCATE(LHS(q_dim+lambda_dim,q_dim+lambda_dim))
-    ALLOCATE(x(q_dim+lambda_dim))
-    ALLOCATE(RHS(q_dim+lambda_dim))
-    ALLOCATE(RHS_temp(q_dim+lambda_dim,1))
+    ALLOCATE(LHS(qJ_dim+lambda_dim,qJ_dim+lambda_dim))
+    ALLOCATE(x(qJ_dim+lambda_dim))
+    ALLOCATE(RHS(qJ_dim+lambda_dim))
+    ALLOCATE(RHS_temp(qJ_dim+lambda_dim,1))
 
     !--------------------------------------------------------------------
     !  Algorithm
@@ -152,8 +154,11 @@ IMPLICIT NONE
     ! stage 1
     t_i = t_0
     t_im1 = t_0
-    Q(1,:) = q_0
+    QJ(1,:) = qJ_0
     V(1,:) = v_0
+    Vdot(1,:) = 0.0_dp
+
+    CALL HERK_update_joint_vJ_body_v(V(1,:),VJ(1,:))
 
     ! stage i， 2 <= i <= stage+1
     ! Note: stage s+1 is the summarization of RK
@@ -163,16 +168,12 @@ IMPLICIT NONE
         t_im1 = t_i
         t_i = t_0 + h_0*c(i)
 
-        ! initialize Q(i,:)
-        Q(i,:) = q_0
+        ! initialize QJ(i,:)
+        QJ(i,:) = qJ_0
 
-        ! calculate Q(i,:)
-        DO j = 1, i-1
-            Q(i,:) = Q(i,:) + h_0*A(i,j)*V(j,:)
-        END DO
-
-        ! calculate M, f and GT at Q(i-1,:)
+        ! calculate M, f and GT at QJ(i-1,:)
         CALL M(t_im1, M_im1)
+
 IF(debug_flag == 1) THEN
 WRITE(*,*) '------------------------------------------------'
 WRITE(*,*) 'Round ',i,' in HERK'
@@ -200,25 +201,28 @@ CALL write_matrix(GT_im1)
 WRITE(*,'(/)')
 END IF
 
-        ! update body chain position q using Q(i,:) then embed system.
-        ! from now on system properties related to q:
-        !     1. Xb_to_i used in GT and M for the next loop
-        !     2. Xp_to_b used the the following G
-        !     2. qJ used in f
+        ! calculate QJ(i,:)
+        DO j = 1, i-1
+            QJ(i,:) = QJ(i,:) + h_0*A(i,j)*VJ(j,:)
+        END DO
+
+        ! update joint displacement qJ using QJ(i,:) then embed system.
+        ! from now on system properties related to qJ:
+        !     1. newly calculated qJ
+        !     2. All coordinates transform including Xb_to_i, Xj, Xp_to_b
         ! are updated to t_i
 
-!        CALL embed_sys(Q(i,:))
-        CALL HERK_update_system_q(Q(i,:))
+        CALL HERK_update_joint_qJ(QJ(i,:))
 
 IF(debug_flag == 1) THEN
-WRITE(*,*) 'updated Q(i,:): '
-DO j = 1, SIZE(Q,2)
-WRITE(*,"(F9.5)") Q(i,j)
+WRITE(*,*) 'updated QJ(i,:): '
+DO j = 1, SIZE(QJ,2)
+WRITE(*,"(F9.5)") QJ(i,j)
 END DO
 WRITE(*,'(/)')
 END IF
 
-        ! calculate G and gti at Q(i,:)
+        ! calculate G and gti at QJ(i,:)
         CALL G(t_i, G_i)
 
 IF(debug_flag == 1) THEN
@@ -239,9 +243,9 @@ END IF
 
         ! construct LHS matrix
         LHS(:,:) = 0.0_dp
-        LHS(1:q_dim,1:q_dim) = M_im1
-        LHS(q_dim+1:q_dim+lambda_dim,1:q_dim) = G_i
-        LHS(1:q_dim,q_dim+1:q_dim+lambda_dim) = GT_im1
+        LHS(1:qJ_dim,1:qJ_dim) = M_im1
+        LHS(qJ_dim+1:qJ_dim+lambda_dim,1:qJ_dim) = G_i
+        LHS(1:qJ_dim,qJ_dim+1:qJ_dim+lambda_dim) = GT_im1
 
         ! initialize solution x
         x(:) = 0.0_dp
@@ -255,9 +259,9 @@ END IF
         END DO
 
         ! construct RHS
-        RHS(1:q_dim) = f_im1(1:q_dim,1)
+        RHS(1:qJ_dim) = f_im1(1:qJ_dim,1)
         RHS_temp = -1.0_dp/(h_0*A(i,i-1))*(MATMUL(G_i,V_temp) + gti_i)
-        RHS(q_dim+1:q_dim+lambda_dim) = RHS_temp(:,1)
+        RHS(qJ_dim+1:qJ_dim+lambda_dim) = RHS_temp(:,1)
 
 IF(debug_flag == 1) THEN
 WRITE(*,*) '5.5'
@@ -268,7 +272,7 @@ END IF
 
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
         !CALL lu(LHS,RHS,x)
-        CALL block_lu(LHS,RHS,q_dim,lambda_dim,x)
+        CALL block_lu(LHS,RHS,qJ_dim,lambda_dim,x)
 
 IF(debug_flag == 1) THEN
 WRITE(*,*) '6'
@@ -279,8 +283,8 @@ END DO
 WRITE(*,'(/)')
 END IF
 
-        Vdot(i-1,:) = x(1:q_dim)
-        lambda(i-1,:) = x(q_dim+1:q_dim+lambda_dim)
+        Vdot(i-1,:) = x(1:qJ_dim)
+        lambda(i-1,:) = x(qJ_dim+1:qJ_dim+lambda_dim)
 
         ! initialize V(i,:)
         V(i,:) = v_0
@@ -298,10 +302,9 @@ END DO
 WRITE(*,'(/)')
 END IF
 
-        ! fill the updated v and c info in body_system to be used
-        ! in f in the next loop
-!        CALL embed_sys(V(i,:), Vdot(i,:))
-        CALL HERK_update_system_vc(V(i,:), Vdot(i,:))
+        ! fill the updated v and vJ info in body_system
+        ! and joint_system to be used in the next loop
+        CALL HERK_update_joint_vJ_body_v(V(i,:),VJ(i,:))
 
 IF(debug_flag == 1) THEN
 STOP
@@ -313,7 +316,7 @@ END IF
     h_out = h_0*( tol/norm2(V(stage+1,:)-V(stage,:)) )**(1.0_dp/3.0_dp)
 
     ! output
-    q_out = Q(stage+1,:)
+    qJ_out = QJ(stage+1,:)
     v_out = V(stage+1,:)
     vdot_out = Vdot(stage,:)
     lambda_out = lambda(stage,:)
@@ -328,9 +331,10 @@ END IF
     DEALLOCATE(b)
     DEALLOCATE(c)
 
-    ! internal storage of Q, V and V_temp
-    DEALLOCATE(Q)
+    ! internal storage of QJ, V and V_temp
+    DEALLOCATE(QJ)
     DEALLOCATE(V)
+    DEALLOCATE(VJ)
     DEALLOCATE(Vdot)
     DEALLOCATE(lambda)
     DEALLOCATE(V_temp)

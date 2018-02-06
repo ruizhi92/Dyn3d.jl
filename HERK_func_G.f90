@@ -88,8 +88,6 @@ CALL write_matrix(REAL(T_total,8))
 END IF
 
     ! create B_total with modification to TRANSPOSE(P_map)
-    ! Note: for one body, calculate the ending point velocity by its beginning point
-    ! velocity. This is different from a coordinate transform
     B_total = 0.0_dp
 
     ! construct B_total, which has the P_map-like matrix shape

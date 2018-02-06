@@ -67,7 +67,7 @@ IMPLICIT NONE
     ! final time
     tf = 2.0_dp
     ! total number of steps
-    nstep = 20000
+    nstep = 2000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver

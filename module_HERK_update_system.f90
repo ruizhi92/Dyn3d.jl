@@ -29,12 +29,12 @@ MODULE module_HERK_update_system
 IMPLICIT NONE
 
     INTERFACE HERK_update_system
-        MODULE PROCEDURE HERK_update_system_q
-        MODULE PROCEDURE HERK_update_system_vc
+        MODULE PROCEDURE HERK_update_joint_qJ
+        MODULE PROCEDURE HERK_update_joint_vJ_body_v
     END INTERFACE
 
     CONTAINS
-    INCLUDE 'HERK_update_system_q.f90'
-    INCLUDE 'HERK_update_system_vc.f90'
+    INCLUDE 'HERK_update_joint_qJ.f90'
+    INCLUDE 'HERK_update_joint_vJ_body_v.f90'
 
 END MODULE module_HERK_update_system

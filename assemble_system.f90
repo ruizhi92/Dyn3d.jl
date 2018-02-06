@@ -300,7 +300,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Step 4: Update the location of body coordinate
     !--------------------------------------------------------------------
-    ! this is only related to shape2, not shape1
+
     DO i = 1,system%njoint
 
         ! store old values

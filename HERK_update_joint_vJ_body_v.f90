@@ -1,22 +1,25 @@
 !------------------------------------------------------------------------
-!  Subroutine     :          HERK_update_system_vc
+!  Subroutine     :          HERK_update_joint_vJ_body_v
 !------------------------------------------------------------------------
-!  Purpose      : This subroutine takes in full vector of v and vdot,
-!                 unzip to update body_system%v and body_system%c
+!  Purpose      : This subroutine takes in full vector of v from HERK
+!                 (which is body velocity) to update joint.vJ through
+!                 the body chain.
 !
 !
 !
 !  Details      ：
 !
-!  Input        : v: contains all body position in inertial coord,
+!  Input        : v: contains all body velocity in body coord,
 !                    lining up by body index order. Dimension of v
 !                    is (6*nb,1) solved from the last time step.
 !
 !  Input/output :
 !
-!  Output       : v and c got updated in body_system
+!  Output       : vJ: return the assembled vJ to HERK, where vJ has the
+!                     same dimension with input v
 !
-!  Remarks      :
+!  Remarks      : joint.vJ got updated in joint_system
+!                 body.v got updated in body_system
 !
 !  References   :
 !
@@ -26,10 +29,10 @@
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2017 Nov
+!  Ruizhi Yang, 2018 Feb.
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK_update_system_vc(v, c)
+SUBROUTINE HERK_update_joint_vJ_body_v(v, vJ)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -43,7 +46,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Argument
     !--------------------------------------------------------------------
-    REAL(dp),DIMENSION(:)                           :: v,c
+    REAL(dp),DIMENSION(:)                           :: v
+    REAL(dp),DIMENSION(:)                           :: vJ
 
     !--------------------------------------------------------------------
     !  Local variables
@@ -54,12 +58,10 @@ IMPLICIT NONE
     !  Algorithm
     !--------------------------------------------------------------------
 
-    ! update body_system%v and c using input argument
+    ! update body_system%v using input argument
     count = 0
-
     DO i = 1, system%nbody
         body_system(i)%v(:,1) = v(count+1: count+6)
-        body_system(i)%c(:,1) = c(count+1: count+6)
         count = count + 6
     END DO
 
@@ -76,6 +78,15 @@ IMPLICIT NONE
         ! if the first body
             joint_system(i)%vJ = body_system(i)%v
         END IF
+!        WRITE(*,*) 'for joint ', i, ':'
+!        WRITE(*,*) joint_system(i)%vJ
     END DO
 
-END SUBROUTINE HERK_update_system_vc
+    ! assemble vJ for return
+    count = 0
+    DO i = 1, system%njoint
+        vJ(count+1: count+6) = joint_system(i)%vJ(:,1)
+        count = count + 6
+    END DO
+
+END SUBROUTINE HERK_update_joint_vJ_body_v
