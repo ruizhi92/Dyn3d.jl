@@ -50,7 +50,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(6,1)                         :: q_temp,q_temp2
     REAL(dp),DIMENSION(6,6)                         :: Xi_to_b,Xj_to_p
     REAL(dp),DIMENSION(6,6)                         :: Xch_to_b
-    INTEGER                                         :: i,j,child_id,pb_id
+    INTEGER                                         :: i,j,child_id
     REAL(dp),DIMENSION(3)                           :: x_temp
 
     !--------------------------------------------------------------------
@@ -143,18 +143,5 @@ IMPLICIT NONE
         END DO
         END IF
     END DO
-
-!    !--------------------------------------------------------------------
-!    !  Update body_system(i)%Xp_to_b
-!    !--------------------------------------------------------------------
-!    ! from body n to body 1
-!    DO i = system%nbody, 1 ,-1
-!        ! the body_id of this body's parent body
-!        pb_id = body_system(i)%parent_id
-!
-!        body_system(i)%Xp_to_b = MATMUL(joint_system(i)%Xj_to_ch, &
-!                                        MATMUL(joint_system(i)%Xj, &
-!                                               joint_system(i)%Xp_to_j))
-!    END DO
 
 END SUBROUTINE

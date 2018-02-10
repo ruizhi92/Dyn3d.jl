@@ -64,17 +64,17 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 1.0_dp
+    tf = 2.0_dp
     ! total number of steps
-    nstep = 1000
+    nstep = 2000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
-    scheme = 3
+    scheme = 2
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 3
+    nbody = 4
     ! rhob - Density of each body (mass/area)
     rhob = 1.0_dp
 
@@ -117,7 +117,7 @@ IMPLICIT NONE
     joint1_dof(2)%dof_type = 'active'
     joint1_dof(2)%motion_type = 'oscillatory'
     ALLOCATE(joint1_dof(2)%motion_params(3))
-    joint1_dof(2)%motion_params = (/ 0.05_dp, 1.0_dp, 0.0_dp /)
+    joint1_dof(2)%motion_params = (/ 0.3_dp, 1.0_dp, 0.0_dp /)
 
     !-------------------------- gravity ---------------------
     ! Orientation and magnitude of gravity in inertial system [x y z]

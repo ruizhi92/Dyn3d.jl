@@ -2,11 +2,11 @@
 !  Subroutine     :            HERK_func_f
 !------------------------------------------------------------------------
 !  Purpose      : This subroutine construct the input function f for
-!                 HERK method. f takes in t_i and return the constraint
-!                 matrix of all joints.
-!                 These constraints arise from body velocity relation in
-!                 inertial system, later being transformed into local
-!                 joint constraint.
+!                 HERK method. f takes in t_i and return a forcing term,
+!                 which is a summation of bias force term and joint
+!                 spring-damper forcing term.
+!                 The bias term includes change of inertia effect, together
+!                 with gravity and external force.
 !
 !  Details      ：
 !
@@ -14,7 +14,9 @@
 !
 !  Input/output :
 !
-!  Output       : y_i: is bias force and the part of force on passive dofs
+!  Output       : y_i: all force term on the right hand side of the momentum
+!                      equation except for the constraint force(Lagrange
+!                      multipliers)
 !
 !  Remarks      :
 !
@@ -22,7 +24,6 @@
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
@@ -38,7 +39,6 @@ SUBROUTINE HERK_func_f(t_i,y_i)
     USE module_data_type
     USE module_basic_matrix_operations
     USE module_six_dimension_cross
-    USE module_basic_matrix_operations
 
 IMPLICIT NONE
 
@@ -51,12 +51,11 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i,j,k,dofid
+    INTEGER                                       :: i,j,dofid
     INTEGER                                       :: ch_id,child_count
-    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b,A_temp
+    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b,A_temp,eye
     REAL(dp),DIMENSION(6,1)                       :: p_temp,g_temp
     REAL(dp),DIMENSION(6,1)                       :: f_ex,f_g
-    INTEGER,DIMENSION(:,:),ALLOCATABLE            :: S_total
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: p_total,tau_total
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: A_total
     INTEGER                                       :: debug_flag
@@ -64,7 +63,6 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Allocation
     !--------------------------------------------------------------------
-    ALLOCATE(S_total(system%ndof,system%nudof))
     ALLOCATE(p_total(system%ndof,1))
     ALLOCATE(tau_total(system%nudof,1))
     ALLOCATE(A_total(system%ndof,system%ndof))
@@ -78,8 +76,7 @@ IMPLICIT NONE
     ! initialize f (f is y_i)
     y_i(:,:) = 0.0_dp
 
-    ! compute bias force, accounting for gravity and external force(haven't
-    ! been applied yet)
+    ! compute bias force, including gravity and external force
     DO i = 1,system%nbody
 
         ! calculate bias force p_temp
@@ -111,15 +108,6 @@ WRITE(*,*) 'bias force p_total'
 CALL write_matrix(p_total)
 END IF
 
-    ! construct S_total, whose diagonal block of is transpose to the
-    ! constrained dof of each joint in local body coord
-    S_total(:,:) = 0
-    DO i = 1,system%nbody
-        IF(joint_system(i)%nudof /= 0) THEN
-            S_total(6*(i-1)+1:6*i, joint_system(i)%udofmap) = joint_system(i)%S
-        END IF
-    END DO
-
     ! construct tau_total, this is related only to spring force
     ! tau is only determined by if a unconstrained dof has resistance - damp and
     ! stiff or now. Both active dof and passive dof can have tau term
@@ -137,21 +125,15 @@ END IF
         END DO
     END DO
 
-
-    ! create A_total with modification to P_map
+    ! initialize A_total, which has similar shape with P_map
     A_total = 0.0_dp
+    CALL ones(6,eye)
 
-    ! construct A_total, which has the P_map-like matrix shape
+    ! construct A_total
     DO i = 1,system%nbody
 
         ! fill in parent joint blocks
-        DO j = 1,system%njoint
-            IF(j == i) THEN
-                DO k = 6*(i-1)+1, 6*i
-                    A_total(k,k) = 1.0_dp
-                END DO
-            END IF
-        END DO
+        A_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = eye
 
         ! fill in child joint blocks except the first body
         IF(body_system(i)%nchild /= 0) THEN
@@ -162,7 +144,7 @@ END IF
 
             A_temp = TRANSPOSE(body_system(ch_id)%Xp_to_b)
 
-            ! Assign A_temp to parent body
+            ! Assign A_temp to child body of this current joint
             A_total(6*(i-1)+1:6*i, 6*(ch_id-1)+1:6*ch_id) &
                   = - A_temp
         END DO
@@ -175,14 +157,13 @@ WRITE(*,*) 'A_total'
 CALL write_matrix(A_total)
 END IF
 
-    ! f = p_total - A_total*s_total*tau_total
+    ! f = p_total - A_total*S_total*tau_total
     y_i = - p_total + MATMUL(A_total, &
-                             MATMUL(S_total,tau_total))
+                             MATMUL(system%S_total,tau_total))
 
     !--------------------------------------------------------------------
     !  Deallocation
     !--------------------------------------------------------------------
-    DEALLOCATE(S_total)
     DEALLOCATE(p_total)
     DEALLOCATE(tau_total)
     DEALLOCATE(A_total)

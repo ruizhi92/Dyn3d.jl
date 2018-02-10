@@ -2,9 +2,8 @@
 !  Subroutine     :            HERK_func_gti
 !------------------------------------------------------------------------
 !  Purpose      : This subroutine construct the input function gti for
-!                 HERK method. gti takes in t_i and return the inertia
-!                 matrix of all body in a
-!                 matrix. Module variable is assembled here.
+!                 HERK method. gti takes in t_i and return the assembled
+!                 prescribed active motion of joints
 !
 !  Details      ：
 !
@@ -20,11 +19,10 @@
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2017 Nov
+!  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
 SUBROUTINE HERK_func_gti(t_i,y_i)
@@ -35,7 +33,6 @@ SUBROUTINE HERK_func_gti(t_i,y_i)
     USE module_constants
     USE module_data_type
     USE module_prescribed_motion
-    USE module_basic_matrix_operations
 
 IMPLICIT NONE
 
@@ -48,26 +45,21 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                       :: i
     CHARACTER(LEN = max_char)                     :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: motion
-    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: T_total,y_temp
-    INTEGER                                       :: debug_flag
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: y_temp
 
     !--------------------------------------------------------------------
     !  ALLOCATION
     !--------------------------------------------------------------------
     ALLOCATE(motion(system%na,3))
-    ALLOCATE(T_total(system%ncdof_HERK,system%ndof))
     ALLOCATE(y_temp(system%ndof,1))
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 0
-
-    ! initialize gti (M is y_i)
+    ! initialize gti (gti is y_i)
     y_i(:,1) = 0.0_dp
 
     ! pick the active dof of active joint and assign prescribed velocity.
@@ -80,26 +72,15 @@ IMPLICIT NONE
 
     ! assign local body motion to y_temp, which has full rank
     y_temp(:,1) = 0.0_dp
-    y_temp(system%cdof_HERK_a,1) = motion(:,2)
-
-    ! the diagonal block of T_total is transpose to the constrained dof
-    !  of each joint in local body coord
-    T_total(:,:) = 0
-    DO i = 1,system%nbody
-        IF(joint_system(i)%ncdof_HERK /= 0) THEN
-            T_total(joint_system(i)%cdof_HERK_map, 6*(i-1)+1:6*i) = &
-                    TRANSPOSE(joint_system(i)%T_HERK)
-        END IF
-    END DO
+    y_temp(system%udof_a,1) = motion(:,2)
 
     ! final combine
-    y_i = - MATMUL(T_total, y_temp)
+    y_i = - MATMUL(TRANSPOSE(system%T_total), y_temp)
 
     !--------------------------------------------------------------------
     !  DEALLOCATION
     !--------------------------------------------------------------------
     DEALLOCATE(motion)
-    DEALLOCATE(T_total)
     DEALLOCATE(y_temp)
 
 END SUBROUTINE HERK_func_gti

@@ -70,8 +70,6 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(:),ALLOCATABLE       :: qJ_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),ALLOCATABLE       :: lambda_out
     REAL(dp)                                :: h_out
-    REAL(dp),DIMENSION(6,6)                 :: Xi_to_b
-    REAL(dp),DIMENSION(6,1)                 :: qJ_temp
 
     PROCEDURE(interface_func),POINTER       :: M => HERK_func_M
     PROCEDURE(interface_func),POINTER       :: G => HERK_func_G
@@ -87,8 +85,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     ! add_body, add_joint and assemble them
-!    CALL config_3d_hinged
-    CALL config_2d_linkobj
+    CALL config_3d_hinged
+!    CALL config_2d_linkobj
 
     !--------------------------------------------------------------------
     !  Allocation

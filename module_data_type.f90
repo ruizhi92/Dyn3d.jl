@@ -305,6 +305,12 @@ IMPLICIT NONE
     ! P_map -- This matrix maps the hierarchy relation from joint to body.
     !          It consists of many [1], [-1] and [0] blocks.
     ! Mfile_idx -- open index of output verts_i file
+    ! inertia_b -- collects all body's body_system(i)%inertia_b in the order
+    !              of joint_id in a 6n*6n matrix. Each one is put on the diagonal
+    ! S_total -- collects all joint_system(i)%S matrix in a single matrix,
+    !            constructed in assemble_system and used in HERK
+    ! T_total -- collects all joint_system(i)%T_HERK in a single matrix,
+    !            constructed in assemble_system and used in HERK
         INTEGER                                 :: ndim
         INTEGER                                 :: njoint,nbody
         TYPE(system_params)                     :: params
@@ -322,6 +328,9 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: kindata
         REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: P_map
         INTEGER                                 :: Mfile_idx
+        REAL(dp),DIMENSION(:,:),ALLOCATABLE     :: inertia_b
+        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: S_total
+        INTEGER,DIMENSION(:,:),ALLOCATABLE      :: T_total
 
     END TYPE
 

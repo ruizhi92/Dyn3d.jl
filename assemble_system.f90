@@ -12,6 +12,8 @@
 !                 4. Physically connect the body and joint system by
 !                    updating the location of the local body coordinate.
 !                    Also update related properties like x_c etc.
+!                 5. Computes some system matrix used in HERK solver,
+!                    such as system%inertia_b, system%T_HERK
 !
 !  Details      ：
 !
@@ -352,6 +354,42 @@ IMPLICIT NONE
             END DO
         END IF
 
+    END DO
+
+    !--------------------------------------------------------------------
+    !  Step 5: Create some system matrix used in HERK
+    !--------------------------------------------------------------------
+
+    ! system%inertia_b
+    ALLOCATE(system%inertia_b(system%ndof,system%ndof))
+    system%inertia_b(:,:) = 0.0_dp
+
+    ! diagonal block of system%inertia_b is inertia of each body in body coord
+    DO i = 1,system%nbody
+        system%inertia_b(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = body_system(i)%inertia_b
+    END DO
+
+    ! system%S_total
+    ALLOCATE(system%S_total(system%ndof,system%nudof))
+    system%S_total(:,:) = 0
+
+    ! diagonal block of S_total is the unconstrained dof S of each joint in body coord
+    DO i = 1,system%njoint
+        IF(joint_system(i)%nudof /= 0) THEN
+            system%S_total(6*(i-1)+1:6*i, joint_system(i)%udofmap) = joint_system(i)%S
+        END IF
+    END DO
+
+    ! system%T_total
+    ALLOCATE(system%T_total(system%ndof,system%ncdof_HERK))
+    system%T_total(:,:) = 0
+
+    ! diagonal block of T_total is the constrained dof T_HERK of each joint in body coord
+    DO i = 1,system%nbody
+        IF(joint_system(i)%ncdof_HERK /= 0) THEN
+            system%T_total(6*(i-1)+1:6*i, joint_system(i)%cdof_HERK_map) = &
+                    joint_system(i)%T_HERK
+        END IF
     END DO
 
     !--------------------------------------------------------------------

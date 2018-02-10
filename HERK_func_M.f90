@@ -20,7 +20,6 @@
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
@@ -34,7 +33,6 @@ SUBROUTINE HERK_func_M(t_i,y_i)
     !--------------------------------------------------------------------
     USE module_constants
     USE module_data_type
-    USE module_basic_matrix_operations
 
 IMPLICIT NONE
 
@@ -45,28 +43,9 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(:,:),INTENT(OUT)           :: y_i
 
     !--------------------------------------------------------------------
-    !  Local variables
-    !--------------------------------------------------------------------
-    INTEGER                                       :: i,debug_flag
-
-    !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
 
-    debug_flag = 0
-
-    ! initialize M (M is y_i)
-    y_i(:,:) = 0.0_dp
-
-    ! the diagonal block of M is inertia of each body in inertial coord
-    DO i = 1,system%nbody
-        y_i(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = body_system(i)%inertia_b
-    END DO
-
-IF(debug_flag == 1) THEN
-WRITE(*,*) 'M'
-CALL write_matrix(y_i)
-WRITE(*,'(/)')
-END IF
+    y_i = system%inertia_b
 
 END SUBROUTINE HERK_func_M
