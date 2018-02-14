@@ -209,9 +209,9 @@ IMPLICIT NONE
     count = 1
     DO i = 1,system%njoint
         DO j = 1,joint_system(i)%na
-            IF(ALLOCATED(joint_system(i)%udof_a)) THEN
+            IF(ALLOCATED(joint_system(i)%i_udof_a)) THEN
                 system%kinmap(count,1) = i
-                system%kinmap(count,2) = joint_system(i)%udof_a(j)
+                system%kinmap(count,2) = joint_system(i)%i_udof_a(j)
             END IF
             count = count + 1
         END DO

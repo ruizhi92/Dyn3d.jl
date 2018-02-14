@@ -5,22 +5,22 @@
 !                 generating the initial value of system%soln.
 !
 !  Details      ：
+!
 !  Input        :
-!  Input/output :
 !
-!  Output       :
+!  Output       : system%soln at initial time
 !
-!  Remarks      :
+!  Remarks      : Prescribed active motion is specified as joint qJ and vJ
+!                 , so we need to construct v by the body chain.
 !
 !  References   :
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2017 Sep
+!  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
 SUBROUTINE init_system
@@ -40,7 +40,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Local variables
     !--------------------------------------------------------------------
-    INTEGER                                   :: i,j,count
+    INTEGER                                   :: i,j,count,pid
     CHARACTER(LEN = max_char)                 :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: motion
     REAL(dp),DIMENSION(:),ALLOCATABLE         :: qJ_total,v_total
@@ -53,10 +53,10 @@ IMPLICIT NONE
     ALLOCATE(v_total(system%ndof))
 
     !--------------------------------------------------------------------
-    !  Construct qJ and v of body system
+    !  Construct qJ of joint system and v of body system
     !--------------------------------------------------------------------
 
-    ! create the motion table
+    ! create the joint motion table
     mode = 'generate'
     CALL prescribed_motion(mode)
 
@@ -64,39 +64,39 @@ IMPLICIT NONE
     mode = 'refer'
     CALL prescribed_motion(mode,0.0_dp,motion)
 
-    DO i = 1, system%nbody
-        joint_system(i)%qJ(:,1) = 0.0_dp
-        body_system(i)%v(:,1) = 0.0_dp
+    ! assign joint initial condition
+    count = 1
+    DO i = 1, system%njoint
+        ! initialize to be 0
+!        joint_system(i)%qJ(:,1) = 0.0_dp
+        joint_system(i)%vJ(:,1) = 0.0_dp
+
+        ! assign values for active dof
+        IF(joint_system(i)%na > 0) THEN
+            DO j = 1, joint_system(i)%na
+                joint_system(i)%qJ(joint_system(i)%udof_a(j),1) = motion(count,1)
+                joint_system(i)%vJ(joint_system(i)%udof_a(j),1) = motion(count,2)
+                count = count + 1
+            END DO
+        END IF
     END DO
-
-    ! impose the prescribed active motion
-    DO i = 1, 1
-        joint_system(i)%qJ(3,1) = motion(3,1)
-        body_system(i)%v(3,1) = motion(3,2)
-    END DO
-
-!    ! For the 2d simple case only
-!    DO i = 2, system%nbody
-!        body_system(i)%q(4,1) = (i-1)*1.0_dp/system%nbody*COS(body_system(1)%q(3,1))
-!        body_system(i)%q(5,1) = (i-1)*1.0_dp/system%nbody*SIN(body_system(1)%q(3,1))
-!    END DO
-
-
-
-!    ! a normal way to assign body initial condition
-!    count = 1
-!    DO i = 1,system%njoint
-!        IF(joint_system(i)%na > 0) THEN
-!            DO j = 1, joint_system(i)%na
-!                joint_system(i)%qJ(joint_system(i)%udof_a(j),1) = motion(count,1)
-!                joint_system(i)%vJ(joint_system(i)%udof_a(j),1) = motion(count,2)
-!                count = count + 1
-!            END DO
-!        END IF
-!    END DO
 
     ! update the system transform matrices
     CALL embed_system
+
+    ! loop through the body chain to get initial body%v
+    DO i = 1, system%nbody
+        pid = body_system(i)%parent_id
+
+        ! if not the first body
+        IF(pid /= 0) THEN
+            body_system(i)%v = joint_system(i)%vJ + &
+                               MATMUL(body_system(i)%Xp_to_b, body_system(pid)%v)
+        ELSE
+        ! if the first body
+            body_system(i)%v = joint_system(i)%vJ
+        END IF
+    END DO
 
     !--------------------------------------------------------------------
     !  Construct first solution

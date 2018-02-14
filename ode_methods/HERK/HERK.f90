@@ -10,6 +10,17 @@
 !                 , where GT is the transpose of G,
 !                 Note that this is a index-2 system with two variables q and u.
 !
+!                 Here we denote for a body chain, v stands for body velocity
+!                 and vJ stands for joint velocity.
+!                 Note however due to the choice of solving qJ and v instead of
+!                 solving for q and v, the system of equation is actually
+!                       | dqJ/dt = vJ                              |
+!                       | M(qJ)*dv/dt = f(qJ,v,vJ) - GT(qJ)*lambda |
+!                       | 0 = G(qJ)*v + gti(qJ)                    |
+!                 The motion constraint(prescribed active motion) is according to
+!                 joint, not body. However for the solving description to be
+!                 general, the following comment do not differ qJ from q.
+!
 !  Details      ： Normally q is body position vector and v is body vel vector
 !                 , lambda is the constraint on q to be satisfied.
 !
@@ -38,7 +49,6 @@
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
@@ -71,13 +81,6 @@ IMPLICIT NONE
         END SUBROUTINE interface_func
     END INTERFACE
 
-!    INTERFACE
-!        SUBROUTINE inter_embed
-!            USE module_constants, ONLY:dp
-!              REAL(dp),INTENT(IN)                           :: t_i
-!        END SUBROUTINE inter_embed
-!    END INTERFACE
-
     !--------------------------------------------------------------------
     !  Arguments
     !--------------------------------------------------------------------
@@ -86,7 +89,6 @@ IMPLICIT NONE
     INTEGER,INTENT(IN)                            :: qJ_dim,lambda_dim
     INTEGER,INTENT(IN)                            :: scheme
     PROCEDURE(interface_func),INTENT(IN),POINTER  :: M,G,GT,gti,f
-!    PROCEDURE(inter_embed),INTENT(IN),POINTER     :: embed_sys
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: qJ_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),INTENT(OUT)             :: lambda_out
     REAL(dp),INTENT(OUT)                          :: h_out
@@ -271,7 +273,6 @@ WRITE(*,'(/)')
 END IF
 
         ! use LU decomposition to solve for x = [vdot_im1 lambda_im1]
-        !CALL lu(LHS,RHS,x)
         CALL block_lu(LHS,RHS,qJ_dim,lambda_dim,x)
 
 IF(debug_flag == 1 .or. debug_flag == 2) THEN
@@ -315,7 +316,7 @@ WRITE(*,'(/)')
 END IF
 
 IF(debug_flag == 1) THEN
-!STOP
+STOP
 END IF
 
     END DO

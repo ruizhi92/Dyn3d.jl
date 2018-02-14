@@ -1,28 +1,29 @@
 !------------------------------------------------------------------------
 !  Subroutine     :          HERK_update_joint_qJ
 !------------------------------------------------------------------------
-!  Purpose      : This subroutine takes in full vector of q, unzip it to
-!                 update body_system%q, and then call embed_system
+!  Purpose      : This subroutine takes in full vector of qJ, unzip it to
+!                 update joint_system%qJ, and then call embed_system
 !
 !
 !
 !  Details      ：
 !
-!  Input        : q: contains all body position in inertial coord,
-!                    lining up by body index order. Dimension of q
+!  Input        : qJ: contains joint displacement in each joint's coord,
+!                    lining up by joint index order. Dimension of qJ
 !                    is (6*nb,1) solved from the last time step.
 !
 !  Input/output :
 !
-!  Output       : q, Xb_to_i, qJ etc. got updated in body_system
+!  Output       : Xb_to_i, Xp_to_b etc. got updated in body_system
 !
-!  Remarks      :
+!  Remarks      : This function needs to be called in the middle of every
+!                 HERK iteration, right after calculating f, GT and qJ
+!                 at t_im1
 !
 !  References   :
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA

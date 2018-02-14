@@ -96,7 +96,7 @@ if system.ndim == 2
         hl(k) = line(system.body(k).vert_i(2:3,1),system.body(k).vert_i(2:3,2), ...
             'Color','r','LineWidth',2);
     end
-    axis([-5 5 -2 2])
+    axis([-5 5 -5 5])
     xlabel('$x$'); ylabel('$y$')
 else
     % Gather vertex and face data from system
@@ -113,9 +113,11 @@ else
     %h = h_temp;
     axis([-2 2 -2 2 -2 1])
     xlabel('$z$'); ylabel('$x$'); zlabel('$y$');
-    view(112,34)
-    %view(122.5,14)
-    %view(90,0)
+%    view(112,34)
+%    view(122.5,14)
+%    view(90,0)
+%    view(0,90)
+    view(-37.5,30)
     grid on
     light
     lighting gouraud

@@ -160,6 +160,10 @@ IMPLICIT NONE
         IF(ALLOCATED(joint_system(i)%i_udof_p)) THEN
             WRITE(2017,'(I5)') joint_system(i)%i_udof_p
         END IF
+        WRITE(2017,'(A)') 'i_udof_a:'
+        IF(ALLOCATED(joint_system(i)%i_udof_a)) THEN
+            WRITE(2017,'(I5)') joint_system(i)%i_udof_a
+        END IF
         WRITE(2017,'(A)') 'udofmap:'
         IF(ALLOCATED(joint_system(i)%udofmap)) THEN
             WRITE(2017,'(I5)') joint_system(i)%udofmap
@@ -306,17 +310,6 @@ IMPLICIT NONE
     WRITE(2017,'(A)') 'cdof_HERK_a:'
     IF(ALLOCATED(system%cdof_HERK_a)) THEN
         WRITE(2017,'(I5)') system%cdof_HERK_a
-    END IF
-
-    WRITE(2017,'(/)')
-    WRITE(2017,'(A)') 'P_map:'
-    IF(ALLOCATED(system%P_map)) THEN
-        DO i = 1, SIZE(system%P_map,1)
-            DO j = 1, SIZE(system%P_map,2)
-                WRITE(2017,'(F9.5)',ADVANCE="NO") system%P_map(i,j)
-            END DO
-            WRITE(2017,'(/)')
-        END DO
     END IF
 
     WRITE(*,*) 'Structure info output done.'

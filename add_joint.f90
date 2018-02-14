@@ -259,9 +259,11 @@ IMPLICIT NONE
         count = 1
         IF(na /= 0) THEN
             ALLOCATE(joint_system(ij)%udof_a(na))
+            ALLOCATE(joint_system(ij)%i_udof_a(na))
             DO j = 1,nudof
                 IF(joint_dof(j)%dof_type == 'active') THEN
                     joint_system(ij)%udof_a(count) = joint_dof(j)%dof_id
+                    joint_system(ij)%i_udof_a(count) = j
                     count = count + 1
                 END IF
             END DO
@@ -290,7 +292,8 @@ IMPLICIT NONE
                 joint_system(ij)%cdof_HERK(count) = i
                 count = count +1
                 END IF
-            ELSE IF(na/=0) THEN
+            END IF
+            IF(na/=0) THEN
                 IF(ANY(joint_system(ij)%udof_a==i)) THEN
                 joint_system(ij)%cdof_HERK(count) = i
                 count = count +1
@@ -298,24 +301,32 @@ IMPLICIT NONE
             END IF
         END DO
 
+!WRITE(*,*) 'For joint', ij
+!WRITE(*,*) 'nudof_HERK ', nudof_HERK
+!WRITE(*,*) 'ncdof_HERK ', ncdof_HERK
+!WRITE(*,*) 'na', na
+!WRITE(*,*) 'udof_a', joint_system(ij)%udof_a
+!WRITE(*,*) 'cdof_HERK ', joint_system(ij)%cdof_HERK
+!WRITE(*,*) 'cdof ', joint_system(ij)%cdof
+
         ! udof_HERK, modified by active motion
         IF(nudof_HERK /= 0) THEN
             ALLOCATE(joint_system(ij)%udof_HERK(nudof_HERK))
+            count = 1
+            DO i = 1, 6
+                IF(ncdof/=0) THEN
+                    IF(.NOT. ANY(joint_system(ij)%cdof==i)) THEN
+                    joint_system(ij)%udof_HERK(count) = i
+                    count = count +1
+                    END IF
+                ELSE IF(na/=0) THEN
+                    IF(.NOT. ANY(joint_system(ij)%udof_a==i)) THEN
+                    joint_system(ij)%udof_HERK(count) = i
+                    count = count +1
+                    END IF
+                END IF
+            END DO
         END IF
-        count = 1
-        DO i = 1, 6
-            IF(ncdof/=0) THEN
-                IF(.NOT. ANY(joint_system(ij)%cdof==i)) THEN
-                joint_system(ij)%udof_HERK(count) = i
-                count = count +1
-                END IF
-            ELSE IF(na/=0) THEN
-                IF(.NOT. ANY(joint_system(ij)%udof_a==i)) THEN
-                joint_system(ij)%udof_HERK(count) = i
-                count = count +1
-                END IF
-            END IF
-        END DO
 
         ! cdof_HERK_a, seems to be the same with udof_a
         count = 1
@@ -328,7 +339,7 @@ IMPLICIT NONE
                 END IF
             END DO
         END IF
-
+!WRITE(*,*) 'check1'
 
         ! T_HERK
         IF(ncdof_HERK /= 0) THEN
@@ -339,6 +350,7 @@ IMPLICIT NONE
             joint_system(ij)%T_HERK(joint_system(ij)%cdof_HERK(i),i) = 1
             END DO
         END IF
+!WRITE(*,*) 'check2'
 
         !----------- Set Xp_to_j, Xj_to_ch -----------
         CALL trans_matrix(shape1(4:6), shape1(1:3), Xp_to_j)
@@ -346,8 +358,11 @@ IMPLICIT NONE
 
         !----------- Set up q and qdot -----------
         ! Allocate q and assign initial value
+        joint_system(ij)%qJ(:,1) = 0.0_dp
         joint_system(ij)%qJ(joint_system(ij)%udof,1) = config_j%q_init
 
     END ASSOCIATE
+
+!    WRITE(*,*) 'Add joint ',ij, ' successful.'
 
 END SUBROUTINE add_joint

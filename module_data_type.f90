@@ -211,6 +211,9 @@ IMPLICIT NONE
     ! i_udof_p -- the index of udof_p in udof. For example, if we have a
     !                 free joint with udof=[1 2 3 4 5 6] and udof_p=3, then
     !                 index_udof_p = 3, index_udof_a = [1 2 4 5 6]
+    ! i_udof_a -- the index of udof_a in udof. For example, if we have a
+    !                 free joint with udof=[1 2 3 4 5 6] and udof_a=3, then
+    !                 index_udof_a = 3, index_udof_p = [1 2 4 5 6]
     ! cdof_HERK_a -- the index of active dof in the cdof_HERK array
     ! udofmap -- list all the udof of all joints in an "total array", udofmap
     !            refers to the index of the current dof in the "total array"
@@ -236,7 +239,7 @@ IMPLICIT NONE
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof,cdof
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_HERK,cdof_HERK
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udof_p,udof_a
-        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p
+        INTEGER,DIMENSION(:),ALLOCATABLE        :: i_udof_p,i_udof_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: cdof_HERK_a
         INTEGER,DIMENSION(:),ALLOCATABLE        :: udofmap
         INTEGER,DIMENSION(:),ALLOCATABLE        :: cdof_HERK_map

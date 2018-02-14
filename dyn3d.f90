@@ -1,7 +1,8 @@
 !------------------------------------------------------------------------
 !  Program     :            dyn3d
 !------------------------------------------------------------------------
-!  Purpose      : The main routine
+!  Purpose      : The main routine. Include different configuration files
+!                 to run different cases.
 !
 !  Details      ：
 !
@@ -17,7 +18,6 @@
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
@@ -76,7 +76,6 @@ IMPLICIT NONE
     PROCEDURE(interface_func),POINTER       :: GT => HERK_func_GT
     PROCEDURE(interface_func),POINTER       :: gti => HERK_func_gti
     PROCEDURE(interface_func),POINTER       :: f => HERK_func_f
-!    PROCEDURE(inter_embed),POINTER          :: embed_sys => HERK_update_system
 
     CHARACTER(LEN = max_char)               :: outfile,outfolder,fullname
 
@@ -85,8 +84,9 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     ! add_body, add_joint and assemble them
-    CALL config_3d_hinged
 !    CALL config_2d_linkobj
+!    CALL config_3d_hinged
+    CALL config_2d_undulate
 
     !--------------------------------------------------------------------
     !  Allocation

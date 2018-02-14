@@ -1,20 +1,21 @@
 !------------------------------------------------------------------------
-!  Subroutine   :            config_3d_hinged
+!  Subroutine   :            config_2d_undulate
 !------------------------------------------------------------------------
 !  Purpose      : This is a system configure file, containing body and
-!                 joint information. The body itself is a 2d body, but
-!                 moves in 3d space. This subroutine is passed into dyn3d
-!                 as a pointer to set up a specific system of rigid bodies.
+!                 joint information. The body itself is a 2d body, and
+!                 moves in 2d space. This subroutine is passed into dyn3d
+!                 to set up a specific system of rigid bodies.
 !                 The configuration of that system is described in this
 !                 function. It returns an un-assembled list of bodies and
 !                 joints in the output system.
 !
-!  Details      ： This sets up hinged rigid bodies, connected to inertial
-!                 space with a revolute joint, and each connected to the
-!                 next by revolute joint. Each body is an identical shape
-!                 (with a limiting case of a triangle). The lower side is
-!                 connected to the parent body, while the upper side is
-!                 connected to the child joint.
+!  Details      ： This sets up 2d hinged rigid bodies, disconnected from
+!                 inertial space, and each connected to the next by
+!                 revolute joint. Each body is an infinitely-thin flat plate.
+!                 The lower end is connected to the parent body, while
+!                 the upper end is connected to the child joint.
+!                 Each joint's motion is actively prescribed
+!                 to simulate an undulatory wave from head to tail.
 !
 !  Input        :
 !
@@ -28,14 +29,13 @@
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2017 Aug
+!  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
-SUBROUTINE config_3d_hinged
+SUBROUTINE config_2d_undulate
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -51,8 +51,9 @@ IMPLICIT NONE
     !  Local variables
     !------------------------------------------------------------------------
     REAL(dp)                        :: tf
-    INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme
-    REAL(dp)                        :: height,ang,rhob,tol
+    INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme,ndim
+    REAL(dp)                        :: height,rhob,tol,gap
+    REAL(dp)                        :: wavefreq,wavespeed,waveamp,phase,delta_s
     REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
     TYPE(dof),ALLOCATABLE           :: joint1_dof(:)
@@ -62,11 +63,14 @@ IMPLICIT NONE
     !  Assign local variables
     !--------------------------------------------------------------------
 
+    !------------------ problem dimension -------------------
+    ndim = 2
+
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 3.0_dp
+    tf = 2.0_dp
     ! total number of steps
-    nstep = 3000
+    nstep = 20000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -74,27 +78,35 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 4
+    nbody = 8
     ! rhob - Density of each body (mass/area)
-    rhob = 1.0_dp
+    rhob = 0.01_dp
 
     !-------------- body shape in body coordinate -----------
     ! height - height of the fourth (smallest) side, from 0 upward
-    height = 1.0_dp/nbody
-    ! ang - angle of the upper side with the child joint
-    ang = 0.0_dp !pi/4 ! 0.0_dp
+    height = 2.0_dp/nbody
+    ! Gap distance to joint
+    gap = 1e-3_dp
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 0.3_dp
+    stiff = 0.01_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.001_dp
+    damp = 0.0_dp
+
+    !---------------- joint wave motion property ---------------
+    ! wavefreq - frequency of deformation wave
+    wavefreq = 1.0_dp
+    ! wavespeed - speed of deformation wave (> 0 from head to tail)
+    wavespeed = 4*height*wavefreq ! wavelength set to 4*height
+    ! waveamp - amplitude of deformation wave (in radians)
+    waveamp = pi/4
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system
-    joint1_angle = 0.0_dp
+    joint1_angle = -pi/2
     ! init_angle - Initial angle of each interior joint
-    init_angle = pi/4
+    init_angle = 0.0_dp
 
     !---------- joint orientation in inertial system --------
     ! joint1_orient - Fixed orientation of joint to inertial system
@@ -105,20 +117,14 @@ IMPLICIT NONE
     ! joint1_dof specifies the degrees of freedom in the joint connected to
     ! the inertial system. Default is active hold at zero for those not
     ! specified.
-    ndof = 2
+    ndof = 3
     ALLOCATE(joint1_dof(ndof))
-
-    joint1_dof(1)%dof_id = 3
-    joint1_dof(1)%dof_type = 'passive'
-    joint1_dof(1)%stiff = 0.0_dp
-    joint1_dof(1)%damp = 0.001_dp
-
-    joint1_dof(2)%dof_id = 5
-    joint1_dof(2)%dof_type = 'active'
-    joint1_dof(2)%motion_type = 'oscillatory'
-    ALLOCATE(joint1_dof(2)%motion_params(3))
-    joint1_dof(2)%motion_params = (/ 0.3_dp, 1.0_dp, 0.0_dp /)
-
+    DO i = 1, ndof
+        joint1_dof(i)%dof_id = i+2
+        joint1_dof(i)%dof_type = 'passive'
+        joint1_dof(i)%stiff = 0.0_dp
+        joint1_dof(i)%damp = 0.0_dp
+    END DO
     !-------------------------- gravity ---------------------
     ! Orientation and magnitude of gravity in inertial system [x y z]
     gravity = (/ 0.0_dp, 0.0_dp, 0.0_dp /)
@@ -148,22 +154,17 @@ IMPLICIT NONE
     input_body%rhob = rhob
 
     ! setup input_body%verts and input_body%nverts
-    IF(height > 0.0_dp .AND. ang >= 0.0_dp) THEN
+    IF(height > 0.0_dp) THEN
         ! quadrilateral
         input_body%nverts = 4
         ALLOCATE(input_body%verts(input_body%nverts,2))
+
+        ! In this 2-d problem, the out-of-plane dimension is
+        ! set to unity and has no bearing on the results.
         input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
                                    1.0_dp, 0.0_dp, &
-                                   cos(ang), height+sin(ang), &
+                                   1.0_dp, height, &
                                    0.0_dp, height /), &
-                    shape(input_body%verts), order=(/2,1/) )
-    ELSE IF(ABS(height-0.0_dp) < tiny .AND. ang > 0.0_dp) THEN
-        ! triangle
-        input_body%nverts = 3
-        ALLOCATE(input_body%verts(input_body%nverts,2))
-        input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
-                                   1.0_dp, 0.0_dp, &
-                                   cos(ang), sin(ang) /), &
                     shape(input_body%verts), order=(/2,1/) )
     ELSE
         WRITE(*,*) "Error in setting up verts in input_body%verts."
@@ -215,6 +216,7 @@ IMPLICIT NONE
     END DO
 
     !-------------- Other joints --------------
+    delta_s = 0
     DO i = 2,input_body%nbody
         input_joint(i)%joint_type = 'revolute'
         input_joint(i)%joint_id = i
@@ -223,16 +225,21 @@ IMPLICIT NONE
         input_joint(i)%body1 = i - 1
         ALLOCATE(input_joint(i)%q_init(1))
         input_joint(i)%q_init = init_angle
-        input_joint(i)%shape1 = (/  0.0_dp, ang, 0.0_dp, &
-                                    height, 0.0_dp, 0.0_dp /)
+        input_joint(i)%shape1 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
+                                    height+gap, 0.0_dp, 0.0_dp /)
         input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
-                                    0.0_dp, 0.0_dp, 0.0_dp /)
+                                    -gap, 0.0_dp, 0.0_dp /)
 
         ! revolute joint only has one unconstrained dof
         ALLOCATE(input_joint(i)%joint_dof(1))
-        DO j = 1, 1
-            input_joint(i)%joint_dof(j) = default_dof_passive
-        END DO
+        input_joint(i)%joint_dof(1)%dof_id = 3
+        input_joint(i)%joint_dof(1)%dof_type = 'active'
+        input_joint(i)%joint_dof(1)%motion_type = 'oscillatory'
+        ! construct the wave form
+        delta_s = delta_s + height
+        phase = -2.0_dp*pi*wavefreq/wavespeed*delta_s
+        input_joint(i)%joint_dof(1)%motion_params = &
+                            (/ waveamp, wavefreq, phase /)
     END DO
 
 
@@ -245,11 +252,13 @@ IMPLICIT NONE
     ! Iteratively adding joint, generate joint_system structure
     DO i = 1, njoint
         CALL add_joint(i,input_joint(i))
+
     END DO
 
     !--------------------------------------------------------------------
     !  Assign system constants
     !--------------------------------------------------------------------
+    system%ndim = ndim
     system%params%gravity = gravity
     system%params%nstep = nstep
     system%params%dt = tf / system%params%nstep
@@ -260,4 +269,4 @@ IMPLICIT NONE
     CALL assemble_system
 
 
-END SUBROUTINE config_3d_hinged
+END SUBROUTINE config_2d_undulate

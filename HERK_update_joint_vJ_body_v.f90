@@ -2,8 +2,8 @@
 !  Subroutine     :          HERK_update_joint_vJ_body_v
 !------------------------------------------------------------------------
 !  Purpose      : This subroutine takes in full vector of v from HERK
-!                 (which is body velocity) to update joint.vJ through
-!                 the body chain.
+!                 (which is body velocity) to update body%v and joint%vJ
+!                 through the body chain.
 !
 !
 !
@@ -20,12 +20,14 @@
 !
 !  Remarks      : joint.vJ got updated in joint_system
 !                 body.v got updated in body_system
+!                 This subroutine should be called at the end of every
+!                 HERK iterations, to be prepared for newly updated
+!                 body%v and joint%vJ used in HERK_func_f.
 !
 !  References   :
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
@@ -78,8 +80,7 @@ IMPLICIT NONE
         ! if the first body
             joint_system(i)%vJ = body_system(i)%v
         END IF
-!        WRITE(*,*) 'for joint ', i, ':'
-!        WRITE(*,*) joint_system(i)%vJ
+
     END DO
 
     ! assemble vJ for return
