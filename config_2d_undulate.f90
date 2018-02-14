@@ -68,9 +68,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 2.0_dp
+    tf = 4.0_dp
     ! total number of steps
-    nstep = 20000
+    nstep = 4000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -78,13 +78,13 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 8
+    nbody = 4
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
     !-------------- body shape in body coordinate -----------
     ! height - height of the fourth (smallest) side, from 0 upward
-    height = 2.0_dp/nbody
+    height = 1.0_dp/nbody
     ! Gap distance to joint
     gap = 1e-3_dp
 
@@ -190,7 +190,7 @@ IMPLICIT NONE
     ALLOCATE(input_joint(njoint))
 
     !-------------- First joint --------------
-    input_joint(1)%joint_type = 'free'
+    input_joint(1)%joint_type = 'planar'
     input_joint(1)%joint_id = 1
     input_joint(1)%body1 = 0
     ALLOCATE(input_joint(1)%q_init(6))
@@ -202,17 +202,18 @@ IMPLICIT NONE
                               0.0_dp, 0.0_dp, 0.0_dp /)
 
     ! match dof with the specified input, otherwise set to default
-    ALLOCATE(input_joint(1)%joint_dof(6))
-    DO i = 1,6
-        input_joint(1)%joint_dof(i) = default_dof_active
-        input_joint(1)%joint_dof(i)%dof_id = i
-        DO j = 1,ndof
-            IF(joint1_dof(j)%dof_id == input_joint(1)%joint_dof(i)%dof_id) THEN
-                ! the allocation of the default case should be overwrite
-                DEALLOCATE(input_joint(1)%joint_dof(i)%motion_params)
-                input_joint(1)%joint_dof(i) = joint1_dof(j)
-            END IF
-        END DO
+    ALLOCATE(input_joint(1)%joint_dof(3))
+    DO i = 1,3
+        input_joint(1)%joint_dof(i) = joint1_dof(i)
+!        input_joint(1)%joint_dof(i) = default_dof_active
+!        input_joint(1)%joint_dof(i)%dof_id = i
+!        DO j = 1,ndof
+!            IF(joint1_dof(j)%dof_id == input_joint(1)%joint_dof(i)%dof_id) THEN
+!                ! the allocation of the default case should be overwrite
+!                DEALLOCATE(input_joint(1)%joint_dof(i)%motion_params)
+!                input_joint(1)%joint_dof(i) = joint1_dof(j)
+!            END IF
+!        END DO
     END DO
 
     !-------------- Other joints --------------

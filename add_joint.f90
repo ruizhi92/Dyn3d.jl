@@ -223,6 +223,29 @@ IMPLICIT NONE
                                              0, 0, 1 /), &
                          shape(joint_system(ij)%T), order=(/2,1/) )
 
+        ELSE IF(joint_type == 'extended_hinge') THEN
+            nudof = 2
+            ncdof = 6-nudof
+            ALLOCATE(joint_system(ij)%udof(nudof))
+            ALLOCATE(joint_system(ij)%cdof(ncdof))
+            joint_system(ij)%udof = (/ 3, 4 /)
+            joint_system(ij)%cdof = (/ 1, 2, 5, 6 /)
+            ALLOCATE(joint_system(ij)%S(6,nudof))
+            ALLOCATE(joint_system(ij)%T(6,ncdof))
+            joint_system(ij)%S = reshape( (/ 0, 0,  &
+                                             0, 0,  &
+                                             1, 0,  &
+                                             0, 1,  &
+                                             0, 0,  &
+                                             0, 0  /), &
+                         shape(joint_system(ij)%S), order=(/2,1/) )
+            joint_system(ij)%T = reshape( (/ 1, 0, 0, 0, &
+                                             0, 1, 0, 0, &
+                                             0, 0, 0, 0, &
+                                             0, 0, 0, 0, &
+                                             0, 0, 1, 0, &
+                                             0, 0, 0, 1 /), &
+                         shape(joint_system(ij)%T), order=(/2,1/) )
         END IF
 
         !------- Set dof index according to joint type --------

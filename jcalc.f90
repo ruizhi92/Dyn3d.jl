@@ -45,17 +45,60 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     REAL(dp),DIMENSION(6)                           :: q_temp
+    REAL(dp),DIMENSION(3)                           :: theta,r
+    REAL(dp)                                        :: h
 
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
     ASSOCIATE(Xj => joint_system(joint_id)%Xj, &
-              qJ => joint_system(joint_id)%qJ)
+              qJ => joint_system(joint_id)%qJ, &
+              joint_type => joint_system(joint_id)%joint_type)
+
 
         ! construct a 1-d vector q_temp
         q_temp(:) = qJ(:,1)
 
-        CALL trans_matrix(q_temp(4:6), q_temp(1:3), Xj)
+        !-----------------------------------------
+        IF( (joint_type == 'revolute') .OR. (joint_type == 'cylindrical') .OR. &
+            (joint_type == 'prismatic') ) THEN
+
+            r = q_temp(4:6)
+            theta = q_temp(1:3)
+
+        !-----------------------------------------
+        ELSE IF (joint_type == 'helical') THEN
+
+            ! set fixed screw parameter h
+            h = 0.1_dp
+            r = h*q_temp(4:6)
+            theta = q_temp(1:3)
+            CALL trans_matrix(r, theta, Xj)
+
+        !-----------------------------------------
+        ELSE IF ((joint_type == 'planar') .OR. (joint_type == 'extended_hinge')) THEN
+
+            theta = q_temp(1:3)
+            r(1) = COS(theta(3))*q_temp(4) - SIN(theta(3))*q_temp(5)
+            r(2) = SIN(theta(3))*q_temp(4) + COS(theta(3))*q_temp(5)
+            r(3) = 0.0_dp
+            CALL trans_matrix(r, theta, Xj)
+
+        !-----------------------------------------
+        ELSE IF (joint_type == 'spherical') THEN
+
+        !-----------------------------------------
+        ELSE IF (joint_type == 'free') THEN
+
+            ! temporary put this here
+            r = q_temp(4:6)
+            theta = q_temp(1:3)
+
+        END IF
+
+        ! generate the joint transform matrix after each case determined
+        ! r and theta
+        CALL trans_matrix(r, theta, Xj)
 
     END ASSOCIATE
 

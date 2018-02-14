@@ -84,9 +84,10 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     ! add_body, add_joint and assemble them
+!    CALL config_2d_linkobj_extended
 !    CALL config_2d_linkobj
-!    CALL config_3d_hinged
-    CALL config_2d_undulate
+    CALL config_3d_hinged
+!    CALL config_2d_undulate
 
     !--------------------------------------------------------------------
     !  Allocation

@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------
-!  Subroutine   :            config_3d_hinged
+!  Subroutine   :            config_3d_cylindrical
 !------------------------------------------------------------------------
 !  Purpose      : This is a system configure file, containing body and
 !                 joint information. The body itself is a 2d body, but
@@ -35,7 +35,7 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-SUBROUTINE config_3d_hinged
+SUBROUTINE config_3d_cylindrical
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -260,4 +260,4 @@ IMPLICIT NONE
     CALL assemble_system
 
 
-END SUBROUTINE config_3d_hinged
+END SUBROUTINE config_3d_cylindrical

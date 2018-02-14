@@ -105,7 +105,7 @@ if system.ndim == 2
                        [system.body(k).vert_i(2,2);system.body(k-1).vert_i(3,2)], ...
             'Color','b','LineWidth',1);
     end
-    axis([-5 5 -2 2])
+    axis([-5 5 -8 2])
     xlabel('$x$'); ylabel('$y$')
 else
     % Gather vertex and face data from system
@@ -126,7 +126,7 @@ else
 %    view(122.5,14)
 %    view(90,0)
 %    view(0,90)
-    view(-27.5,30)
+    view(-37.5,30)
     grid on
     light
     lighting gouraud
@@ -159,9 +159,6 @@ for j = 2:floor(length(t)/nskip)
             hl(k).XData = xtmp;
             hl(k).YData = ytmp;
         end
-        
-        h2(1).XData = [vert_ini(2,1);system.body(1).vert_i(2,1)];
-        h2(1).YData = [vert_ini(2,2);system.body(1).vert_i(2,2)];
         for k = 2:system.nbody
             xtmp2 = [system.body(k).vert_i(2,1);system.body(k-1).vert_i(3,1)];
             ytmp2 = [system.body(k).vert_i(2,2);system.body(k-1).vert_i(3,2)];
