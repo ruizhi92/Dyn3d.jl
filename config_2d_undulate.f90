@@ -51,7 +51,7 @@ IMPLICIT NONE
     !  Local variables
     !------------------------------------------------------------------------
     REAL(dp)                        :: tf
-    INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme,ndim
+    INTEGER                         :: nbody,i,ndof,njoint,nstep,scheme,ndim
     REAL(dp)                        :: height,rhob,tol,gap
     REAL(dp)                        :: wavefreq,wavespeed,waveamp,phase,delta_s
     REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
@@ -68,9 +68,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 4.0_dp
+    tf = 2.0_dp
     ! total number of steps
-    nstep = 4000
+    nstep = 2000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -78,7 +78,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 4
+    nbody = 2
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -104,7 +104,7 @@ IMPLICIT NONE
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system
-    joint1_angle = -pi/2
+    joint1_angle = 0.0_dp !-pi/2
     ! init_angle - Initial angle of each interior joint
     init_angle = 0.0_dp
 
@@ -193,9 +193,8 @@ IMPLICIT NONE
     input_joint(1)%joint_type = 'planar'
     input_joint(1)%joint_id = 1
     input_joint(1)%body1 = 0
-    ALLOCATE(input_joint(1)%q_init(6))
-    input_joint(1)%q_init = (/ 0.0_dp, 0.0_dp, joint1_angle, &
-                              0.0_dp, 0.0_dp, 0.0_dp /)
+    ALLOCATE(input_joint(1)%q_init(3))
+    input_joint(1)%q_init = (/ joint1_angle, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape1(1:3) = joint1_orient
     input_joint(1)%shape1(4:6) = (/ 0.0_dp, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape2 = (/ 0.0_dp, 0.0_dp, 0.0_dp, &
@@ -205,15 +204,6 @@ IMPLICIT NONE
     ALLOCATE(input_joint(1)%joint_dof(3))
     DO i = 1,3
         input_joint(1)%joint_dof(i) = joint1_dof(i)
-!        input_joint(1)%joint_dof(i) = default_dof_active
-!        input_joint(1)%joint_dof(i)%dof_id = i
-!        DO j = 1,ndof
-!            IF(joint1_dof(j)%dof_id == input_joint(1)%joint_dof(i)%dof_id) THEN
-!                ! the allocation of the default case should be overwrite
-!                DEALLOCATE(input_joint(1)%joint_dof(i)%motion_params)
-!                input_joint(1)%joint_dof(i) = joint1_dof(j)
-!            END IF
-!        END DO
     END DO
 
     !-------------- Other joints --------------
@@ -253,7 +243,6 @@ IMPLICIT NONE
     ! Iteratively adding joint, generate joint_system structure
     DO i = 1, njoint
         CALL add_joint(i,input_joint(i))
-
     END DO
 
     !--------------------------------------------------------------------

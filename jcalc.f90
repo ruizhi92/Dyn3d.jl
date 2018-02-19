@@ -73,7 +73,6 @@ IMPLICIT NONE
             h = 0.1_dp
             r = h*q_temp(4:6)
             theta = q_temp(1:3)
-            CALL trans_matrix(r, theta, Xj)
 
         !-----------------------------------------
         ELSE IF ((joint_type == 'planar') .OR. (joint_type == 'extended_hinge')) THEN
@@ -82,8 +81,9 @@ IMPLICIT NONE
             r(1) = COS(theta(3))*q_temp(4) - SIN(theta(3))*q_temp(5)
             r(2) = SIN(theta(3))*q_temp(4) + COS(theta(3))*q_temp(5)
             r(3) = 0.0_dp
-            CALL trans_matrix(r, theta, Xj)
 
+!            r = q_temp(4:6)
+!            theta = q_temp(1:3)
         !-----------------------------------------
         ELSE IF (joint_type == 'spherical') THEN
 

@@ -105,7 +105,7 @@ if system.ndim == 2
                        [system.body(k).vert_i(2,2);system.body(k-1).vert_i(3,2)], ...
             'Color','b','LineWidth',1);
     end
-    axis([-5 5 -2 2])
+    axis([-3 3 -2 2])
     xlabel('$x$'); ylabel('$y$')
 else
     % Gather vertex and face data from system

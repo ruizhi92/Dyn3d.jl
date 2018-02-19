@@ -84,9 +84,13 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     ! add_body, add_joint and assemble them
-!    CALL config_2d_linkobj_extended
 !    CALL config_2d_linkobj
-    CALL config_3d_hinged
+!    CALL config_2d_fallobj
+!    CALL config_3d_prismatic
+    CALL config_3d_cylindrical
+
+!    CALL config_3d_hinged
+!    CALL config_2d_linkobj_extended
 !    CALL config_2d_undulate
 
     !--------------------------------------------------------------------
@@ -106,7 +110,7 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     system%Mfile_idx = 2018
     outfolder = '../Matlab_plot'
-    outfile = 'verts_i.dat'
+    outfile = 'verts.dat'
 
     fullname = TRIM(outfolder)//'/'//TRIM(outfile)
     OPEN(system%Mfile_idx,file = fullname)

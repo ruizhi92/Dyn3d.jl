@@ -87,7 +87,7 @@ IMPLICIT NONE
     ! stiff - Stiffness of torsion spring on each interior joint
     stiff = 0.03_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.01_dp
+    damp = 0.0_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system
@@ -204,30 +204,8 @@ IMPLICIT NONE
     END DO
 
     !-------------- Other joints --------------
-!    DO i = 2,input_body%nbody
-!        input_joint(i)%joint_type = 'extended_hinge'
-!        input_joint(i)%joint_id = i
-!        ! This body1 setup is for a single chain. May change in other
-!        ! setup such as config_4hinged in Matlab
-!        input_joint(i)%body1 = i - 1
-!        ALLOCATE(input_joint(i)%q_init(1))
-!        input_joint(i)%q_init = init_angle
-!        input_joint(i)%shape1 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
-!                                    height, 0.0_dp, 0.0_dp /)
-!        input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
-!                                    0.0_dp, 0.0_dp, 0.0_dp /)
-!
-!        ! revolute joint only has one unconstrained dof
-!        ALLOCATE(input_joint(i)%joint_dof(2))
-!        input_joint(i)%joint_dof(1) = default_dof_passive
-!        input_joint(i)%joint_dof(2)%dof_id = 4
-!        input_joint(i)%joint_dof(2)%dof_type = 'passive'
-!        input_joint(i)%joint_dof(2)%stiff = stiff
-!        input_joint(i)%joint_dof(2)%damp = damp
-!    END DO
-
     DO i = 2,input_body%nbody
-        input_joint(i)%joint_type = 'planar'
+        input_joint(i)%joint_type = 'extended_hinge'
         input_joint(i)%joint_id = i
         ! This body1 setup is for a single chain. May change in other
         ! setup such as config_4hinged in Matlab
@@ -238,18 +216,40 @@ IMPLICIT NONE
                                     height, 0.0_dp, 0.0_dp /)
         input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
                                     0.0_dp, 0.0_dp, 0.0_dp /)
+
         ! revolute joint only has one unconstrained dof
-        ALLOCATE(input_joint(i)%joint_dof(3))
+        ALLOCATE(input_joint(i)%joint_dof(2))
         input_joint(i)%joint_dof(1) = default_dof_passive
         input_joint(i)%joint_dof(2)%dof_id = 4
         input_joint(i)%joint_dof(2)%dof_type = 'passive'
         input_joint(i)%joint_dof(2)%stiff = stiff
         input_joint(i)%joint_dof(2)%damp = damp
-        input_joint(i)%joint_dof(3)%dof_id = 5
-        input_joint(i)%joint_dof(3)%dof_type = 'passive'
-        input_joint(i)%joint_dof(3)%stiff = stiff
-        input_joint(i)%joint_dof(3)%damp = damp
     END DO
+
+!    DO i = 2,input_body%nbody
+!        input_joint(i)%joint_type = 'planar'
+!        input_joint(i)%joint_id = i
+!        ! This body1 setup is for a single chain. May change in other
+!        ! setup such as config_4hinged in Matlab
+!        input_joint(i)%body1 = i - 1
+!        ALLOCATE(input_joint(i)%q_init(1))
+!        input_joint(i)%q_init = init_angle
+!        input_joint(i)%shape1 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
+!                                    height, 0.0_dp, 0.0_dp /)
+!        input_joint(i)%shape2 = (/  0.0_dp, 0.0_dp, 0.0_dp, &
+!                                    0.0_dp, 0.0_dp, 0.0_dp /)
+!        ! revolute joint only has one unconstrained dof
+!        ALLOCATE(input_joint(i)%joint_dof(3))
+!        input_joint(i)%joint_dof(1) = default_dof_passive
+!        input_joint(i)%joint_dof(2)%dof_id = 4
+!        input_joint(i)%joint_dof(2)%dof_type = 'passive'
+!        input_joint(i)%joint_dof(2)%stiff = stiff
+!        input_joint(i)%joint_dof(2)%damp = damp
+!        input_joint(i)%joint_dof(3)%dof_id = 5
+!        input_joint(i)%joint_dof(3)%dof_type = 'passive'
+!        input_joint(i)%joint_dof(3)%stiff = stiff
+!        input_joint(i)%joint_dof(3)%damp = damp
+!    END DO
     !--------------------------------------------------------------------
     !  Add all joints in the joint_system, while disconnected
     !--------------------------------------------------------------------

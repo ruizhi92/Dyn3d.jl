@@ -328,9 +328,9 @@ IMPLICIT NONE
 !WRITE(*,*) 'nudof_HERK ', nudof_HERK
 !WRITE(*,*) 'ncdof_HERK ', ncdof_HERK
 !WRITE(*,*) 'na', na
-!WRITE(*,*) 'udof_a', joint_system(ij)%udof_a
-!WRITE(*,*) 'cdof_HERK ', joint_system(ij)%cdof_HERK
-!WRITE(*,*) 'cdof ', joint_system(ij)%cdof
+!IF(ALLOCATED(joint_system(ij)%udof_a)) WRITE(*,*) 'udof_a', joint_system(ij)%udof_a
+!IF(ALLOCATED(joint_system(ij)%cdof_HERK)) WRITE(*,*) 'cdof_HERK ', joint_system(ij)%cdof_HERK
+!IF(ALLOCATED(joint_system(ij)%cdof)) WRITE(*,*) 'cdof ', joint_system(ij)%cdof
 
         ! udof_HERK, modified by active motion
         IF(nudof_HERK /= 0) THEN

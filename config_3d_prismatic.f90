@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------
-!  Subroutine   :            config_3d_cylindrical
+!  Subroutine   :            config_3d_prismatic
 !------------------------------------------------------------------------
 !  Purpose      : This is a system configure file, containing body and
 !                 joint information. The body itself is a 2d body, and
@@ -9,11 +9,10 @@
 !                 function. It returns an un-assembled list of bodies and
 !                 joints in the output system.
 !
-!  Details      ： This sets up 3d cylindrical rigid bodies, connected to inertial
-!                 space with a cylindrical joint, and each connected to the
-!                 next by a cylindrical joint. The first joint has active
-!                 oscillatory motion in both the 3rd and 6th dof while
-!                 the others are all passive.
+!  Details      ： This sets up 3d prismatic rigid bodies, connected to inertial
+!                 space with a prismatic joint, and each connected to the
+!                 next by a prismatic joint. The first joint has active
+!                 oscillatory motion while the others are all passive.
 !
 !  Input        :
 !
@@ -33,7 +32,7 @@
 !  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
-SUBROUTINE config_3d_cylindrical
+SUBROUTINE config_3d_prismatic
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -51,8 +50,7 @@ IMPLICIT NONE
     REAL(dp)                        :: tf
     INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme,ndim
     REAL(dp)                        :: height,rhob,tol,ang
-    REAL(dp)                        :: stiff,damp
-    REAL(dp)                        :: joint1_angle,init_angle
+    REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
     TYPE(dof),ALLOCATABLE           :: joint1_dof(:)
     TYPE(dof)                       :: default_dof_passive,default_dof_active
@@ -68,7 +66,7 @@ IMPLICIT NONE
     ! final time
     tf = 4.0_dp
     ! total number of steps
-    nstep = 8000
+    nstep = 4000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -76,7 +74,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 4
+    nbody = 6
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -84,18 +82,17 @@ IMPLICIT NONE
     ! height - height of the fourth (smallest) side, from 0 upward
     height = 1.0_dp/nbody
     ! ang - angle of the upper side with the child joint
-    ang = pi/8 ! 0.0_dp
+    ang = pi/16 ! 0.0_dp
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 0.5_dp
-
+    stiff = 0.03_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.01_dp
+    damp = 0.005_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system
-    joint1_angle = -pi/2
+    joint1_angle = 0.0_dp
     ! init_angle - Initial angle of each interior joint
     init_angle = 0.0_dp
 
@@ -108,20 +105,14 @@ IMPLICIT NONE
     ! joint1_dof specifies the degrees of freedom in the joint connected to
     ! the inertial system. Default is active hold at zero for those not
     ! specified.
-    ndof = 2
+    ndof = 1
     ALLOCATE(joint1_dof(ndof))
 
-    joint1_dof(1)%dof_id = 3
+    joint1_dof(1)%dof_id = 6
     joint1_dof(1)%dof_type = 'active'
     joint1_dof(1)%motion_type = 'oscillatory'
     ALLOCATE(joint1_dof(1)%motion_params(3))
     joint1_dof(1)%motion_params = (/ pi/4, 1.0_dp, 0.0_dp /)
-
-    joint1_dof(2)%dof_id = 6
-    joint1_dof(2)%dof_type = 'active'
-    joint1_dof(2)%motion_type = 'oscillatory'
-    ALLOCATE(joint1_dof(2)%motion_params(3))
-    joint1_dof(2)%motion_params = (/ pi/4, 0.75_dp, 0.0_dp /)
 
     !-------------------------- gravity ---------------------
     ! Orientation and magnitude of gravity in inertial system [x y z]
@@ -159,8 +150,8 @@ IMPLICIT NONE
         ! In this 2-d problem, the out-of-plane dimension is
         ! set to unity and has no bearing on the results.
         input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
-                                   0.5_dp, 0.0_dp, &
-                                   0.5_dp, height, &
+                                   1.0_dp, 0.0_dp, &
+                                   1.0_dp, height, &
                                    0.0_dp, height /), &
                     shape(input_body%verts), order=(/2,1/) )
     ELSE
@@ -214,7 +205,7 @@ IMPLICIT NONE
 
     !-------------- Other joints --------------
     DO i = 2,input_body%nbody
-        input_joint(i)%joint_type = 'cylindrical'
+        input_joint(i)%joint_type = 'prismatic'
         input_joint(i)%joint_id = i
         ! This body1 setup is for a single chain. May change in other
         ! setup such as config_4hinged in Matlab
@@ -227,11 +218,8 @@ IMPLICIT NONE
                                     0.0_dp, 0.0_dp, 0.0_dp /)
 
         ! prismatic joint only has one unconstrained dof
-        ALLOCATE(input_joint(i)%joint_dof(2))
+        ALLOCATE(input_joint(i)%joint_dof(1))
         input_joint(i)%joint_dof(1) = default_dof_passive
-        input_joint(i)%joint_dof(2) = default_dof_passive
-        input_joint(i)%joint_dof(1)%dof_id = 3
-        input_joint(i)%joint_dof(2)%dof_id = 6
     END DO
 
 
@@ -260,4 +248,4 @@ IMPLICIT NONE
     CALL assemble_system
 
 
-END SUBROUTINE config_3d_cylindrical
+END SUBROUTINE config_3d_prismatic
