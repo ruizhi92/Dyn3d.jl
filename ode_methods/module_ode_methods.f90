@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------
-!  Module	    :            module_ode_methods
+!  Module	    :            module_rk4
 !------------------------------------------------------------------------
 !  Purpose      : include some ode methods
 !
@@ -24,9 +24,7 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-MODULE module_ode_methods
-
-    USE module_HERK
+MODULE module_rk4
 
 IMPLICIT NONE
 
@@ -37,4 +35,4 @@ IMPLICIT NONE
     CONTAINS
     INCLUDE 'rk4_v.f90'
 
-END MODULE module_ode_methods
+END MODULE module_rk4

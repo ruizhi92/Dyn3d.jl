@@ -224,7 +224,6 @@ IMPLICIT NONE
     ! params got assigned in config files
     ! Allocate time, soln
     nstep = system%params%nstep
-    ALLOCATE(system%time(nstep))
     ALLOCATE(system%soln%t(nstep+1))
     ALLOCATE(system%soln%y(nstep+1,3*system%ndof+system%ncdof_HERK))
     system%soln%t(:) = 0.0_dp

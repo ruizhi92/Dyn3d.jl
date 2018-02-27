@@ -27,6 +27,10 @@ MODULE module_six_dimension_cross
 IMPLICIT NONE
 
     INTERFACE mmcross_inter
+        MODULE PROCEDURE mcross
+    END INTERFACE
+
+    INTERFACE mmcross_inter
         MODULE PROCEDURE mmcross
     END INTERFACE
 
@@ -35,6 +39,7 @@ IMPLICIT NONE
     END INTERFACE
 
     CONTAINS
+    INCLUDE 'mcross.f90'
     INCLUDE 'mmcross.f90'
     INCLUDE 'mfcross.f90'
 

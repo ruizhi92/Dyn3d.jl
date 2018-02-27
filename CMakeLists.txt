@@ -23,9 +23,9 @@ set (CMAKE_Fortran_FLAGS "-g -ffree-form -O2  -fimplicit-none  -Wall  -Wline-tru
 #---------------------------------------------------------------
 
 file(GLOB_RECURSE DYN3D_SRC
-    "dyn3d.f90"
-    "config_*.f90"
     "module_*.f90"
+    "config_*.f90"
+    "dyn3d.f90"
 )
 
 add_subdirectory(basic_matrix_operations)

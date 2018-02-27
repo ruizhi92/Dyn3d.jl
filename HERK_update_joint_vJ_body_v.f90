@@ -80,7 +80,7 @@ IMPLICIT NONE
             joint_system(i)%vJ = body_system(i)%v - &
                  MATMUL(body_system(i)%Xp_to_b, body_system(pid)%v)
         ELSE
-        ! if the first body
+!        ! if the first body
 !            IF(joint_system(i)%joint_type == 'planar') THEN
 !                q_temp = joint_system(i)%qJ(:,1)
 !                CALL trans_matrix(q_temp(4:6), q_temp(1:3), X, Xinv, rot)

@@ -39,8 +39,8 @@ SUBROUTINE embed_system
     USE module_constants
     USE module_data_type
     USE module_basic_matrix_operations
-    USE module_add_body_and_joint
     USE module_trans_matrix
+    USE module_jcalc
 
 IMPLICIT NONE
 

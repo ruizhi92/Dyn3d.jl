@@ -86,13 +86,13 @@ IMPLICIT NONE
     ! height - height of the fourth (smallest) side, from 0 upward
     height = 1.0_dp/nbody
     ! Gap distance to joint
-    gap = 1e-3_dp
+    gap = 0.0_dp
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 0.01_dp
+    stiff = 0.03_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.0_dp
+    damp = 0.01_dp
 
     !---------------- joint wave motion property ---------------
     ! wavefreq - frequency of deformation wave

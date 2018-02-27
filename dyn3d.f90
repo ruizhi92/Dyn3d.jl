@@ -32,7 +32,7 @@ PROGRAM dyn3d
     USE module_constants
     USE module_data_type
     USE module_init_system
-    USE module_ode_methods
+    USE module_HERK
     USE module_prescribed_motion
     USE module_embed_system
     USE module_write_structure
@@ -87,11 +87,11 @@ IMPLICIT NONE
 !    CALL config_2d_linkobj
 !    CALL config_2d_fallobj
 !    CALL config_3d_prismatic
-    CALL config_3d_cylindrical
+!    CALL config_3d_cylindrical
 
 !    CALL config_3d_hinged
 !    CALL config_2d_linkobj_extended
-!    CALL config_2d_undulate
+    CALL config_2d_undulate
 
     !--------------------------------------------------------------------
     !  Allocation

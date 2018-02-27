@@ -277,7 +277,8 @@ IMPLICIT NONE
     ! ndim -- dimension of this problem
     ! njoint -- number of joint, equals to number of body
     ! params -- look at TYPE system_params
-    ! time -- the time array that the ODE system is solved at
+    ! time -- the current time in the solver
+    ! dt -- the current timestep in the solver
     ! soln -- look at TYPE system_solution
     ! ndof -- total number of dofs of the system, which is 6*system%nbody
     ! nudof -- total number of unconstrained dofs of the system
@@ -317,7 +318,7 @@ IMPLICIT NONE
         INTEGER                                 :: ndim
         INTEGER                                 :: njoint,nbody
         TYPE(system_params)                     :: params
-        REAL(dp),DIMENSION(:),ALLOCATABLE       :: time
+        REAL(dp)                                :: time,dt
         TYPE(system_solution)                   :: soln
         INTEGER                                 :: ndof
         INTEGER                                 :: nudof,ncdof,np,na

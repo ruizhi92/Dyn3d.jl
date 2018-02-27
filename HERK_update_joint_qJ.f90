@@ -8,7 +8,9 @@
 !
 !  Details      ：
 !
-!  Input        : qJ: contains joint displacement in each joint's coord,
+!  Input        :  t: the current time in the solver
+!                  dt: the current timestep in the solver
+!                  qJ: contains joint displacement in each joint's coord,
 !                    lining up by joint index order. Dimension of qJ
 !                    is (6*nb,1) solved from the last time step.
 !
@@ -30,7 +32,7 @@
 !  Ruizhi Yang, 2017 Nov
 !------------------------------------------------------------------------
 
-SUBROUTINE HERK_update_joint_qJ(qJ)
+SUBROUTINE HERK_update_joint_qJ(t, dt, qJ)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -45,7 +47,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     !  Argument
     !--------------------------------------------------------------------
-    REAL(dp),DIMENSION(:)                            :: qJ
+    REAL(dp),INTENT(IN)                             :: t,dt
+    REAL(dp),DIMENSION(:),INTENT(IN)                :: qJ
 
     !--------------------------------------------------------------------
     !  Local variables
@@ -57,6 +60,9 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
 
     debug_flag = 0
+
+    system%time = t
+    system%dt = dt
 
     ! update joint_system%qJ using input argument qJ
     count = 0

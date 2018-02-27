@@ -1,7 +1,7 @@
 !------------------------------------------------------------------------
-!  Module	    :            module_add_body_and_joint
+!  Module	    :            module_jcalc
 !------------------------------------------------------------------------
-!  Purpose      : A wrapper for subroutine add_body and add_joint
+!  Purpose      : A wrapper for subroutine jcalc
 !
 !  Details      ：
 !
@@ -24,25 +24,15 @@
 !  Ruizhi Yang, 2017 Aug
 !------------------------------------------------------------------------
 
-MODULE module_add_body_and_joint
+MODULE module_jcalc
 
 IMPLICIT NONE
 
-    INTERFACE add_body_inter
-        MODULE PROCEDURE add_body
-    END INTERFACE
-
-    INTERFACE add_joint_inter
-        MODULE PROCEDURE add_joint
-    END INTERfACE
-
-    INTERFACE assemble_system_inter
-        MODULE PROCEDURE assemble_system
+    INTERFACE jcalc_inter
+        MODULE PROCEDURE jcalc
     END INTERFACE
 
     CONTAINS
-    INCLUDE 'add_body.f90'
-    INCLUDE 'add_joint.f90'
-    INCLUDE 'assemble_system.f90'
+    INCLUDE 'jcalc.f90'
 
-END MODULE module_add_body_and_joint
+END MODULE module_jcalc

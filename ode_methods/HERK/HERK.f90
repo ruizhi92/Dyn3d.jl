@@ -160,7 +160,7 @@ IMPLICIT NONE
     V(1,:) = v_0
     Vdot(1,:) = 0.0_dp
 
-    CALL HERK_update_joint_vJ_body_v(V(1,:),VJ(1,:))
+    CALL HERK_update_joint_vJ_body_v(V(1,:), VJ(1,:))
 
     ! stage i， 2 <= i <= stage+1
     ! Note: stage s+1 is the summarization of RK
@@ -214,7 +214,7 @@ END IF
         !     2. All coordinates transform including Xb_to_i, Xj, Xp_to_b
         ! are updated to t_i
 
-        CALL HERK_update_joint_qJ(QJ(i,:))
+        CALL HERK_update_joint_qJ(t_i, (t_i-t_im1), QJ(i,:))
 
 IF(debug_flag == 1) THEN
 WRITE(*,*) 'updated QJ(i,:): '
