@@ -68,9 +68,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 2.0_dp
+    tf = 2.0_dp !0.01_dp
     ! total number of steps
-    nstep = 2000
+    nstep = 2000 !1
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -78,7 +78,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 2
+    nbody = 4
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -98,7 +98,7 @@ IMPLICIT NONE
     ! wavefreq - frequency of deformation wave
     wavefreq = 1.0_dp
     ! wavespeed - speed of deformation wave (> 0 from head to tail)
-    wavespeed = 4*height*wavefreq ! wavelength set to 4*height
+    wavespeed = nbody*height*wavefreq ! wavelength set to 4*height
     ! waveamp - amplitude of deformation wave (in radians)
     waveamp = pi/4
 
@@ -225,12 +225,15 @@ IMPLICIT NONE
         ALLOCATE(input_joint(i)%joint_dof(1))
         input_joint(i)%joint_dof(1)%dof_id = 3
         input_joint(i)%joint_dof(1)%dof_type = 'active'
+!        input_joint(i)%joint_dof(1)%stiff = stiff
+!        input_joint(i)%joint_dof(1)%damp = damp
         input_joint(i)%joint_dof(1)%motion_type = 'oscillatory'
         ! construct the wave form
         delta_s = delta_s + height
         phase = -2.0_dp*pi*wavefreq/wavespeed*delta_s
         input_joint(i)%joint_dof(1)%motion_params = &
-                            (/ waveamp, wavefreq, phase /)
+!                            (/ waveamp, wavefreq, phase /)
+                            (/ waveamp, wavefreq, 0.0_dp /)
     END DO
 
 

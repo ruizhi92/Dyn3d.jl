@@ -125,6 +125,11 @@ END IF
         END DO
     END DO
 
+IF(debug_flag == 1) THEN
+WRITE(*,*) 'tau_total'
+CALL write_matrix(tau_total)
+END IF
+
     ! initialize A_total, which has similar shape with P_map
     A_total = 0.0_dp
     CALL ones(6,eye)

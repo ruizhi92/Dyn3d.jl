@@ -316,7 +316,7 @@ WRITE(*,'(/)')
 END IF
 
 IF(debug_flag == 1) THEN
-STOP
+!STOP
 END IF
 
     END DO

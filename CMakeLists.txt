@@ -24,6 +24,8 @@ set (CMAKE_Fortran_FLAGS "-g -ffree-form -O2  -fimplicit-none  -Wall  -Wline-tru
 
 file(GLOB_RECURSE DYN3D_SRC
     "module_*.f90"
+#    "config_2d_linkobj.f90"
+#    "config_2d_undulate.f90"
     "config_*.f90"
     "dyn3d.f90"
 )

@@ -103,6 +103,7 @@ IMPLICIT NONE
 
 !            r = q_temp(4:6)
 !            theta = q_temp(1:3)
+!            CALL trans_matrix(r, theta, Xj)
 
             IF(joint_id == 1) THEN
                 ! floating base, turn X into a vector for rk4_v input
@@ -122,9 +123,9 @@ IMPLICIT NONE
         ELSE IF (joint_type == 'free') THEN
 
             ! temporary put this here
-            r = q_temp(4:6)
-            theta = q_temp(1:3)
-            CALL trans_matrix(r, theta, Xj)
+!            r = q_temp(4:6)
+!            theta = q_temp(1:3)
+!            CALL trans_matrix(r, theta, Xj)
 
         END IF
 
