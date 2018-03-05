@@ -87,11 +87,10 @@ IMPLICIT NONE
 !    CALL config_2d_linkobj
 !    CALL config_2d_fallobj
 !    CALL config_3d_prismatic
-!    CALL config_3d_cylindrical
+    CALL config_3d_cylindrical
 !    CALL config_2d_undulate
-
 !    CALL config_3d_hinged
-    CALL config_2d_linkobj_extended
+!    CALL config_2d_linkobj_extended
 
     !--------------------------------------------------------------------
     !  Allocation

@@ -66,7 +66,7 @@ IMPLICIT NONE
     ! final time
     tf = 2.0_dp
     ! total number of steps
-    nstep = 20000
+    nstep = 2000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -74,7 +74,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 8
+    nbody = 3
     ! rhob - Density of each body (mass/area)
     rhob = 1.0_dp
 
@@ -82,19 +82,19 @@ IMPLICIT NONE
     ! height - height of the fourth (smallest) side, from 0 upward
     height = 1.0_dp/nbody
     ! ang - angle of the upper side with the child joint
-    ang = 0.0_dp !pi/4 ! 0.0_dp
+    ang = pi/4
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 5_dp
+    stiff = 0.1_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.03_dp
+    damp = 0.0001_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system
     joint1_angle = 0.0_dp
     ! init_angle - Initial angle of each interior joint
-    init_angle = pi/16
+    init_angle = pi/4
 
     !---------- joint orientation in inertial system --------
     ! joint1_orient - Fixed orientation of joint to inertial system
@@ -110,14 +110,14 @@ IMPLICIT NONE
 
     joint1_dof(1)%dof_id = 3
     joint1_dof(1)%dof_type = 'passive'
-    joint1_dof(1)%stiff = stiff
-    joint1_dof(1)%damp = damp
+    joint1_dof(1)%stiff = 0.0_dp
+    joint1_dof(1)%damp = 0.001_dp
 
     joint1_dof(2)%dof_id = 5
     joint1_dof(2)%dof_type = 'active'
     joint1_dof(2)%motion_type = 'oscillatory'
     ALLOCATE(joint1_dof(2)%motion_params(3))
-    joint1_dof(2)%motion_params = (/ 0.3_dp, 1.0_dp, 0.0_dp /)
+    joint1_dof(2)%motion_params = (/ 0.05_dp, 1.0_dp, 0.0_dp /)
 
     !-------------------------- gravity ---------------------
     ! Orientation and magnitude of gravity in inertial system [x y z]

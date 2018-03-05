@@ -51,11 +51,10 @@ IMPLICIT NONE
     REAL(dp)                        :: tf
     INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme,ndim
     REAL(dp)                        :: height,rhob,tol,ang
-    REAL(dp)                        :: stiff,damp
+    REAL(dp)                        :: stiff,stiff2,damp
     REAL(dp)                        :: joint1_angle,init_angle
     REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
-    TYPE(dof),ALLOCATABLE           :: joint1_dof(:)
-    TYPE(dof)                       :: default_dof_passive,default_dof_active
+    TYPE(dof),ALLOCATABLE           :: joint1_dof(:),default_dof_passive(:)
 
     !--------------------------------------------------------------------
     !  Assign local variables
@@ -66,9 +65,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 4.0_dp
+    tf = 2.0_dp
     ! total number of steps
-    nstep = 8000
+    nstep = 4000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -84,18 +83,19 @@ IMPLICIT NONE
     ! height - height of the fourth (smallest) side, from 0 upward
     height = 1.0_dp/nbody
     ! ang - angle of the upper side with the child joint
-    ang = pi/8 ! 0.0_dp
+    ang = 0.0_dp
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 0.5_dp
+    stiff = 0.03_dp
+    stiff2 = 0.5_dp
 
     ! damp - Damping coefficient of each interior joint
     damp = 0.01_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system
-    joint1_angle = -pi/2
+    joint1_angle = 0.0_dp !-pi/2
     ! init_angle - Initial angle of each interior joint
     init_angle = 0.0_dp
 
@@ -131,18 +131,17 @@ IMPLICIT NONE
     !  Set default dof
     !--------------------------------------------------------------------
     ! set default_dof_passive to passive prismatic joint
-    default_dof_passive%dof_id = 6
-    default_dof_passive%dof_type = 'passive'
-    default_dof_passive%stiff = stiff
-    default_dof_passive%damp = damp
+    ALLOCATE(default_dof_passive(2))
 
+    default_dof_passive(1)%dof_id = 3
+    default_dof_passive(1)%dof_type = 'passive'
+    default_dof_passive(1)%stiff = stiff
+    default_dof_passive(1)%damp = damp
 
-    ! set default_dof_active to active hold at 0
-    default_dof_active%dof_type = 'active'
-    default_dof_active%motion_type = 'hold'
-    ALLOCATE(default_dof_active%motion_params(1))
-    default_dof_active%motion_params = 0.0_dp
-
+    default_dof_passive(2)%dof_id = 6
+    default_dof_passive(2)%dof_type = 'passive'
+    default_dof_passive(2)%stiff = stiff2
+    default_dof_passive(2)%damp = damp
 
     !--------------------------------------------------------------------
     !  Fill the module parameter input_body
@@ -187,10 +186,10 @@ IMPLICIT NONE
     ALLOCATE(input_joint(njoint))
 
     !-------------- First joint --------------
-    input_joint(1)%joint_type = 'free'
+    input_joint(1)%joint_type = 'cylindrical'
     input_joint(1)%joint_id = 1
     input_joint(1)%body1 = 0
-    ALLOCATE(input_joint(1)%q_init(6))
+    ALLOCATE(input_joint(1)%q_init(2))
     input_joint(1)%q_init = (/ 0.0_dp, 0.0_dp, joint1_angle, &
                               0.0_dp, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape1(1:3) = joint1_orient
@@ -199,21 +198,13 @@ IMPLICIT NONE
                               0.0_dp, 0.0_dp, 0.0_dp /)
 
     ! match dof with the specified input, otherwise set to default
-    ALLOCATE(input_joint(1)%joint_dof(6))
-    DO i = 1,6
-        input_joint(1)%joint_dof(i) = default_dof_active
-        input_joint(1)%joint_dof(i)%dof_id = i
-        DO j = 1,ndof
-            IF(joint1_dof(j)%dof_id == input_joint(1)%joint_dof(i)%dof_id) THEN
-                ! the allocation of the default case should be overwrite
-                DEALLOCATE(input_joint(1)%joint_dof(i)%motion_params)
-                input_joint(1)%joint_dof(i) = joint1_dof(j)
-            END IF
-        END DO
+    ALLOCATE(input_joint(1)%joint_dof(2))
+    DO i = 1,2
+        input_joint(1)%joint_dof(i) = joint1_dof(i)
     END DO
 
     !-------------- Other joints --------------
-    DO i = 2,input_body%nbody
+    DO i = 2, input_body%nbody
         input_joint(i)%joint_type = 'cylindrical'
         input_joint(i)%joint_id = i
         ! This body1 setup is for a single chain. May change in other
@@ -228,10 +219,9 @@ IMPLICIT NONE
 
         ! prismatic joint only has one unconstrained dof
         ALLOCATE(input_joint(i)%joint_dof(2))
-        input_joint(i)%joint_dof(1) = default_dof_passive
-        input_joint(i)%joint_dof(2) = default_dof_passive
-        input_joint(i)%joint_dof(1)%dof_id = 3
-        input_joint(i)%joint_dof(2)%dof_id = 6
+        DO j = 1, 2
+            input_joint(i)%joint_dof(j) = default_dof_passive(j)
+        END DO
     END DO
 
 

@@ -16,22 +16,23 @@
 !
 !  Revisions    :
 !------------------------------------------------------------------------
-!  whirl vortex-based immersed boundary library
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2017 Aug
+!  Ruizhi Yang, 2018 Mar
 !------------------------------------------------------------------------
 
 MODULE module_embed_system
 
 IMPLICIT NONE
 
-    INTERFACE embed_system_inter
-        MODULE PROCEDURE embed_system
+    INTERFACE embed_system
+        MODULE PROCEDURE embed_system_init
+        MODULE PROCEDURE embed_system_march
     END INTERFACE
 
     CONTAINS
-    INCLUDE 'embed_system.f90'
+    INCLUDE 'embed_system_init.f90'
+    INCLUDE 'embed_system_march.f90'
 
 END MODULE module_embed_system

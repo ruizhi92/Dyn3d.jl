@@ -65,9 +65,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 4.0_dp
+    tf = 2.0_dp
     ! total number of steps
-    nstep = 4000
+    nstep = 8000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -85,9 +85,9 @@ IMPLICIT NONE
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 0.03_dp
+    stiff = 0.1_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.0_dp
+    damp = 0.03_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system

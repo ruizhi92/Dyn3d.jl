@@ -51,8 +51,9 @@ IMPLICIT NONE
     REAL(dp)                        :: tf
     INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme,ndim
     REAL(dp)                        :: height,rhob,tol
-    REAL(dp)                        :: stiff,damp,joint1_angle,init_angle
-    REAL(dp),DIMENSION(3)           :: gravity,joint1_orient
+    REAL(dp)                        :: stiff,damp
+    REAL(dp)                        :: joint1_angle,init_angle,joint1_orient
+    REAL(dp),DIMENSION(3)           :: gravity
     TYPE(dof),ALLOCATABLE           :: joint1_dof(:)
     TYPE(dof)                       :: default_dof_passive,default_dof_active
 
@@ -98,7 +99,7 @@ IMPLICIT NONE
     !---------- joint orientation in inertial system --------
     ! joint1_orient - Fixed orientation of joint to inertial system
     ! (Euler angles in radian)
-    joint1_orient = (/ 0.0_dp, 0.0_dp, 0.0_dp /)
+    joint1_orient = 0.0_dp
 
     ! ---------------- joint degree of freedom --------------
     ! joint1_dof specifies the degrees of freedom in the joint connected to
@@ -178,30 +179,19 @@ IMPLICIT NONE
     ALLOCATE(input_joint(njoint))
 
     !-------------- First joint --------------
-    input_joint(1)%joint_type = 'free'
+    input_joint(1)%joint_type = 'revolute'
     input_joint(1)%joint_id = 1
     input_joint(1)%body1 = 0
-    ALLOCATE(input_joint(1)%q_init(6))
-    input_joint(1)%q_init = (/ 0.0_dp, 0.0_dp, joint1_angle, &
-                              0.0_dp, 0.0_dp, 0.0_dp /)
-    input_joint(1)%shape1(1:3) = joint1_orient
-    input_joint(1)%shape1(4:6) = (/ 0.0_dp, 0.0_dp, 0.0_dp /)
+    ALLOCATE(input_joint(1)%q_init(1))
+    input_joint(1)%q_init = joint1_angle
+    input_joint(1)%shape1 = (/  0.0_dp, 0.0_dp, joint1_orient, &
+                                0.0_dp, 0.0_dp, 0.0_dp /)
     input_joint(1)%shape2 = (/ 0.0_dp, 0.0_dp, 0.0_dp, &
-                              0.0_dp, 0.0_dp, 0.0_dp /)
+                               0.0_dp, 0.0_dp, 0.0_dp /)
 
-    ! match dof with the specified input, otherwise set to default
-    ALLOCATE(input_joint(1)%joint_dof(6))
-    DO i = 1,6
-        input_joint(1)%joint_dof(i) = default_dof_active
-        input_joint(1)%joint_dof(i)%dof_id = i
-        DO j = 1,ndof
-            IF(joint1_dof(j)%dof_id == input_joint(1)%joint_dof(i)%dof_id) THEN
-                ! the allocation of the default case should be overwrite
-                DEALLOCATE(input_joint(1)%joint_dof(i)%motion_params)
-                input_joint(1)%joint_dof(i) = joint1_dof(j)
-            END IF
-        END DO
-    END DO
+    ! match dof with the specified input
+    ALLOCATE(input_joint(1)%joint_dof(1))
+    input_joint(1)%joint_dof(1) = joint1_dof(1)
 
     !-------------- Other joints --------------
     DO i = 2,input_body%nbody

@@ -122,11 +122,11 @@ else
     %h = h_temp;
     axis([-2 2 -2 2 -2 1])
     xlabel('$z$'); ylabel('$x$'); zlabel('$y$');
-%    view(112,34)
+    view(112,34)
 %    view(122.5,14)
 %    view(90,0)
 %    view(0,90)
-    view(-27.5,30)
+%    view(-27.5,30)
     grid on
     light
     lighting gouraud

@@ -2,7 +2,7 @@
 clc;clear all;
 
 % problem definition
-system.ndim = 2;
+system.ndim = 3;
 system.nbody = 4;
 for i = 1:system.nbody
     system.body(i).nvert = 4;
@@ -12,4 +12,4 @@ end
 system.data=load('verts.dat');
 
 % plot using artic_movie_3d
-artic_movie_3d(system,10,'savemovie','movie.avi');
+artic_movie_3d(system,20,'savemovie','movie.avi');

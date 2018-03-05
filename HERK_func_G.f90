@@ -97,16 +97,6 @@ IMPLICIT NONE
 
     END DO
 
-!    ! B_total for swimming problem
-!    ! construct B_total
-!    B_total(1:6, 1:6) = -eye
-!    CALL inverse(body_system(2)%Xp_to_b,B_temp)
-!    B_total(1:6, 7:12) = B_temp
-!    DO i = 2,system%nbody
-!        ! fill in child body blocks
-!        B_total(6*(i-1)+1:6*i, 6*(i-1)+1:6*i) = eye
-!    END DO
-
 IF(debug_flag == 1) THEN
 WRITE(*,*) 'B_total'
 CALL write_matrix(B_total)

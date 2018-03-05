@@ -31,7 +31,7 @@
 !  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
-SUBROUTINE embed_system
+SUBROUTINE embed_system_march
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -144,4 +144,4 @@ IMPLICIT NONE
         END IF
     END DO
 
-END SUBROUTINE
+END SUBROUTINE embed_system_march

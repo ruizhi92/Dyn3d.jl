@@ -1,7 +1,7 @@
 !------------------------------------------------------------------------
-!  Subroutine     :            jcalc
+!  Subroutine     :            jcalc_march
 !------------------------------------------------------------------------
-!  Purpose      : Computes joint_system(i)%Xj
+!  Purpose      : Computes joint_system(i)%Xj used in time marching
 !
 !  Details      ：
 !
@@ -25,7 +25,7 @@
 !  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
-SUBROUTINE jcalc(joint_id)
+SUBROUTINE jcalc_march(joint_id)
 
     !--------------------------------------------------------------------
     !  MODULE
@@ -93,17 +93,20 @@ IMPLICIT NONE
             CALL trans_matrix(r, theta, Xj)
 
         !-----------------------------------------
-        ELSE IF ( (joint_type == 'planar') .OR. (joint_type == 'extended_hinge') .OR. &
-                (joint_type == 'spherical')) THEN
+        ELSE IF (joint_type == 'spherical') THEN
 
 !            theta = q_temp(1:3)
 !            r(1) = COS(theta(3))*q_temp(4) - SIN(theta(3))*q_temp(5)
 !            r(2) = SIN(theta(3))*q_temp(4) + COS(theta(3))*q_temp(5)
 !            r(3) = 0.0_dp
 
-!            r = q_temp(4:6)
-!            theta = q_temp(1:3)
-!            CALL trans_matrix(r, theta, Xj)
+            r = q_temp(4:6)
+            theta = q_temp(1:3)
+            CALL trans_matrix(r, theta, Xj)
+
+        !-----------------------------------------
+        ELSE IF ((joint_type == 'planar') .OR. (joint_type == 'free') &
+            .OR. (joint_type == 'extended_hinge')) THEN
 
             IF(joint_id == 1) THEN
                 ! floating base, turn X into a vector for rk4_v input
@@ -119,16 +122,8 @@ IMPLICIT NONE
                 CALL trans_matrix(r, theta, Xj)
             END IF
 
-        !-----------------------------------------
-        ELSE IF (joint_type == 'free') THEN
-
-            ! temporary put this here
-!            r = q_temp(4:6)
-!            theta = q_temp(1:3)
-!            CALL trans_matrix(r, theta, Xj)
 
         END IF
-
     END ASSOCIATE
 
     CONTAINS
@@ -161,4 +156,4 @@ IMPLICIT NONE
 
     END SUBROUTINE update_X
 
-END SUBROUTINE jcalc
+END SUBROUTINE jcalc_march

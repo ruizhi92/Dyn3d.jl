@@ -81,15 +81,10 @@ IMPLICIT NONE
         END IF
     END DO
 
-    ! init joint_system(1)%Xj for planar type
-    IF(joint_system(1)%joint_type == 'planar') THEN
-        CALL ones(6,joint_system(1)%Xj)
-    END IF
-
     ! update the system transform matrices
     system%time = 0.0_dp
     system%dt = 0.0_dp
-    CALL embed_system
+    CALL embed_system(system%time)
 
     ! loop through the body chain to get initial body%v
     DO i = 1, system%nbody
