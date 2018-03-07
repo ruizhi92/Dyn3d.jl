@@ -106,6 +106,7 @@ if system.ndim == 2
             'Color','b','LineWidth',1);
     end
     axis([-2 2 -2 2])
+%    axis([-1 3 -2 2])
     xlabel('$x$'); ylabel('$y$')
 else
     % Gather vertex and face data from system
@@ -120,6 +121,7 @@ else
     h = patch('Faces',faces,'Vertices',vert,'FaceColor','c');
     %h_temp = get(h);
     %h = h_temp;
+% axis([-4 4 -1.5 1.5 -2 2])
     axis([-2 2 -2 2 -2 1])
     xlabel('$z$'); ylabel('$x$'); zlabel('$y$');
     view(112,34)

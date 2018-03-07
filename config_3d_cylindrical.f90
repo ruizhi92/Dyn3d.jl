@@ -65,9 +65,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 2.0_dp
+    tf = 3.0_dp
     ! total number of steps
-    nstep = 4000
+    nstep = 30000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -75,7 +75,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 4
+    nbody = 8
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -88,7 +88,7 @@ IMPLICIT NONE
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
     stiff = 0.03_dp
-    stiff2 = 0.5_dp
+    stiff2 = 0.8_dp
 
     ! damp - Damping coefficient of each interior joint
     damp = 0.01_dp
@@ -158,8 +158,8 @@ IMPLICIT NONE
         ! In this 2-d problem, the out-of-plane dimension is
         ! set to unity and has no bearing on the results.
         input_body%verts = reshape( (/ 0.0_dp, 0.0_dp, &
-                                   0.5_dp, 0.0_dp, &
-                                   0.5_dp, height, &
+                                   1.0_dp, 0.0_dp, &
+                                   1.0_dp, height, &
                                    0.0_dp, height /), &
                     shape(input_body%verts), order=(/2,1/) )
     ELSE

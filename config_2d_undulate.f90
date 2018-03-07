@@ -68,9 +68,9 @@ IMPLICIT NONE
 
     !------------------ numerical parameters ----------------
     ! final time
-    tf = 2.0_dp !0.01_dp
+    tf = 2.0_dp
     ! total number of steps
-    nstep = 2000 !1
+    nstep = 8000
     ! numerical tolerance for HERK solver error estimate
     tol = 1e-4_dp
     ! scheme choice of HERK solver
@@ -78,7 +78,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 4
+    nbody = 6
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -100,7 +100,7 @@ IMPLICIT NONE
     ! wavespeed - speed of deformation wave (> 0 from head to tail)
     wavespeed = nbody*height*wavefreq ! wavelength set to 4*height
     ! waveamp - amplitude of deformation wave (in radians)
-    waveamp = pi/4
+    waveamp = pi/16
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system

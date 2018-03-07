@@ -49,7 +49,7 @@ IMPLICIT NONE
     !  Local variables
     !------------------------------------------------------------------------
     REAL(dp)                        :: tf
-    INTEGER                         :: nbody,i,j,ndof,njoint,nstep,scheme,ndim
+    INTEGER                         :: nbody,i,ndof,njoint,nstep,scheme,ndim
     REAL(dp)                        :: height,rhob,tol
     REAL(dp)                        :: stiff,damp
     REAL(dp)                        :: joint1_angle,init_angle,joint1_orient

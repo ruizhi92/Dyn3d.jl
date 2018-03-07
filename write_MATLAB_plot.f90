@@ -62,9 +62,9 @@ IMPLICIT NONE
 
     DO j = 1, system%nbody
         DO k = 1, body_system(j)%nverts
-            WRITE(Mfile_idx,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,1) ! x
-            WRITE(Mfile_idx,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,2) ! y
-            WRITE(Mfile_idx,'(F9.5)', ADVANCE="NO") body_system(j)%verts_i(k,3) ! z
+            WRITE(Mfile_idx,'(F12.7)', ADVANCE="NO") body_system(j)%verts_i(k,1) ! x
+            WRITE(Mfile_idx,'(F12.7)', ADVANCE="NO") body_system(j)%verts_i(k,2) ! y
+            WRITE(Mfile_idx,'(F12.7)', ADVANCE="NO") body_system(j)%verts_i(k,3) ! z
         END DO
     END DO
     WRITE(Mfile_idx,'(/)')

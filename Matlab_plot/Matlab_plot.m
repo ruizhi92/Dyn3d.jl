@@ -2,14 +2,14 @@
 clc;clear all;
 
 % problem definition
-system.ndim = 3;
-system.nbody = 4;
+system.ndim = 2;
+system.nbody = 6;
 for i = 1:system.nbody
     system.body(i).nvert = 4;
 end
 
 % construct system structure from input .dat file
-system.data=load('verts.dat');
+system.data=load('verts_i.dat');
 
 % plot using artic_movie_3d
-artic_movie_3d(system,20,'savemovie','movie.avi');
+artic_movie_3d(system,80,'savemovie','movie.avi');
