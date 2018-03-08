@@ -53,7 +53,8 @@ IMPLICIT NONE
     !--------------------------------------------------------------------
     INTEGER                                       :: i,j,dofid
     INTEGER                                       :: ch_id,child_count
-    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b,A_temp,eye
+    REAL(dp),DIMENSION(6,6)                       :: Xi_to_b,Xc_to_b
+    REAL(dp),DIMENSION(6,6)                       :: A_temp,eye
     REAL(dp),DIMENSION(6,1)                       :: p_temp,g_temp
     REAL(dp),DIMENSION(6,1)                       :: f_ex,f_g
     REAL(dp),DIMENSION(:,:),ALLOCATABLE           :: p_total,tau_total
@@ -92,7 +93,10 @@ IMPLICIT NONE
         g_temp(1:3,1) = 0.0_dp
         g_temp(4:6,1) = system%params%gravity
         f_g = body_system(i)%mass*g_temp
-        f_g = MATMUL(Xi_to_b, f_g)
+
+        ! gravity is acting on center of mass
+        CALL inverse(body_system(i)%Xj_to_c, Xc_to_b)
+        f_g = MATMUL(MATMUL(Xi_to_b, Xc_to_b), f_g)
 
         ! external force described in inertial coord
         f_ex(:,1) = 0.0_dp

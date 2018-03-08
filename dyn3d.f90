@@ -70,6 +70,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(:),ALLOCATABLE       :: qJ_out,v_out,vdot_out
     REAL(dp),DIMENSION(:),ALLOCATABLE       :: lambda_out
     REAL(dp)                                :: h_out
+    REAL(dp),DIMENSION(3)                   :: x_center
 
     PROCEDURE(interface_func),POINTER       :: M => HERK_func_M
     PROCEDURE(interface_func),POINTER       :: G => HERK_func_G
@@ -121,6 +122,14 @@ IMPLICIT NONE
     ! initialize system
     CALL init_system
 
+        x_center(:) = 0.0_dp
+        DO j = 1, system%nbody
+            x_center = x_center + &
+                0.5*(body_system(j)%verts_i(2,:) + body_system(j)%verts_i(3,:))
+        END DO
+        x_center = x_center / system%nbody
+        WRITE(*,*) 'center of mass of the system is at'
+        WRITE(*,*) x_center
     CALL write_Matlab_plot(1)
 
     ! write initial condition
@@ -206,6 +215,16 @@ IMPLICIT NONE
         ! update the current position of the body chain
         CALL embed_system
 
+        ! Verify center of mass is not changing for the 2d_undulate case
+        x_center(:) = 0.0_dp
+        DO j = 1, system%nbody
+            x_center = x_center + &
+                0.5*(body_system(j)%verts_i(2,:) + body_system(j)%verts_i(3,:))
+        END DO
+        x_center = x_center / system%nbody
+
+
+        ! store plotting info for this timestep
         CALL write_Matlab_plot(i)
 
         ! update the system state with ode solution
@@ -261,6 +280,8 @@ IMPLICIT NONE
             END IF
             WRITE(*,'(/)')
         END DO
+        WRITE(*,*) 'center of mass of the system is at'
+        WRITE(*,*) x_center
         WRITE(*,*) '--------------------------------------------------------'
         END IF
 

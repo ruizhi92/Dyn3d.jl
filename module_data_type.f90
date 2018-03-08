@@ -170,6 +170,9 @@ IMPLICIT NONE
     !    A - For a single body, A is the transformation matrix for velocity from
     !        this body's beginning point to the body's ending point. It's valid
     !        for velocity in the inertial system.
+    !    pA - articulated body momentum, used in init_system to zero-out total
+    !         initial momentum
+    !    Ib_A - articulated body inertia, same used as pA
         INTEGER                                 :: body_id,parent_id
         INTEGER,DIMENSION(:),ALLOCATABLE        :: child_id
         INTEGER                                 :: nchild,nverts
@@ -182,6 +185,8 @@ IMPLICIT NONE
         REAL(dp),DIMENSION(6,6)                 :: Xp_to_b
         REAL(dp),DIMENSION(6,1)                 :: q,v,c
         REAL(dp),DIMENSION(6,6)                 :: A
+        REAL(dp),DIMENSION(6,1)                 :: pA
+        REAL(dp),DIMENSION(6,6)                 :: Ib_A
 
     END TYPE
 

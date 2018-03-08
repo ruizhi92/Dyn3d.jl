@@ -93,7 +93,7 @@ IMPLICIT NONE
             CALL trans_matrix(r, theta, Xj)
 
         !-----------------------------------------
-        ELSE IF (joint_type == 'spherical') THEN
+        ELSE IF ((joint_type == 'spherical') .OR. (joint_type == 'free')) THEN
 
 !            theta = q_temp(1:3)
 !            r(1) = COS(theta(3))*q_temp(4) - SIN(theta(3))*q_temp(5)
@@ -105,23 +105,25 @@ IMPLICIT NONE
             CALL trans_matrix(r, theta, Xj)
 
         !-----------------------------------------
-        ELSE IF ((joint_type == 'planar') .OR. (joint_type == 'free') &
-            .OR. (joint_type == 'extended_hinge')) THEN
+        ELSE IF ((joint_type == 'planar') .OR. (joint_type == 'extended_hinge')) THEN
 
-            IF(joint_id == 1) THEN
-                ! floating base, turn X into a vector for rk4_v input
-                y_im1 = RESHAPE(Xj, (/36/))
-                CALL rk4_v(36, system%time, system%dt, &
-                           y_im1, func, y_i)
-                Xj = RESHAPE(y_i, (/6,6/))
-            ELSE
-                theta = q_temp(1:3)
-                r(1) = COS(theta(3))*q_temp(4) - SIN(theta(3))*q_temp(5)
-                r(2) = SIN(theta(3))*q_temp(4) + COS(theta(3))*q_temp(5)
-                r(3) = 0.0_dp
-                CALL trans_matrix(r, theta, Xj)
-            END IF
+!            IF(joint_id == 1) THEN
+!                ! floating base, turn X into a vector for rk4_v input
+!                y_im1 = RESHAPE(Xj, (/36/))
+!                CALL rk4_v(36, system%time, system%dt, &
+!                           y_im1, func, y_i)
+!                Xj = RESHAPE(y_i, (/6,6/))
+!            ELSE
+!                theta = q_temp(1:3)
+!                r(1) = COS(theta(3))*q_temp(4) - SIN(theta(3))*q_temp(5)
+!                r(2) = SIN(theta(3))*q_temp(4) + COS(theta(3))*q_temp(5)
+!                r(3) = 0.0_dp
+!                CALL trans_matrix(r, theta, Xj)
+!            END IF
 
+            r = q_temp(4:6)
+            theta = q_temp(1:3)
+            CALL trans_matrix(r, theta, Xj)
 
         END IF
     END ASSOCIATE

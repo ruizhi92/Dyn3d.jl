@@ -44,9 +44,9 @@ IMPLICIT NONE
     CHARACTER(LEN = max_char)                 :: mode
     REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: motion
     REAL(dp),DIMENSION(:),ALLOCATABLE         :: qJ_total,v_total
-    REAL(dp),DIMENSION(6,1)                   :: momentum
-    REAL(dp),DIMENSION(6,6)                   :: X_temp
-    REAL(dp),DIMENSION(6)                     :: v_temp
+    REAL(dp),DIMENSION(6,6)                   :: Ib_A_rest,Xp_to_b
+    REAL(dp),DIMENSION(6,1)                   :: pA_rest
+    REAL(dp),DIMENSION(:,:),ALLOCATABLE       :: Pup,Ptemp,Ptemp_inv,ytemp
 
     !--------------------------------------------------------------------
     !  ALLOCATION
@@ -92,48 +92,83 @@ IMPLICIT NONE
     CALL embed_system(system%time)
 
     !--------------------------------------------------------------------
-    !  If joint(1) is passive, zero-out momentum of the whole system
+    !  Pass 1
     !--------------------------------------------------------------------
-!    ! initialize momentum
-!    momentum(:,1) = 0.0_dp
-!
-!    IF(joint_system(1)%np > 0) THEN
-!        ! accumulate momentum of active dofs
-!        DO i = 2, system%nbody
-!            IF(joint_system(i)%na > 0) THEN
-!                CALL inverse(body_system(i)%Xb_to_i, X_temp)
-!                X_temp = TRANSPOSE(X_temp)
-!                momentum = momentum + MATMUL(X_temp, &
-!                                            MATMUL(body_system(i)%inertia_b, &
-!                                                   body_system(i)%v))
-!            END IF
-!        END DO
-!
-!        ! assign new velocity to body(1)
-!        CALL inverse(body_system(1)%Xb_to_i, X_temp)
-!        momentum = MATMUL(X_temp, momentum)
-!        CALL lu(body_system(1)%inertia_b, -momentum(:,1), v_temp)
-!        body_system(1)%v(joint_system(1)%udof_p,1) = &
-!            v_temp(joint_system(1)%udof_p)
-!
-!        ! update the other body's velocity
-!        DO i = 2, system%nbody
-!            pid = body_system(i)%parent_id
-!            body_system(i)%v = joint_system(i)%vJ + &
-!                MATMUL(body_system(i)%Xp_to_b, body_system(pid)%v)
-!        END DO
-!
-!        momentum(:,1) = 0.0_dp
-!        DO i = 1, system%nbody
-!                CALL inverse(body_system(i)%Xb_to_i, X_temp)
-!                X_temp = TRANSPOSE(X_temp)
-!                momentum = momentum + MATMUL(X_temp, &
-!                                            MATMUL(body_system(i)%inertia_b, &
-!                                                   body_system(i)%v))
-!        END DO
-!        WRITE(*,*) momentum
-!        STOP
-!    END IF
+    ! from body 1 to body n
+    DO i = 1, system%nbody
+
+        ! initialize the articulated inertia of each body to be equal to its
+        ! own inertia
+        body_system(i)%Ib_A = body_system(i)%inertia_b
+
+        ! initialize the joint momentum term
+        body_system(i)%pA(:,1) = 0.0_dp
+    END DO
+
+    !--------------------------------------------------------------------
+    !  Pass 2
+    !--------------------------------------------------------------------
+    ! from body n to body 1
+    DO i = system%nbody, 1 ,-1
+
+        ! the body_id of this body's parent body
+        pid = body_system(i)%parent_id
+
+        ! If the parent is not the base, then add the composite inertia of this
+        ! body  (in the coordinate system of the parent) to the inertia of its
+        ! parent
+        IF(pid /= 0) THEN
+            Xp_to_b = body_system(i)%Xp_to_b
+
+            Ib_A_rest = body_system(i)%Ib_A
+            pA_rest = body_system(i)%pA + MATMUL(Ib_A_rest, joint_system(i)%vJ)
+            body_system(pid)%Ib_A = body_system(pid)%Ib_A + &
+                MATMUL(TRANSPOSE(Xp_to_b), MATMUL( &
+                    Ib_A_rest, Xp_to_b))
+            body_system(pid)%pA = body_system(pid)%pA + MATMUL( &
+                TRANSPOSE(Xp_to_b), pA_rest)
+        END IF
+
+    END DO
+
+    !--------------------------------------------------------------------
+    !  Pass 3
+    !--------------------------------------------------------------------
+    ! compute the velocity of passive degrees of freedom in joint from inertial
+    ! system to body 1, by zeroing the overall system momentum.
+    ! update the passive part of qdot
+
+    ! only deal with body 1's passive dof
+    IF(joint_system(1)%np > 0) THEN
+        ALLOCATE(Pup(6,joint_system(1)%np))
+        Pup = joint_system(1)%S(:,joint_system(1)%i_udof_p)
+
+        ALLOCATE(Ptemp(SIZE(Pup,2),SIZE(Pup,2)))
+        Ptemp = MATMUL(TRANSPOSE(Pup),MATMUL(body_system(1)%Ib_A,Pup))
+        ALLOCATE(Ptemp_inv(SIZE(Ptemp,2),SIZE(Ptemp,1)))
+        CALL inverse(Ptemp,Ptemp_inv)
+
+        ALLOCATE(ytemp(SIZE(Pup,2),1))
+        ytemp = MATMUL(-Ptemp_inv,MATMUL(TRANSPOSE(Pup),body_system(1)%pA))
+        joint_system(1)%vJ(joint_system(1)%udof_p,1) = ytemp(:,1)
+    END IF
+
+    !--------------------------------------------------------------------
+    !  loop through the body chain to get initial body%v
+    !--------------------------------------------------------------------
+
+    DO i = 1, system%nbody
+        pid = body_system(i)%parent_id
+
+        ! if not the first body
+        IF(pid /= 0) THEN
+            body_system(i)%v = joint_system(i)%vJ + &
+                               MATMUL(body_system(i)%Xp_to_b, body_system(pid)%v)
+        ELSE
+        ! if the first body
+            body_system(i)%v = joint_system(i)%vJ
+        END IF
+    END DO
 
     !--------------------------------------------------------------------
     !  Construct first solution
@@ -155,5 +190,9 @@ IMPLICIT NONE
     DEALLOCATE(motion)
     DEALLOCATE(qJ_total)
     DEALLOCATE(v_total)
+    IF(ALLOCATED(Pup)) DEALLOCATE(Pup)
+    IF(ALLOCATED(Ptemp)) DEALLOCATE(Ptemp)
+    IF(ALLOCATED(Ptemp_inv)) DEALLOCATE(Ptemp_inv)
+    IF(ALLOCATED(ytemp)) DEALLOCATE(ytemp)
 
 END SUBROUTINE init_system

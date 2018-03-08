@@ -55,7 +55,7 @@ IMPLICIT NONE
     REAL(dp),DIMENSION(6,1)                         :: q_temp,q_temp2
     REAL(dp),DIMENSION(6,6)                         :: Xi_to_b,Xj_to_p
     REAL(dp),DIMENSION(6,6)                         :: Xch_to_b
-    INTEGER                                         :: i,j,child_id,pid
+    INTEGER                                         :: i,j,child_id
     REAL(dp),DIMENSION(3)                           :: x_temp
 
     IF (ABS(init_time) > tiny) THEN
@@ -151,23 +151,6 @@ IMPLICIT NONE
             ! assign to x_0
             body_system(child_id)%x_0 = x_temp
         END DO
-        END IF
-    END DO
-
-    !--------------------------------------------------------------------
-    !  loop through the body chain to get initial body%v
-    !--------------------------------------------------------------------
-
-    DO i = 1, system%nbody
-        pid = body_system(i)%parent_id
-
-        ! if not the first body
-        IF(pid /= 0) THEN
-            body_system(i)%v = joint_system(i)%vJ + &
-                               MATMUL(body_system(i)%Xp_to_b, body_system(pid)%v)
-        ELSE
-        ! if the first body
-            body_system(i)%v = joint_system(i)%vJ
         END IF
     END DO
 

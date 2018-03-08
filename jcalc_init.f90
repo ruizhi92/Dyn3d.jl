@@ -48,7 +48,6 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     REAL(dp),DIMENSION(6)                           :: q_temp
-    REAL(dp),DIMENSION(36)                          :: y_im1,y_i
     REAL(dp),DIMENSION(3)                           :: theta,r
     REAL(dp)                                        :: h
 
