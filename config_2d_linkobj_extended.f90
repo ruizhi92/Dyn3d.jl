@@ -85,9 +85,9 @@ IMPLICIT NONE
 
     !---------------- joint physical property ---------------
     ! stiff - Stiffness of torsion spring on each interior joint
-    stiff = 0.2_dp
+    stiff = 0.4_dp
     ! damp - Damping coefficient of each interior joint
-    damp = 0.03_dp
+    damp = 0.05_dp
 
     !--------------- joint angle in joint coordinate --------
     ! joint1_angle - Initial angle of joint in inertial system

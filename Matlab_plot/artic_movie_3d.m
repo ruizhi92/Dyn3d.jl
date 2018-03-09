@@ -97,33 +97,33 @@ if system.ndim == 2
             'Color','r','LineWidth',2);
     end
     
-%     % record movement of the first joint
-%     vert_ini = system.body(1).vert_i;
-%     h2(1) = line([vert_ini(2,1);vert_ini(2,1)], ...
-%                  [vert_ini(2,2);vert_ini(2,2)], ...
-%             'Color','b','LineWidth',1);
-%     for k = 2:system.nbody
-%         h2(k) = line([system.body(k).vert_i(2,1);system.body(k-1).vert_i(3,1)], ...
-%                        [system.body(k).vert_i(2,2);system.body(k-1).vert_i(3,2)], ...
-%             'Color','b','LineWidth',1);
-%     end
-    
-    % plot center of mass
-    x_c = 0.5*(system.body(1).vert_i(2:3,1)+system.body(2).vert_i(2:3,1));
-    y_c = 0.5*(system.body(1).vert_i(2:3,2)+system.body(2).vert_i(2:3,2));
-    h3 = line(x_c, y_c, 'Color','k','LineWidth',1);
-    h4 = line([sum(x_c)/2 system.body(1).vert_i(3,1)], ...
-        [sum(y_c)/2 system.body(1).vert_i(3,2)], ...
-        'Color','k','LineWidth',1);
-    
-    % record movement of the second joint
-    vert_ini = system.body(2).vert_i;
-    h5 = line([vert_ini(2,1);vert_ini(2,1)], ...
+    % record movement of the first joint
+    vert_ini = system.body(1).vert_i;
+    h2(1) = line([vert_ini(2,1);vert_ini(2,1)], ...
                  [vert_ini(2,2);vert_ini(2,2)], ...
             'Color','b','LineWidth',1);
+    for k = 2:system.nbody
+        h2(k) = line([system.body(k).vert_i(2,1);system.body(k-1).vert_i(3,1)], ...
+                       [system.body(k).vert_i(2,2);system.body(k-1).vert_i(3,2)], ...
+            'Color','b','LineWidth',1);
+    end
     
-    axis([-2 2 -2 2])
-%    axis([-1 3 -2 2])
+%     % plot center of mass
+%     x_c = 0.5*(system.body(1).vert_i(2:3,1)+system.body(2).vert_i(2:3,1));
+%     y_c = 0.5*(system.body(1).vert_i(2:3,2)+system.body(2).vert_i(2:3,2));
+%     h3 = line(x_c, y_c, 'Color','k','LineWidth',1);
+%     h4 = line([sum(x_c)/2 system.body(1).vert_i(3,1)], ...
+%         [sum(y_c)/2 system.body(1).vert_i(3,2)], ...
+%         'Color','k','LineWidth',1);
+%     
+%     % record movement of the second joint
+%     vert_ini = system.body(2).vert_i;
+%     h5 = line([vert_ini(2,1);vert_ini(2,1)], ...
+%                  [vert_ini(2,2);vert_ini(2,2)], ...
+%             'Color','b','LineWidth',1);
+    
+%    axis([-2 2 -2 2])
+    axis([-2 4 -4 2])
     xlabel('$x$'); ylabel('$y$')
 else
     % Gather vertex and face data from system
@@ -179,27 +179,27 @@ for j = 2:floor(length(t)/nskip)
             hl(k).YData = ytmp;
         end
         
-%         h2(1).XData = [vert_ini(2,1);system.body(1).vert_i(2,1)];
-%         h2(1).YData = [vert_ini(2,2);system.body(1).vert_i(2,2)];
-%         for k = 2:system.nbody
-%             xtmp2 = [system.body(k).vert_i(2,1);system.body(k-1).vert_i(3,1)];
-%             ytmp2 = [system.body(k).vert_i(2,2);system.body(k-1).vert_i(3,2)];
-%             h2(k).XData = xtmp2;
-%             h2(k).YData = ytmp2;
-%         end
+        h2(1).XData = [vert_ini(2,1);system.body(1).vert_i(2,1)];
+        h2(1).YData = [vert_ini(2,2);system.body(1).vert_i(2,2)];
+        for k = 2:system.nbody
+            xtmp2 = [system.body(k).vert_i(2,1);system.body(k-1).vert_i(3,1)];
+            ytmp2 = [system.body(k).vert_i(2,2);system.body(k-1).vert_i(3,2)];
+            h2(k).XData = xtmp2;
+            h2(k).YData = ytmp2;
+        end
  
-        x_c = 0.5*(system.body(1).vert_i(2:3,1)+system.body(2).vert_i(2:3,1));
-        y_c = 0.5*(system.body(1).vert_i(2:3,2)+system.body(2).vert_i(2:3,2));
-        h3.XData = x_c;
-        h3.YData = y_c;
-
-        xtmp = [sum(x_c)/2 system.body(1).vert_i(3,1)];
-        ytmp = [sum(y_c)/2 system.body(1).vert_i(3,2)];
-        h4.XData = xtmp;
-        h4.YData = ytmp;
-    
-        h5.XData = [vert_ini(2,1);system.body(2).vert_i(2,1)];
-        h5.YData = [vert_ini(2,2);system.body(2).vert_i(2,2)];
+%         x_c = 0.5*(system.body(1).vert_i(2:3,1)+system.body(2).vert_i(2:3,1));
+%         y_c = 0.5*(system.body(1).vert_i(2:3,2)+system.body(2).vert_i(2:3,2));
+%         h3.XData = x_c;
+%         h3.YData = y_c;
+% 
+%         xtmp = [sum(x_c)/2 system.body(1).vert_i(3,1)];
+%         ytmp = [sum(y_c)/2 system.body(1).vert_i(3,2)];
+%         h4.XData = xtmp;
+%         h4.YData = ytmp;
+%     
+%         h5.XData = [vert_ini(2,1);system.body(2).vert_i(2,1)];
+%         h5.YData = [vert_ini(2,2);system.body(2).vert_i(2,2)];
      
     else
         % Gather the vertex coordinates at this time and replace the patch

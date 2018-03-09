@@ -31,7 +31,7 @@
 !  SOFIA Laboratory
 !  University of California, Los Angeles
 !  Los Angeles, California 90095  USA
-!  Ruizhi Yang, 2018 Feb.
+!  Ruizhi Yang, 2018 Feb
 !------------------------------------------------------------------------
 
 SUBROUTINE HERK_update_joint_vJ_body_v(v, vJ)
@@ -56,7 +56,7 @@ IMPLICIT NONE
     !  Local variables
     !--------------------------------------------------------------------
     INTEGER                                         :: i,count,pid
-
+    REAL(dp),DIMENSION(6,6)                         :: Rot
     !--------------------------------------------------------------------
     !  Algorithm
     !--------------------------------------------------------------------
@@ -73,13 +73,27 @@ IMPLICIT NONE
 
         pid = body_system(i)%parent_id
 
-        ! if not the first body
         IF(pid /= 0) THEN
+            ! if not the first body
             joint_system(i)%vJ = body_system(i)%v - &
                  MATMUL(body_system(i)%Xp_to_b, body_system(pid)%v)
         ELSE
+            ! if is the first body
             joint_system(i)%vJ = body_system(i)%v
         END IF
+
+        ASSOCIATE(joint_type => joint_system(i)%joint_type)
+        IF((joint_type == 'planar') .OR. (joint_type == 'extended_hinge') ) THEN
+                ! here we rotate the joint velocity from Fs back to Fp so that
+                ! the integrated result in q described in Fp coord, which can
+                ! be used directly as transformation matrix.
+            Rot(:,:) = 0.0_dp
+            Rot(1:3,1:3) = joint_system(i)%Xj(1:3,1:3)
+            Rot(4:6,4:6) = joint_system(i)%Xj(1:3,1:3)
+            joint_system(i)%vJ = MATMUL(TRANSPOSE(Rot),joint_system(i)%vJ)
+        END IF
+        END ASSOCIATE
+
 
     END DO
 

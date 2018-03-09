@@ -78,7 +78,7 @@ IMPLICIT NONE
 
     !----------------- body physical property ---------------
     ! nbody - Number of bodies
-    nbody = 2
+    nbody = 4
     ! rhob - Density of each body (mass/area)
     rhob = 0.01_dp
 
@@ -98,7 +98,7 @@ IMPLICIT NONE
     ! wavefreq - frequency of deformation wave
     wavefreq = 1.0_dp
     ! wavespeed - speed of deformation wave (> 0 from head to tail)
-    wavespeed = nbody*height*wavefreq ! wavelength set to 4*height
+    wavespeed = 4*height*wavefreq ! wavelength set to 4*height
     ! waveamp - amplitude of deformation wave (in radians)
     waveamp = pi/4
 
