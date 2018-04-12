@@ -9,6 +9,7 @@ import Base: show
 
 # import self-defined modules
 using ..ConfigDataType
+using ..SpatialAlgebra
 
 """
 This module construct the body-joint system by:
@@ -28,13 +29,13 @@ mutable struct SingleBody
     nverts::Int
     verts::Array{Float64,2}
     verts_i::Array{Float64,2}
-    # coord in body frame
+    # coord in body frame and inertial frame
     x_c::Vector{Float64}
-    x_0::Vector{Float64}
+    x_i::Vector{Float64}
     # mass and inertia
     mass::Float64
     inertia_c::Array{Float64,2}
-    inertia_0::Array{Float64,2}
+    inertia_i::Array{Float64,2}
     # transform matrix
     Xb_to_c::Array{Float64,2}
     Xb_to_i::Array{Float64,2}
@@ -59,19 +60,21 @@ SingleBody() = SingleBody(
     Vector{Float64}(0),Array{Float64,2}(0,0)
 )
 
-function show(io::IO, m::SingleBody)
+function show(io::IO, ::MIME"text/plain", m::SingleBody)
     println(io, "body_id = $(m.bid)", ", parent_id = $(m.pid)",
             ", nchild = $(m.nchild)", ", child_id = $(m.chid)")
     println(io, "nverts = $(m.nverts)", ", verts = $(m.verts)")
     println(io, "verts_i = $(m.verts_i)")
-    println(io, "x_c = $(m.x_c)", ", x_0 = $(m.x_0)")
+    println(io, "x_c = $(m.x_c)", ", x_i = $(m.x_i)")
     println(io, "mass = $(m.mass)")
     println(io, "inertia_c = $(m.inertia_c)")
-    println(io, "inertia_0 = $(m.inertia_0)")
+    println(io, "inertia_i = $(m.inertia_i)")
     println(io, "Xb_to_c = $(m.Xb_to_c)")
     println(io, "Xb_to_i = $(m.Xb_to_i)")
     println(io, "Xp_to_b = $(m.Xp_to_b)")
-    println(io, "q = $(m.q)", ", v = $(m.v)", ", c = $(m.c)")
+    println(io, "q = $(m.q)")
+    println(io, "v = $(m.v)")
+    println(io, "c = $(m.c)")
 end
 
 #-------------------------------------------------------------------------------
@@ -148,7 +151,9 @@ function show(io::IO, m::SingleJoint)
     println(io, "Xj = $(m.Xj)")
     println(io, "Xp_to_j = $(m.Xp_to_j)")
     println(io, "Xj_to_ch = $(m.Xj_to_ch)")
-    println(io, "qJ = $(m.qJ)", ", vJ = $(m.vJ)", ", cJ = $(m.cJ)")
+    println(io, "qJ = $(m.qJ)")
+    println(io, "vJ = $(m.vJ)")
+    println(io, "cJ = $(m.cJ)")
 end
 
 #-------------------------------------------------------------------------------
@@ -172,7 +177,6 @@ function AddBody(id::Int, cf::ConfigBody, b::SingleBody)
 
     # x_c
     Xc = 0.; Zc = 0.; A = 0.; Ix = 0.; Iz = 0.; Ixz = 0.
-
     for i = 1:b.nverts
         xj = b.verts[i,1]
         zj = b.verts[i,3]
@@ -188,11 +192,10 @@ function AddBody(id::Int, cf::ConfigBody, b::SingleBody)
         Zc = Zc + (zj + zjp1)*fact
         A  = A  + 0.5*fact
     end
-
     Xc = Xc/(6.*A); Zc = Zc/(6.*A)
     b.x_c = [Xc, 0., Zc]
 
-    # mass, inertia_c
+    # mass in scalar, inertia_c in 6d form
     b.mass  = cf.ρ*A
     for i = 1:b.nverts
         # make (Zc,Xc) the origin
@@ -214,15 +217,21 @@ function AddBody(id::Int, cf::ConfigBody, b::SingleBody)
     Iz = Iz/12.
     Iy = Ix + Iz
     Ixz = Ixz/24.
-
-    # inertia in 3d form, transform to 6d
     inertia_3d = cf.ρ*[Ix 0. -Ixz; 0. Iy 0.; -Ixz 0. Iz]
     mass_3d = b.mass*eye(3)
     b.inertia_c = [inertia_3d zeros(Float64,3,3);
                    zeros(Float64,3,3) mass_3d]
 
     # Xb_to_c
-    # wait for trans_matrix
+    b.Xb_to_c = TransMatrix([zeros(Float64,3);b.x_c])
+
+    # inertia_i in inertial frame
+    b.inertia_i = b.Xb_to_c'*b.inertia_c*b.Xb_to_c
+
+    # init q, v, c
+    b.q = zeros(Float64,6)
+    b.v = zeros(Float64,6)
+    b.c = zeros(Float64,6)
 
     return b
 end

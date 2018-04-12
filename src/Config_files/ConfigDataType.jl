@@ -11,7 +11,7 @@ struct Motions
     motion_params::Vector{Float64}
 end
 
-Motions() = Motions("hold", [0])
+Motions() = Motions("", [])
 #-------------------------------------------------------------------------------
 # single dof information for every dof in a joint
 struct Dof
@@ -23,7 +23,7 @@ struct Dof
     motion::Motions
 end
 
-Dof() = Dof(0, "active", 0., 0.,
+Dof() = Dof(3, "passive", 0.03, 0.01,
     [0., 0., 0., 0., 0., 0.], Motions())
 #-------------------------------------------------------------------------------
 # configuration properties of a single body
@@ -39,6 +39,9 @@ ConfigBody(nbody) = ConfigBody(nbody, 4,
 
 function show(io::IO, m::ConfigBody)
     println(io, " nbody=$(m.nbody)")
+    println(io, " nverts=$(m.nverts)")
+    println(io, " verts=$(m.verts)")
+    println(io, " ρ=$(m.ρ)")
 end
 
 #-------------------------------------------------------------------------------
@@ -54,14 +57,13 @@ struct ConfigJoint
 end
 
 ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, 1, joint_type,
-    [0., 0., 0., 1., 0., 0.],
+    [0., 0., 0., 1./njoint, 0., 0.],
     [0., 0., 0., 0., 0., 0.],
     0, [Dof()])
 
 function show(io::IO, m::ConfigJoint)
     println(io, " joint_type=$(m.joint_type)")
 end
-
 
 
 end
