@@ -8,6 +8,8 @@ using DocStringExtensions
 import Base: show
 
 # import self-defined modules
+include("JointType.jl")
+using .JointType
 using ..ConfigDataType
 using ..SpatialAlgebra
 
@@ -90,22 +92,22 @@ mutable struct SingleJoint
     ncdof::Int
     np::Int
     na::Int
-    udof::Vector{Float64} # newline in constructor
-    cdof::Vector{Float64}
-    udof_p::Vector{Float64} # newline in constructor
-    udof_a::Vector{Float64}
-    i_udof_p::Vector{Float64} # newline in constructor
-    i_udof_a::Vector{Float64}
-    udof_map::Vector{Float64}
+    udof::Vector{Int} # newline in constructor
+    cdof::Union{Vector{Int},Nullable{Int}}
+    udof_p::Union{Vector{Int},Nullable{Int}} # newline in constructor
+    udof_a::Union{Vector{Int},Nullable{Int}}
+    i_udof_p::Union{Vector{Int},Nullable{Int}} # newline in constructor
+    i_udof_a::Union{Vector{Int},Nullable{Int}}
+    udof_map::Vector{Int}
     # dof info modified by HERK
     nudof_HERK::Int
     ncdof_HERK::Int
-    udof_HERK::Vector{Float64}
-    cdof_HERK::Vector{Float64}
+    udof_HERK::Union{Vector{Int},Nullable{Int}}
+    cdof_HERK::Union{Vector{Int},Nullable{Int}}
     # joint basis matrix
-    S::Array{Float64,2}
-    T::Array{Float64,2}
-    T_HERK::Array{Float64,2}
+    S::Union{Vector{Int},Array{Int,2}}
+    T::Union{Vector{Int},Array{Int,2},Nullable{Int}}
+    T_HERK::Union{Vector{Int},Array{Int,2},Nullable{Int}}
     # joint dof
     joint_dof::Vector{Dof}
     # motion vectors
@@ -122,11 +124,11 @@ end
 SingleJoint() = SingleJoint(
     0," ",0,Vector{Float64}(0),Vector{Float64}(0),
     0,0,0,0,
-    Vector{Float64}(0),Vector{Float64}(0),
-    Vector{Float64}(0),Vector{Float64}(0),
-    Vector{Float64}(0),Vector{Float64}(0),Vector{Float64}(0),
-    0,0,Vector{Float64}(0),Vector{Float64}(0),
-    Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0),
+    Vector{Int}(0),Vector{Int}(0),
+    Vector{Int}(0),Vector{Int}(0),
+    Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
+    0,0,Vector{Int}(0),Vector{Int}(0),
+    Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Int,2}(0,0),
     [Dof()], # dof
     Vector{Float64}(0),Vector{Float64}(0),Vector{Float64}(0),
     Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0)
@@ -238,7 +240,102 @@ end
 
 #-------------------------------------------------------------------------------
 # add a single joint
-function AddJoint(cf::ConfigJoint, j::SingleJoint)
+function AddJoint(id::Int, cf::ConfigJoint, j::SingleJoint)
+    # hierarchy info
+    j.jid = id
+    j.joint_type = cf.joint_type
+    j.body1 = cf.body1
+    j.shape1 = cf.shape1
+    j.shape2 = cf.shape2
+    # dof info
+    j.joint_dof = cf.joint_dof
+    # fill in nudof, ncdof, udof, cdof, S, T
+    choosen = ChooseJoint(j.joint_type)
+    j.nudof = choosen.nudof
+    j.ncdof = choosen.ncdof
+    j.udof = choosen.udof
+    j.cdof = choosen.cdof
+    j.S = choosen.S
+    j.T = choosen.T
+    # np and na
+    j.np = 0; j.na = 0
+    for i = 1:j.nudof
+        if j.joint_dof[i].dof_type == "passive" j.np += 1
+        elseif j.joint_dof[i].dof_type == "active" j.na += 1
+        else error("dof_type has to be active or passive") end
+    end
+    # udof_p and i_udof_p
+    count = 1
+    if j.np != 0
+        j.udof_p = Vector{Int}(j.np)
+        j.i_udof_p = Vector{Int}(j.np)
+        for i = 1:j.nudof
+            if j.joint_dof[i].dof_type == "passive"
+                j.udof_p[count] = j.joint_dof[i].dof_id
+                j.i_udof_p[count] = i
+                count += 1
+            end
+        end
+    end
+    # udof_a and i_udof_a
+    count = 1
+    if j.na != 0
+        j.udof_a = Vector{Int}(j.na)
+        j.i_udof_a = Vector{Int}(j.na)
+        for i = 1:j.nudof
+            if j.joint_dof[i].dof_type == "active"
+                j.udof_a[count] = j.joint_dof[i].dof_id
+                j.i_udof_a[count] = i
+                count += 1
+            end
+        end
+    end
+    # nudof_HERK and ncdof_HERK
+    j.nudof_HERK = j.nudof; j.ncdof_HERK = j.ncdof
+    for i = 1:j.nudof
+        if j.joint_dof[i].dof_type == "active"
+            j.nudof_HERK -= 1; j.ncdof_HERK += 1
+        end
+    end
+    # udof_HERK, modified by active motion
+    if j.nudof_HERK != 0
+        j.udof_HERK = Vector{Int}(j.nudof_HERK)
+        count = 1
+        for i = 1:6
+            if j.ncdof != 0
+                if !(i in j.cdof) j.udof_HERK[count] = i; count += 1 end
+            elseif j.na != 0
+                if !(i in j.udof_a) j.udof_HERK[count] = i; count += 1 end
+            end
+        end
+    end
+    # cdof_HERK, modified by active motion
+    if j.ncdof_HERK != 0
+        j.cdof_HERK = Vector{Int}(j.ncdof_HERK)
+        count = 1
+        for i = 1:6
+            if j.ncdof != 0
+                if (i in j.cdof) j.cdof_HERK[count] = i; count += 1 end
+            end
+            if j.na != 0
+                if (i in j.udof_a) j.cdof_HERK[count] = i; count += 1 end
+            end
+        end
+    end
+    # T_HERK
+    if j.ncdof_HERK != 0
+        j.T_HERK = zeros(Int,6,j.ncdof_HERK)
+        count = 1
+        for i = 1:j.ncdof_HERK j.T_HERK[j.cdof_HERK[i],i] = 1 end
+    end
+    # Xp_to_j, Xj_to_ch
+    j.Xp_to_j = TransMatrix(j.shape1)
+    j.Xj_to_ch = TransMatrix(j.shape2)
+    # qJ, vJ and cJ
+    j.qJ = cf.qJ_init
+    j.vJ = zeros(Float64,6)
+    j.cJ = zeros(Float64,6)
+
     return j
 end
 

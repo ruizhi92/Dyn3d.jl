@@ -19,12 +19,10 @@ struct Dof
     dof_type::String
     stiff::Float64
     damp::Float64
-    qJ_init::Vector{Float64}
     motion::Motions
 end
 
-Dof() = Dof(3, "passive", 0.03, 0.01,
-    [0., 0., 0., 0., 0., 0.], Motions())
+Dof() = Dof(3, "passive", 0.03, 0.01, Motions())
 #-------------------------------------------------------------------------------
 # configuration properties of a single body
 struct ConfigBody
@@ -54,12 +52,12 @@ struct ConfigJoint
     shape2::Vector{Float64}
     body1::Int
     joint_dof::Vector{Dof}
+    qJ_init::Vector{Float64}
 end
 
 ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, 1, joint_type,
-    [0., 0., 0., 1./njoint, 0., 0.],
-    [0., 0., 0., 0., 0., 0.],
-    0, [Dof()])
+    [0., 0., 0., 1./njoint, 0., 0.], zeros(Float64,6),
+    0, [Dof()], zeros(Float64,6))
 
 function show(io::IO, m::ConfigJoint)
     println(io, " joint_type=$(m.joint_type)")
