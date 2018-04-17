@@ -44,7 +44,7 @@ end
 
 #-------------------------------------------------------------------------------
 # configuration properties of a single joint
-struct ConfigJoint
+mutable struct ConfigJoint
     njoint::Int
     joint_id::Int
     joint_type::String

@@ -1,7 +1,8 @@
 module ConstructSystem
 
 # export
-export SingleBody, SingleJoint, AddBody, AddJoint, AssembleSystem
+export SingleBody, SingleJoint, System, NumParams, Soln,
+       AddBody!, AddJoint!, AssembleSystem!
 
 # use registered packages
 using DocStringExtensions
@@ -15,9 +16,9 @@ using ..SpatialAlgebra
 
 """
 This module construct the body-joint system by:
-    1. AddBody
-    2. AddJoint
-    3. AssembleSystem
+    1. AddBody!
+    2. AddJoint!
+    3. AssembleSystem!
 """
 
 #-------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ mutable struct SingleBody
     # mass and inertia
     mass::Float64
     inertia_c::Array{Float64,2}
-    inertia_i::Array{Float64,2}
+    inertia_b::Array{Float64,2}
     # transform matrix
     Xb_to_c::Array{Float64,2}
     Xb_to_i::Array{Float64,2}
@@ -64,13 +65,13 @@ SingleBody() = SingleBody(
 
 function show(io::IO, ::MIME"text/plain", m::SingleBody)
     println(io, "body_id = $(m.bid)", ", parent_id = $(m.pid)",
-            ", nchild = $(m.nchild)", ", child_id = $(m.chid)")
+            ", nchild = $(m.nchild)", ", chid = $(m.chid)")
     println(io, "nverts = $(m.nverts)", ", verts = $(m.verts)")
     println(io, "verts_i = $(m.verts_i)")
     println(io, "x_c = $(m.x_c)", ", x_i = $(m.x_i)")
     println(io, "mass = $(m.mass)")
     println(io, "inertia_c = $(m.inertia_c)")
-    println(io, "inertia_i = $(m.inertia_i)")
+    println(io, "inertia_b = $(m.inertia_b)")
     println(io, "Xb_to_c = $(m.Xb_to_c)")
     println(io, "Xb_to_i = $(m.Xb_to_i)")
     println(io, "Xp_to_b = $(m.Xp_to_b)")
@@ -98,12 +99,13 @@ mutable struct SingleJoint
     udof_a::Union{Vector{Int},Nullable{Int}}
     i_udof_p::Union{Vector{Int},Nullable{Int}} # newline in constructor
     i_udof_a::Union{Vector{Int},Nullable{Int}}
-    udof_map::Vector{Int}
+    udofmap::Vector{Int}
     # dof info modified by HERK
     nudof_HERK::Int
     ncdof_HERK::Int
     udof_HERK::Union{Vector{Int},Nullable{Int}}
     cdof_HERK::Union{Vector{Int},Nullable{Int}}
+    cdofmap_HERK::Union{Vector{Int},Nullable{Int}}
     # joint basis matrix
     S::Union{Vector{Int},Array{Int,2}}
     T::Union{Vector{Int},Array{Int,2},Nullable{Int}}
@@ -127,7 +129,7 @@ SingleJoint() = SingleJoint(
     Vector{Int}(0),Vector{Int}(0),
     Vector{Int}(0),Vector{Int}(0),
     Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
-    0,0,Vector{Int}(0),Vector{Int}(0),
+    0,0,Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
     Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Int,2}(0,0),
     [Dof()], # dof
     Vector{Float64}(0),Vector{Float64}(0),Vector{Float64}(0),
@@ -143,7 +145,8 @@ function show(io::IO, m::SingleJoint)
     println(io, "udof = $(m.udof)", ", cdof = $(m.cdof)")
     println(io, "udof_p = $(m.udof_p)", ", udof_a = $(m.udof_a)")
     println(io, "i_udof_p = $(m.i_udof_p)", ", i_udof_a = $(m.i_udof_a)")
-    println(io, "udof_map = $(m.udof_map)")
+    println(io, "udofmap = $(m.udofmap)")
+    println(io, "cdofmap_HERK = $(m.cdofmap_HERK)")
     println(io, "nudof_HERK = $(m.nudof_HERK)",", ncdof_HERK = $(m.ncdof_HERK)")
     println(io, "udof_HERK = $(m.udof_HERK)", ", cdof_HERK = $(m.cdof_HERK)")
     println(io, "S = $(m.S)")
@@ -159,14 +162,75 @@ function show(io::IO, m::SingleJoint)
 end
 
 #-------------------------------------------------------------------------------
-mutable struct System
-
+# numerical parameters
+mutable struct NumParams
+    tf::Float64
+    nstep::Int
+    dt::Float64
+    scheme::String
+    tol::Float64
 end
 
+# solution structure
+mutable struct Soln
+    t::Vector{Float64}
+    qJ::Vector{Float64}
+    v::Vector{Float64}
+    c::Vector{Float64}
+    λ::Vector{Float64}
+end
+
+mutable struct System
+    # general info
+    ndim::Int
+    nbody::Int
+    njoint::Int
+    # time info
+    time::Float64
+    dt::Float64
+    # hierarchy info
+    ndof::Int
+    nudof::Int
+    ncdof::Int
+    np::Int
+    na::Int
+    udof::Vector{Int}
+    udof_a::Vector{Int}
+    udof_p::Vector{Int}
+    # hierarchy info modified by HERK
+    nudof_HERK::Int
+    ncdof_HERK::Int
+    udof_HERK::Vector{Int}
+    # system info in matrix
+    S_total::Array{Int,2}
+    T_total::Array{Int,2}
+    Ib_total::Array{Float64,2}
+end
+
+# outer constructor
+System(ndim, nbody, njoint) = System(
+    ndim,nbody,njoint,0.,0.,
+    0,0,0,0,0,
+    Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
+    0,0,Vector{Int}(0),
+    Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),
+)
+
+function show(io::IO, m::System)
+    println(io, "ndim = $(m.ndim)", ", njoint = $(m.njoint)",
+            ", nbody = $(m.nbody)")
+    println(io, "ndof = $(m.ndof)", ", nudof = $(m.nudof)",
+            ", ncdof = $(m.ncdof)", ", np = $(m.np)", ", na = $(m.na)")
+    println(io, "udof = $(m.udof)")
+    println(io, "udof_p = $(m.udof_p)")
+    println(io, "udof_a = $(m.udof_a)")
+    println(io, "nudof_HERK = $(m.nudof_HERK)",", ncdof_HERK = $(m.ncdof_HERK)")
+    println(io, "udof_HERK = $(m.udof_HERK)")
+end
 
 #-------------------------------------------------------------------------------
 # add a single body
-function AddBody(id::Int, cf::ConfigBody, b::SingleBody)
+function AddBody!(id::Int, cf::ConfigBody, b::SingleBody)
     # hierarchy info
     b.bid = id
 
@@ -227,8 +291,8 @@ function AddBody(id::Int, cf::ConfigBody, b::SingleBody)
     # Xb_to_c
     b.Xb_to_c = TransMatrix([zeros(Float64,3);b.x_c])
 
-    # inertia_i in inertial frame
-    b.inertia_i = b.Xb_to_c'*b.inertia_c*b.Xb_to_c
+    # inertia_b in body frame at point b
+    b.inertia_b = b.Xb_to_c'*b.inertia_c*b.Xb_to_c
 
     # init q, v, c
     b.q = zeros(Float64,6)
@@ -240,7 +304,7 @@ end
 
 #-------------------------------------------------------------------------------
 # add a single joint
-function AddJoint(id::Int, cf::ConfigJoint, j::SingleJoint)
+function AddJoint!(id::Int, cf::ConfigJoint, j::SingleJoint)
     # hierarchy info
     j.jid = id
     j.joint_type = cf.joint_type
@@ -339,8 +403,166 @@ function AddJoint(id::Int, cf::ConfigJoint, j::SingleJoint)
     return j
 end
 
-function AssembleSystem()
+#-------------------------------------------------------------------------------
+# connects body and joint system
+function AssembleSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
+                        sys::System)
+    #-------------------------------------------------
+    # re-order bs and js to make the array in id-order
+    #-------------------------------------------------
+    bstemp = deepcopy(bs)
+    for i = 1:sys.nbody
+        bs[bstemp[i].bid] = bstemp[i]
+    end
+    jstemp = deepcopy(js)
+    for i = 1:sys.njoint
+        js[jstemp[i].jid] = jstemp[i]
+    end
+    #-------------------------------------------------
+    # fill in sys structure
+    #-------------------------------------------------
+    # scalar hierarchy info
+    sys.ndof = 6*sys.njoint
+    sys.nudof = 0; sys.ncdof = 0; sys.np = 0; sys.na = 0
+    sys.nudof_HERK = 0; sys.ncdof_HERK = 0
+    for i = 1:sys.njoint
+        sys.nudof += js[i].nudof
+        sys.ncdof += js[i].ncdof
+        sys.np += js[i].np
+        sys.na += js[i].na
+        sys.nudof_HERK += js[i].nudof_HERK
+        sys.ncdof_HERK += js[i].ncdof_HERK
+    end
+    # udof
+    count = 1
+    sys.udof = Vector{Int}(sys.nudof)
+    for i = 1:sys.njoint, k = 1:js[i].nudof
+        sys.udof[count] = 6*(i-1) + js[i].udof[k]
+        count += 1
+    end
+    # udof_a
+    count = 1
+    sys.udof_a = Vector{Int}(sys.na)
+    for i = 1:sys.njoint, k = 1:js[i].na
+        sys.udof_a[count] = 6*(i-1) + js[i].udof_a[k]
+        count += 1
+    end
+    # udof_p
+    count = 1
+    sys.udof_p = Vector{Int}(sys.np)
+    for i = 1:sys.njoint, k = 1:js[i].np
+        sys.udof_p[count] = 6*(i-1) + js[i].udof_p[k]
+        count += 1
+    end
+    # udof_HERK
+    count = 1
+    sys.udof_HERK = Vector{Int}(sys.nudof_HERK)
+    for i = 1:sys.njoint, k = 1:js[i].nudof_HERK
+        sys.udof_HERK[count] = 6*(i-1) + js[i].udof_HERK[k]
+        count += 1
+    end
+    #-------------------------------------------------
+    # fill in info in bs and js structure
+    #-------------------------------------------------
+    # loop through every joint, find nchild for every body, then allocate
+    # bs[i].chid. Also assign bs.pid
+    for i = 1:sys.nbody
+        bs[i].nchild = 0
+        ch_cnt = 1
+        for k = 1:sys.njoint
+            if js[k].body1 == bs[i].bid bs[i].nchild += 1 end
+        end
+        # if at least exists one child, allocate chid
+        if bs[i].nchild != 0
+            bs[i].chid = Vector{Int}(bs[i].nchild)
+            for k = 1:sys.njoint
+                if js[k].body1 == bs[i].bid
+                    bs[i].chid[ch_cnt] = js[k].jid
+                    ch_cnt += 1
+                end
+            end
+        end
+        # bs[i].pid
+        bs[i].pid = js[bs[i].bid].body1
+    end
+    # js[i].udofmap
+    last = 0
+    for i = 1:sys.njoint
+        if js[i].nudof != 0
+                js[i].udofmap = Vector{Int}(js[i].nudof)
+                js[i].udofmap = last + [k for k=1:js[i].nudof]
+                last = js[i].udofmap[js[i].nudof]
+        end
+    end
+    # js[i].cdofmap_HERK
+    last = 0
+    for i = 1:sys.njoint
+        if js[i].ncdof_HERK != 0
+            js[i].cdofmap_HERK = Vector{Int}(js[i].ncdof_HERK)
+            js[i].cdofmap_HERK = last + [k for k=1:js[i].ncdof_HERK]
+            last = js[i].cdofmap_HERK[js[i].ncdof_HERK]
+        end
+    end
+    #-------------------------------------------------
+    # change body coord origin from body origin to joint
+    #-------------------------------------------------
+    for i = 1:sys.njoint
+        # store old values
+        r_old = js[i].shape2[1:3]
+        Xj_to_ch_old = js[i].Xj_to_ch
+        rot_old = Xj_to_ch_old[1:3,1:3]
+        # The body frame origin now coincides with the joint location
+        js[i].shape2[1:3] = 0.0
+        # the new transform from parent joint to body is the identity
+        js[i].Xj_to_ch = eye(Float64,6)
+        # update all the vertices
+        for k = 1:bs[i].nverts
+            r_temp = -r_old + bs[i].verts[k,:]
+            verts_temp = (rot_old')*r_temp
+            bs[i].verts[k,:] = verts_temp
+        end
+        # update body center of mass
+        r_temp = -r_old + bs[i].x_c
+        x_c_temp = (rot_old')*r_temp
+        bs[i].x_c = x_c_temp
+        # update bs[i].Xb_to_c and bs[i].inertia_b
+        bs[i].Xb_to_c = bs[i].Xb_to_c*Xj_to_ch_old
+        bs[i].inertia_b = (Xj_to_ch_old')*bs[i].inertia_b*Xj_to_ch_old
+        # update Xp_to_j(related to shape1) for child body
+        if bs[i].nchild != 0
+            for k = 1:bs[i].nchild
+                ck = bs[i].chid[k]
+                r_temp = -r_old + js[ck].shape1[4:6]
+                js[ck].Xp_to_j = js[ck].Xp_to_j*Xj_to_ch_old
+            end
+        end
+    end
 
+    #-------------------------------------------------
+    # Create some system matrix used in HERK
+    #-------------------------------------------------
+    # diagonal block of sys.Ib_total is the inertia of each body inertia_b
+    sys.Ib_total = zeros(Float64, sys.ndof, sys.ndof)
+    for i = 1:sys.nbody
+        sys.Ib_total[6i-5:6i, 6i-5:6i] = bs[i].inertia_b
+    end
+    # diagonal block of S_total is S of each joint in joint coord
+    sys.S_total = zeros(Int, sys.ndof, sys.nudof)
+    for i = 1:sys.njoint
+        if js[i].nudof != 0
+            sys.S_total[6i-5:6i, js[i].udofmap] = js[i].S
+        end
+    end
+    # diagonal block of T_total is T_HERK of each joint in joint coord
+    sys.T_total = zeros(Int, sys.ndof, sys.ncdof_HERK)
+    for i = 1:sys.njoint
+        if js[i].ncdof_HERK != 0
+            sys.T_total[6i-5:6i, js[i].cdofmap_HERK] = js[i].T_HERK
+        end
+    end
+
+#-------------------------------------------------------------------------------
+    return bs, js, sys
 end
 
 
