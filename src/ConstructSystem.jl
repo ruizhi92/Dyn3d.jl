@@ -2,7 +2,7 @@ module ConstructSystem
 
 # export
 export SingleBody, SingleJoint, System, NumParams, Soln,
-       AddBody!, AddJoint!, AssembleSystem!
+       AddBody, AddJoint, AssembleSystem!
 
 # use registered packages
 using DocStringExtensions
@@ -16,8 +16,8 @@ using ..SpatialAlgebra
 
 """
 This module construct the body-joint system by:
-    1. AddBody!
-    2. AddJoint!
+    1. AddBody
+    2. AddJoint
     3. AssembleSystem!
 """
 
@@ -53,7 +53,8 @@ mutable struct SingleBody
 end
 
 # outer constructor
-SingleBody() = SingleBody(
+function SingleBody()
+    body = SingleBody(
     0,0,Vector{Int}(0),0,
     0,Array{Float64,2}(0,0),Array{Float64,2}(0,0),
     Vector{Float64}(0),Vector{Float64}(0),
@@ -61,7 +62,9 @@ SingleBody() = SingleBody(
     Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0),
     Vector{Float64}(0),Vector{Float64}(0),Vector{Float64}(0),
     Vector{Float64}(0),Array{Float64,2}(0,0)
-)
+    )
+    return body
+end
 
 function show(io::IO, ::MIME"text/plain", m::SingleBody)
     println(io, "body_id = $(m.bid)", ", parent_id = $(m.pid)",
@@ -123,7 +126,8 @@ mutable struct SingleJoint
 end
 
 # outer constructor
-SingleJoint() = SingleJoint(
+function SingleJoint()
+    joint = SingleJoint(
     0," ",0,Vector{Float64}(0),Vector{Float64}(0),
     0,0,0,0,
     Vector{Int}(0),Vector{Int}(0),
@@ -134,7 +138,9 @@ SingleJoint() = SingleJoint(
     [Dof()], # dof
     Vector{Float64}(0),Vector{Float64}(0),Vector{Float64}(0),
     Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0)
-)
+    )
+    return joint
+end
 
 function show(io::IO, m::SingleJoint)
     println(io, "joint_id = $(m.jid)", ", joint_type = $(m.joint_type)",
@@ -230,7 +236,10 @@ end
 
 #-------------------------------------------------------------------------------
 # add a single body
-function AddBody!(id::Int, cf::ConfigBody, b::SingleBody)
+function AddBody(id::Int, cf::ConfigBody)
+    # init a single body object
+    b = SingleBody()
+
     # hierarchy info
     b.bid = id
 
@@ -304,7 +313,10 @@ end
 
 #-------------------------------------------------------------------------------
 # add a single joint
-function AddJoint!(id::Int, cf::ConfigJoint, j::SingleJoint)
+function AddJoint(id::Int, cf::ConfigJoint)
+    # init SingleJoint
+    j = SingleJoint()
+
     # hierarchy info
     j.jid = id
     j.joint_type = cf.joint_type
@@ -564,10 +576,6 @@ function AssembleSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
 #-------------------------------------------------------------------------------
     return bs, js, sys
 end
-
-
-
-
 
 
 end
