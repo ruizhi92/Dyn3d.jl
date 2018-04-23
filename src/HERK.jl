@@ -55,7 +55,9 @@ HERKScheme provides a set of HERK coefficients, expressed in Butcher table form.
 end
 
 #-------------------------------------------------------------------------------
-function HERKMain(tᵢ, qᵢ, vᵢ, δtᵢ, tol, scheme, qᵢ₊₁, vᵢ₊₁, cᵢ₊₁, λᵢ₊₁, δtᵢ₊₁)
+function HERKMain(tᵢₙ::T, qJᵢₙ::Vector{T}, vᵢₙ::Vector{T}, δtᵢₙ::T,
+    bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
+    tol=1e-4, scheme = "Liska") where T <: AbstractFloat
 """
     HERKMain is a half-explicit Runge-Kutta solver based on the
     constrained body model in paper of V.Brasey and E.Hairer.
@@ -78,10 +80,23 @@ function HERKMain(tᵢ, qᵢ, vᵢ, δtᵢ, tol, scheme, qᵢ₊₁, vᵢ₊₁,
     So we need a step to calculate v from vJ solved. The motion constraint
     (prescribed active motion) is according to joint, not body.
 """
-    return 1
+    # pick sheme parameters, modify for last stage
+    A, b, c, s = HERKScheme(scheme)
+    A = [A; b]
+    c = [c; 1.0]
+    # allocation
+    qJ_dim = size(qJᵢₙ, 1); λ_dim =
+    qJ = zeros(T, s+1, )
+
+
+    # stage 1
+    tᵢ = tᵢₙ; tᵢ₋₁ = tᵢₙ
+    qJ = qJᵢₙ; v = vᵢₙ
+    c =
 
 
 
+    return  qJₒᵤₜ, vₒᵤₜ, cₒᵤₜ, λₒᵤₜ, δtₒᵤₜ
 end
 #-------------------------------------------------------------------------------
 function HERKFuncM(sys::System)
@@ -195,18 +210,24 @@ function HERKFuncG(bs::Vector{SingleBody}, sys::System)
 end
 
 #-------------------------------------------------------------------------------
-function HERKFuncgti(sys::System, t::T) where T <: AbstractFloat
+function HERKFuncgti(js::Vector{SingleJoint}, sys::System, t::T) where
+    T <: AbstractFloat
 """
-    HERKFuncgti returns all the collected prescribed active motion of joints
+    HERKFuncgti returns all the collected prescribed active velocity of joints
     at given time.
 """
+    y = zeros(Float64, sys.ndof)
+    v_a = zeros(Float64, sys.na)
+    # give actual numbers from calling motion(t)
+    for i = 1:sys.na
+        jid = sys.kinmap[i,1]
+        dofid = sys.kinmap[i,2]
+        v_a[i] = js[jid].joint_dof[dofid].motion(t)
+    end
 
-
+    y[sys.udof_a] = v_a
+    return -(sys.T_total')*y
 end
-
-
-
-
 
 
 

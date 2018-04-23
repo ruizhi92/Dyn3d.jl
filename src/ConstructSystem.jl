@@ -213,6 +213,8 @@ mutable struct System
     Ib_total::Array{Float64,2}
     # gravity
     g::Vector{Float64}
+    # kinematic map
+    kinmap::Array{Int,2}
 end
 
 # outer constructor
@@ -222,7 +224,7 @@ System(ndim, nbody, njoint, g) = System(
     Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
     0,0,Vector{Int}(0),
     Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),
-    g
+    g,Array{Int,2}(0,0)
 )
 
 function show(io::IO, m::System)
@@ -236,6 +238,7 @@ function show(io::IO, m::System)
     println(io, "nudof_HERK = $(m.nudof_HERK)",", ncdof_HERK = $(m.ncdof_HERK)")
     println(io, "udof_HERK = $(m.udof_HERK)")
     println(io, "gravity = $(m.g)")
+    println(io, "kinmap = $(m.kinmap)")
 end
 
 #-------------------------------------------------------------------------------
@@ -518,6 +521,14 @@ function AssembleSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
             js[i].cdofmap_HERK = last + [k for k=1:js[i].ncdof_HERK]
             last = js[i].cdofmap_HERK[js[i].ncdof_HERK]
         end
+    end
+    # kinmap
+    sys.kinmap = Array{Int}(sys.na, 2)
+    count = 1
+    for i = 1:sys.njoint, k = 1:js[i].na
+        sys.kinmap[count,1] = i
+        sys.kinmap[count,2] = js[i].i_udof_a[k]
+        count += 1
     end
     #-------------------------------------------------
     # change body coord origin from body origin to joint

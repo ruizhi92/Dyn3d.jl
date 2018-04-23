@@ -12,6 +12,25 @@ struct Motions
 end
 
 Motions() = Motions("", [])
+
+# function-like object, only need velocity using HERK
+function (m::Motions)(t)
+    if m.motion_type == "hold"
+        v = 0
+    elseif m.motion_type == "velocity"
+        v = m.motion_params[1]
+    elseif m.motion_type == "oscillatory"
+        amp = m.motion_params[1]
+        freq = m.motion_params[2]
+        phase = m.motion_params[3]
+        v = -2π*freq*amp*sin(2π*freq*t + phase)
+    elseif m.motion_type == "ramp"
+        error("under construction")
+    else
+        error("This motion type doesn't exist")
+    end
+    return v
+end
 #-------------------------------------------------------------------------------
 # single dof information for every dof in a joint
 struct Dof
@@ -59,9 +78,9 @@ ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, 1, joint_type,
     [0., 0., 0., 1./njoint, 0., 0.], zeros(Float64,6),
     0, [Dof()], zeros(Float64,6))
 
-function show(io::IO, m::ConfigJoint)
-    println(io, " joint_type=$(m.joint_type)")
-end
+# function show(io::IO, m::ConfigJoint)
+#     println(io, " joint_type=$(m.joint_type)")
+# end
 
 
 end
