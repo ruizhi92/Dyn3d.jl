@@ -36,8 +36,9 @@ end
 function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     sys::System, qJ::Vector{T} = [2018.]) where T <: AbstractFloat
 """
-    With updated qJ in the middle of HERK, call EmbedSystem to update bs and
-    js.
+    1. In InitSystem, apply the part which is the original embed_system
+    2. In the middle of HERK, updated qJ in js and update related quantities in
+    bs and js.
 """
     if qJ != convert(Vector{T},[2018])
         count = 0

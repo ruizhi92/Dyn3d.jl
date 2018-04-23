@@ -1,6 +1,6 @@
 module SpatialAlgebra
 
-export TransMatrix
+export TransMatrix, Mfcross
 
 # use registered packages
 using DocStringExtensions
@@ -43,7 +43,7 @@ end
 #-------------------------------------------------------------------------------
 # 6d motion vector m cross 6d force vector f
 function Mfcross(m::Vector{T}, f::Vector{T}) where T <: AbstractFloat
-    ω = m(1:3); v = m(4:6)
+    ω = m[1:3]; v = m[4:6]
     ωcross = [0. -ω[3] ω[2]; ω[3] 0. -ω[1]; -ω[2] ω[1] 0.]
     vcross = [0. -v[3] v[2]; v[3] 0. -v[1]; -v[2] v[1] 0.]
     p = Vector{T}(6)

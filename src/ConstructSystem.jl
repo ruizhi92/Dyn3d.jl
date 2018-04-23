@@ -211,15 +211,18 @@ mutable struct System
     S_total::Array{Int,2}
     T_total::Array{Int,2}
     Ib_total::Array{Float64,2}
+    # gravity
+    g::Vector{Float64}
 end
 
 # outer constructor
-System(ndim, nbody, njoint) = System(
+System(ndim, nbody, njoint, g) = System(
     ndim,nbody,njoint,0.,0.,
     0,0,0,0,0,
     Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
     0,0,Vector{Int}(0),
     Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),
+    g
 )
 
 function show(io::IO, m::System)
@@ -232,6 +235,7 @@ function show(io::IO, m::System)
     println(io, "udof_a = $(m.udof_a)")
     println(io, "nudof_HERK = $(m.nudof_HERK)",", ncdof_HERK = $(m.ncdof_HERK)")
     println(io, "udof_HERK = $(m.udof_HERK)")
+    println(io, "gravity = $(m.g)")
 end
 
 #-------------------------------------------------------------------------------
