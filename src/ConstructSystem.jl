@@ -1,7 +1,7 @@
 module ConstructSystem
 
 # export
-export SingleBody, SingleJoint, System, NumParams, Soln,
+export SingleBody, SingleJoint, System, NumParams,
        AddBody, AddJoint, AssembleSystem!
 
 # use registered packages
@@ -175,15 +175,6 @@ mutable struct NumParams
     dt::Float64
     scheme::String
     tol::Float64
-end
-
-# solution structure
-mutable struct Soln
-    t::Vector{Float64}
-    qJ::Vector{Float64}
-    v::Vector{Float64}
-    c::Vector{Float64}
-    λ::Vector{Float64}
 end
 
 mutable struct System

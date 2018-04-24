@@ -1,6 +1,7 @@
-module HERK
+module TimeMarching
 
 # export
+export HERK!, Soln
 
 # use registered packages
 using DocStringExtensions
@@ -8,7 +9,24 @@ using DocStringExtensions
 # import self-defined modules
 using ..ConstructSystem
 using ..SpatialAlgebra
+using ..UpdateSystem
 
+mutable struct Soln{T}
+    # current time and the next timestep
+    t::T
+    dt::T
+    # position, velocity, acceleration and Lagrange multipliers
+    qJ::Vector{T}
+    v::Vector{T}
+    v̇::Vector{T}
+    λ::Vector{T}
+end
+
+Soln(t, dt, q, v) = Soln(t, dt, q, v,
+    Vector{typeof(t)}(0), Vector{typeof(t)}(0))
+
+Soln(t) = Soln(t, 0., Vector{typeof(t)}(0), Vector{typeof(t)}(0),
+        Vector{typeof(t)}(0), Vector{typeof(t)}(0))
 #-------------------------------------------------------------------------------
 function HERKScheme(name::String)
 """
@@ -16,7 +34,7 @@ HERKScheme provides a set of HERK coefficients, expressed in Butcher table form.
     A: Runge-Kutta matrix in Butcher tableau    c | A
     b: weight vector in Butcher tableau         ------
     c: node vector in Butcher tableau             | b
-    s: stage number
+    st: stage number
     p: method order of accuracy
 """
     # Scheme A of 2-stage HERK in Liska's paper
@@ -26,7 +44,7 @@ HERKScheme provides a set of HERK coefficients, expressed in Butcher table form.
              √3/3 (3.0-√3)/3 0.0]
         b = [(3.0+√3)/6 -√3/3 (3.0+√3)/6]
         c = [0.0, 0.5, 1.0]
-        s = 3
+        st = 3
         p = 2
     # Brasey-Hairer 3-Stage HERK, table 2
     elseif name == "BH3"
@@ -35,7 +53,7 @@ HERKScheme provides a set of HERK coefficients, expressed in Butcher table form.
              -1.0 2.0 0.0]
         b = [0.0, 0.75, 0.25]
         c = [0.0, 1.0/3, 1.0]
-        s = 3
+        st = 3
         p = 3
     # Brasey-Hairer 5-Stage HERK, table 5
     elseif name == "BH5"
@@ -46,18 +64,21 @@ HERKScheme provides a set of HERK coefficients, expressed in Butcher table form.
              (14.0+5*√6)/6 (-8.0+7*√6)/6 (-9.0-7*√6)/4 (9.0-√6)/4 0.0]
         b = [0.0, 0.0, (16.0-√6)/36, (16.0+√6)/36, 1.0/9]
         c = [0.0, 0.3, (4.0-√6)/10, (4.0+√6)/10, 1.0]
-        s = 5
+        st = 5
         p = 4
     else
         error("This HERK scheme doesn't exist now.")
     end
-    return A, b, c, s
+    # modify for last stage
+    A = [A; b]
+    c = [c; 1.0]
+
+    return A, b, c, st
 end
 
 #-------------------------------------------------------------------------------
-function HERKMain(tᵢₙ::T, qJᵢₙ::Vector{T}, vᵢₙ::Vector{T}, δtᵢₙ::T,
-    bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
-    tol=1e-4, scheme = "Liska") where T <: AbstractFloat
+function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint},
+    sys::System, tol=1e-4, scheme = "Liska") where T <: AbstractFloat
 """
     HERKMain is a half-explicit Runge-Kutta solver based on the
     constrained body model in paper of V.Brasey and E.Hairer.
@@ -80,23 +101,80 @@ function HERKMain(tᵢₙ::T, qJᵢₙ::Vector{T}, vᵢₙ::Vector{T}, δtᵢₙ
     So we need a step to calculate v from vJ solved. The motion constraint
     (prescribed active motion) is according to joint, not body.
 """
-    # pick sheme parameters, modify for last stage
-    A, b, c, s = HERKScheme(scheme)
-    A = [A; b]
-    c = [c; 1.0]
-    # allocation
-    qJ_dim = size(qJᵢₙ, 1); λ_dim =
-    qJ = zeros(T, s+1, )
+    # pick sheme parameters
+    A, b, c, st = HERKScheme(scheme)
 
+    # allocation of local variables
+    qJ_dim = sys.ndof
+    λ_dim =sys.ncdof_HERK
+    qJ = zeros(T, st+1, qJ_dim)
+    vJ = zeros(T, st+1, qJ_dim)
+    v = zeros(T, st+1, qJ_dim)
+    v̇ = zeros(T, st, qJ_dim)
+    λ = zeros(T, st, λ_dim)
+    v_temp = zeros(T, qJ_dim)
 
     # stage 1
-    tᵢ = tᵢₙ; tᵢ₋₁ = tᵢₙ
-    qJ = qJᵢₙ; v = vᵢₙ
-    c =
+    tᵢ₋₁ = sᵢₙ.t; tᵢ = sᵢₙ.t;; dt = sᵢₙ.dt
+    qJ[1,:] = sᵢₙ.qJ
+    v[1,:] = sᵢₙ.v
+    # update vJ using v
+    bs, js, sys, vJ[1,:] = UpdateVelocity!(bs, js, sys, v[1,:])
 
+    # stage 2 to st+1
+    for i = 2:st+1
+        # time of i-1 and i
+        tᵢ₋₁ = tᵢ
+        tᵢ = sᵢₙ.t + dt*c[i]
+        # initialize qJ[i,:]
+        qJ[i,:] = sᵢₙ.qJ
+        # calculate M, f and GT at tᵢ₋₁
+        Mᵢ₋₁ = HERKFuncM(sys)
+        fᵢ₋₁ = HERKFuncf(bs, js, sys)
+        GTᵢ₋₁ = HERKFuncGT(bs, sys)
+        # advance qJ[i,:]
+        for k = 1:i-1
+            qJ[i,:] += dt*A[i,k]*vJ[k,:]
+        end
+        # use new qJ to update system position
+        bs, js, sys = UpdatePosition!(bs, js, sys, qJ[i,:])
+        # calculate G and gti at tᵢ
+        Gᵢ = HERKFuncG(bs, sys)
+        gtiᵢ = HERKFuncgti(js, sys, tᵢ)
+        # construct lhs matrix
+        lhs = [ Mᵢ₋₁ GTᵢ₋₁; Gᵢ zeros(T,λ_dim,λ_dim) ]
+        # the accumulated v term on the right hand side
+        v_temp = sᵢₙ.v
+        for k = 1:i-2
+            v_temp += dt*A[i,k]*v̇[k,:]
+        end
+        # construct rhs
+        rhs = [ fᵢ₋₁; -1./(dt*A[i,i-1])*(Gᵢ*v_temp + gtiᵢ) ]
+######### use Julia's built in "\" operator for now
+        # solve the eq
+        x = lhs \ rhs
+        # apply the solution
+        v̇[i-1,:] = x[1:qJ_dim]
+        λ[i-1,:] = x[qJ_dim+1:end]
+        # advance v[i,:]
+        v[i,:] = sᵢₙ.v
+        for k = 1:i-1
+            v[i,:] += dt*A[i,k]*v̇[k,:]
+        end
+        # update vJ using updated v
+        bs, js, sys, vJ[i,:] = UpdateVelocity!(bs, js, sys, v[i,:])
+    end
 
+    # use norm(v[st+1,:]-v[st,:]) to determine next timestep
+    sₒᵤₜ = Soln(tᵢ) # init struct
+    sₒᵤₜ.dt = sᵢₙ.dt*(tol/norm(v[st+1,:]-v[st,:]))^(1/3)
+    sₒᵤₜ.t = sᵢₙ.t + sᵢₙ.dt
+    sₒᵤₜ.qJ = qJ[st+1, :]
+    sₒᵤₜ.v = v[st+1, :]
+    sₒᵤₜ.v̇ = v̇[st, :]
+    sₒᵤₜ.λ = λ[st, :]
 
-    return  qJₒᵤₜ, vₒᵤₜ, cₒᵤₜ, λₒᵤₜ, δtₒᵤₜ
+    return  sₒᵤₜ, bs, js, sys
 end
 #-------------------------------------------------------------------------------
 function HERKFuncM(sys::System)
