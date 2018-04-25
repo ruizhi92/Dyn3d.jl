@@ -11,22 +11,6 @@ using ..ConstructSystem
 using ..SpatialAlgebra
 using ..UpdateSystem
 
-mutable struct Soln{T}
-    # current time and the next timestep
-    t::T
-    dt::T
-    # position, velocity, acceleration and Lagrange multipliers
-    qJ::Vector{T}
-    v::Vector{T}
-    v̇::Vector{T}
-    λ::Vector{T}
-end
-
-Soln(t, dt, q, v) = Soln(t, dt, q, v,
-    Vector{typeof(t)}(0), Vector{typeof(t)}(0))
-
-Soln(t) = Soln(t, 0., Vector{typeof(t)}(0), Vector{typeof(t)}(0),
-        Vector{typeof(t)}(0), Vector{typeof(t)}(0))
 #-------------------------------------------------------------------------------
 function HERKScheme(name::String)
 """
@@ -300,7 +284,7 @@ function HERKFuncgti(js::Vector{SingleJoint}, sys::System, t::T) where
     for i = 1:sys.na
         jid = sys.kinmap[i,1]
         dofid = sys.kinmap[i,2]
-        v_a[i] = js[jid].joint_dof[dofid].motion(t)
+        _, v_a[i] = js[jid].joint_dof[dofid].motion(t)
     end
 
     y[sys.udof_a] = v_a

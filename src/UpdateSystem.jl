@@ -1,6 +1,6 @@
 module UpdateSystem
 
-export  UpdatePosition!, UpdateVelocity!
+export  UpdatePosition!, UpdateVelocity!, InitSystem!
 
 # use registered packages
 using DocStringExtensions
@@ -151,7 +151,74 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     return bs, js, sys, vJ
 end
 
+#-------------------------------------------------------------------------------
+function InitSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
+    sys::System)
+"""
+    InitSystem initialize the joint-body chain by assining values to
+    bs[i].v and js[i].qJ at time=0. Body velocity are calculated from joint
+    velocities, which are got through articulated body method, zero-out
+    total initial momentum.
+"""
+    # insert active motion
+    for i = 1:sys.njoint, k = 1:js[i].na
+        act= js[i].udof_a[k]
+        idx = js[i].i_udof_a[k]
+        js[i].qJ[act] = js[i].joint_dof[idx].motion(0.0)[1]
+    end
+    # update body chain position
+    bs, js, sys = UpdatePosition!(bs, js, sys)
+    # zero-out total initial momentum by assigning extra velocity to joint 1's
+    # passive dof.
+    # pass 1, from body 1 to body n
+    for i = 1:sys.nbody
+        # initialize the articulated inertia of each body to be equal to its own
+        bs[i].Ib_A = bs[i].inertia_b
+        # initialize the joint momentum term
+        bs[i].pA = zeros(Float64, 6)
+    end
+    # pass 2, from body n to body 1
+    # If the parent is not the base, add the composite inertia of this body
+    # (in the coordinate system of the parent) to the inertia of its parent
+    for i = sys.nbody:-1:1
+        pid = bs[i].pid
+        if pid != 0
+            Xp_to_b = bs[i].Xp_to_b
+            Ib_A_rest = bs[i].Ib_A
+            pA_rest = bs[i].pA + Ib_A_rest*js[i].vJ
+            bs[pid].Ib_A += (Xp_to_b')*Ib_A_rest*Xp_to_b
+            bs[pid].pA += (Xp_to_b')*pA_rest
+        end
+    end
+    # pass 3, from body 1 to body n
+    # compute the velocity of passive degrees of freedom in joint from inertial
+    # system to body 1, by zeroing the overall system momentum.
+    if js[1].np > 0
+        Pup = js[1].S[:, js[1].i_udof_p]
+        Ptemp = (Pup')*bs[1].Ib_A*Pup
+        udof_p = js[1].udof_p
+        js[1].vJ[udof_p] = -inv(Ptemp)*(Pup')*bs[1].pA
+    end
+    # get body[i].v from updated js[i].vJ
+    for i = 1:sys.nbody
+        pid = bs[i].pid
+        if pid != 0
+            bs[i].v = js[i].vJ + bs[i].Xp_to_b*bs[pid].v
+        else
+            bs[i].v = js[i].vJ
+        end
+    end
+    # construct first solution
+    qJ_total = zeros(Float64,6*sys.njoint)
+    v_total = zeros(Float64,6*sys.nbody)
+    for i = 1:sys.nbody
+        qJ_total[6i-5:6i] = js[i].qJ
+        v_total[6i-5:6i] = bs[i].v
+    end
+    soln = Soln(0.0, sys.num_params.dt, qJ_total, v_total)
 
+    return bs, js, sys, soln
+end
 
 
 

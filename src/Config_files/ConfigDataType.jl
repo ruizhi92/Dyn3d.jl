@@ -1,6 +1,6 @@
 module ConfigDataType
 
-export ConfigBody, ConfigJoint, Dof, Motions
+export ConfigBody, ConfigJoint, Dof, Motions, NumParams
 
 import Base: show
 
@@ -16,20 +16,27 @@ Motions() = Motions("", [])
 # function-like object, only need velocity using HERK
 function (m::Motions)(t)
     if m.motion_type == "hold"
+        q = m.motion_params[1]
         v = 0
+
     elseif m.motion_type == "velocity"
-        v = m.motion_params[1]
+        q = m.motion_params[1]
+        v = m.motion_params[2]
+
     elseif m.motion_type == "oscillatory"
         amp = m.motion_params[1]
         freq = m.motion_params[2]
         phase = m.motion_params[3]
-        v = -2π*freq*amp*sin(2π*freq*t + phase)
+        arg = 2π*freq*t + phase
+        q = amp*cos(arg)
+        v = -2π*freq*amp*sin(arg)
+
     elseif m.motion_type == "ramp"
         error("under construction")
     else
         error("This motion type doesn't exist")
     end
-    return v
+    return q, v
 end
 #-------------------------------------------------------------------------------
 # single dof information for every dof in a joint
@@ -76,11 +83,19 @@ end
 
 ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, 1, joint_type,
     [0., 0., 0., 1./njoint, 0., 0.], zeros(Float64,6),
-    0, [Dof()], zeros(Float64,6))
+    0, [Dof()], [0.])
 
 # function show(io::IO, m::ConfigJoint)
 #     println(io, " joint_type=$(m.joint_type)")
 # end
 
+#-------------------------------------------------------------------------------
+# numerical parameters
+mutable struct NumParams
+    tf::Float64
+    dt::Float64
+    scheme::String
+    tol::Float64
+end
 
 end

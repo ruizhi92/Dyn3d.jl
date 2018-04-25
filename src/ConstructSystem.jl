@@ -1,7 +1,7 @@
 module ConstructSystem
 
 # export
-export SingleBody, SingleJoint, System, NumParams,
+export SingleBody, SingleJoint, System, Soln,
        AddBody, AddJoint, AssembleSystem!
 
 # use registered packages
@@ -20,6 +20,24 @@ This module construct the body-joint system by:
     2. AddJoint
     3. AssembleSystem!
 """
+
+#-------------------------------------------------------------------------------
+mutable struct Soln{T}
+    # current time and the next timestep
+    t::T
+    dt::T
+    # position, velocity, acceleration and Lagrange multipliers
+    qJ::Vector{T}
+    v::Vector{T}
+    v̇::Vector{T}
+    λ::Vector{T}
+end
+
+Soln(t, dt, q, v) = Soln(t, dt, q, v,
+    Vector{typeof(t)}(0), Vector{typeof(t)}(0))
+
+Soln(t) = Soln(t, 0., Vector{typeof(t)}(0), Vector{typeof(t)}(0),
+        Vector{typeof(t)}(0), Vector{typeof(t)}(0))
 
 #-------------------------------------------------------------------------------
 mutable struct SingleBody
@@ -46,7 +64,7 @@ mutable struct SingleBody
     # motion vectors
     q::Vector{Float64}
     v::Vector{Float64}
-    c::Vector{Float64}
+    v̇::Vector{Float64}
     # articulated body info
     pA::Vector{Float64}
     Ib_A::Array{Float64,2}
@@ -80,7 +98,7 @@ function show(io::IO, ::MIME"text/plain", m::SingleBody)
     println(io, "Xp_to_b = $(m.Xp_to_b)")
     println(io, "q = $(m.q)")
     println(io, "v = $(m.v)")
-    println(io, "c = $(m.c)")
+    println(io, "v̇ = $(m.v̇)")
 end
 
 #-------------------------------------------------------------------------------
@@ -118,7 +136,7 @@ mutable struct SingleJoint
     # motion vectors
     qJ::Vector{Float64}
     vJ::Vector{Float64}
-    cJ::Vector{Float64}
+    v̇J::Vector{Float64}
     # transform matrix
     Xj::Array{Float64,2}
     Xp_to_j::Array{Float64,2}
@@ -164,19 +182,10 @@ function show(io::IO, m::SingleJoint)
     println(io, "Xj_to_ch = $(m.Xj_to_ch)")
     println(io, "qJ = $(m.qJ)")
     println(io, "vJ = $(m.vJ)")
-    println(io, "cJ = $(m.cJ)")
+    println(io, "v̇J = $(m.v̇J)")
 end
 
 #-------------------------------------------------------------------------------
-# numerical parameters
-mutable struct NumParams
-    tf::Float64
-    nstep::Int
-    dt::Float64
-    scheme::String
-    tol::Float64
-end
-
 mutable struct System
     # general info
     ndim::Int
@@ -206,16 +215,18 @@ mutable struct System
     g::Vector{Float64}
     # kinematic map
     kinmap::Array{Int,2}
+    # numerical parameters
+    num_params::NumParams
 end
 
 # outer constructor
-System(ndim, nbody, njoint, g) = System(
+System(ndim, nbody, njoint, g, num_params) = System(
     ndim,nbody,njoint,0.,0.,
     0,0,0,0,0,
     Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
     0,0,Vector{Int}(0),
     Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),
-    g,Array{Int,2}(0,0)
+    g,Array{Int,2}(0,0),num_params
 )
 
 function show(io::IO, m::System)
@@ -304,7 +315,7 @@ function AddBody(id::Int, cf::ConfigBody)
     # init q, v, c
     b.q = zeros(Float64,6)
     b.v = zeros(Float64,6)
-    b.c = zeros(Float64,6)
+    b.v̇ = zeros(Float64,6)
 
     return b
 end
@@ -406,9 +417,10 @@ function AddJoint(id::Int, cf::ConfigJoint)
     j.Xp_to_j = TransMatrix(j.shape1)
     j.Xj_to_ch = TransMatrix(j.shape2)
     # qJ, vJ and cJ
-    j.qJ = cf.qJ_init
+    j.qJ = zeros(Float64,6)
+    j.qJ[j.udof] = cf.qJ_init
     j.vJ = zeros(Float64,6)
-    j.cJ = zeros(Float64,6)
+    j.v̇J = zeros(Float64,6)
 
     return j
 end
@@ -579,7 +591,6 @@ function AssembleSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         end
     end
 
-#-------------------------------------------------------------------------------
     return bs, js, sys
 end
 
