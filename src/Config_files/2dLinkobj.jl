@@ -9,7 +9,7 @@ num_params = NumParams(tf, dt, scheme, tol)
 gravity = [0., 0., 0., ] # [0., -9.8, 0., ]
 
 # set up bodys
-nbody = 4
+nbody = 8
 ndim = 2
 config_body = ConfigBody(nbody)
 

@@ -44,6 +44,7 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         count = 0
         for i = 1:sys.njoint
             js[i].qJ = qJ[count+1:count+6]
+            count += 6
         end
     end
 """

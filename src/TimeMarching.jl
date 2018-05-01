@@ -114,17 +114,23 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
         qJ[i,:] = sᵢₙ.qJ
         # calculate M, f and GT at tᵢ₋₁
         Mᵢ₋₁ = HERKFuncM(sys)
+# println("Mᵢ₋₁ = ", Mᵢ₋₁)
         fᵢ₋₁ = HERKFuncf(bs, js, sys)
+# println("fᵢ₋₁ = ", fᵢ₋₁)
         GTᵢ₋₁ = HERKFuncGT(bs, sys)
+# println("GTᵢ₋₁ = ", GTᵢ₋₁)
         # advance qJ[i,:]
         for k = 1:i-1
             qJ[i,:] += dt*A[i,k]*vJ[k,:]
         end
         # use new qJ to update system position
         bs, js, sys = UpdatePosition!(bs, js, sys, qJ[i,:])
+# println("qJ = ", qJ[i,:])
         # calculate G and gti at tᵢ
         Gᵢ = HERKFuncG(bs, sys)
+# println("Gᵢ = ", Gᵢ)
         gtiᵢ = HERKFuncgti(js, sys, tᵢ)
+# println("gtiᵢ = ", gtiᵢ)
         # construct lhs matrix
         lhs = [ Mᵢ₋₁ GTᵢ₋₁; Gᵢ zeros(T,λ_dim,λ_dim) ]
         # the accumulated v term on the right hand side
@@ -137,6 +143,7 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
 ######### use Julia's built in "\" operator for now
         # solve the eq
         x = lhs \ rhs
+# println("HERK solution x = ", x)
         # apply the solution
         v̇[i-1,:] = x[1:qJ_dim]
         λ[i-1,:] = x[qJ_dim+1:end]
@@ -147,6 +154,7 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
         end
         # update vJ using updated v
         bs, js, sys, vJ[i,:] = UpdateVelocity!(bs, js, sys, v[i,:])
+# println("v = ", v[i,:])
     end
 
     # use norm(v[st+1,:]-v[st,:]) to determine next timestep

@@ -162,7 +162,7 @@ end
 
 function show(io::IO, m::SingleJoint)
     println(io, "joint_id = $(m.jid)", ", joint_type = $(m.joint_type)",
-            ", pid = $(m.body1)")
+            ", body1 = $(m.body1)")
     println(io, "shape1 = $(m.shape1)", ", shape2 = $(m.shape2)")
     println(io, "nudof = $(m.nudof)", ", ncdof = $(m.ncdof)",
             ", np = $(m.np)", ", na = $(m.na)")
@@ -184,6 +184,14 @@ function show(io::IO, m::SingleJoint)
     println(io, "vJ = $(m.vJ)")
     println(io, "v̇J = $(m.v̇J)")
 end
+
+#-------------------------------------------------------------------------------
+# mutable struct PreArray
+#     p_total::Vector{Float64}
+#     τ_total::Vector{Float64}
+#     A_total::Array{Float64,2}
+#     B_total::Array{Float64,2}
+# end
 
 #-------------------------------------------------------------------------------
 mutable struct System
@@ -217,6 +225,8 @@ mutable struct System
     kinmap::Array{Int,2}
     # numerical parameters
     num_params::NumParams
+    # pre-allocation array
+    # pre_array::PreArray
 end
 
 # outer constructor
@@ -227,6 +237,7 @@ System(ndim, nbody, njoint, g, num_params) = System(
     0,0,Vector{Int}(0),
     Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),
     g,Array{Int,2}(0,0),num_params
+    # PreArray()
 )
 
 function show(io::IO, m::System)
@@ -257,7 +268,7 @@ function AddBody(id::Int, cf::ConfigBody)
     b.verts = zeros(Float64, b.nverts, 3)
     b.verts[:,1] = cf.verts[:,2]
     b.verts[:,3] = cf.verts[:,1]
-    b.verts_i = b.verts
+    b.verts_i = copy(b.verts)
 
     # x_c
     Xc = 0.; Zc = 0.; A = 0.; Ix = 0.; Iz = 0.; Ixz = 0.
