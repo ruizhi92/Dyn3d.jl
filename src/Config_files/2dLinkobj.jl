@@ -1,15 +1,16 @@
 
 # numerical params
-tf = 2.0
+tf = 2
 dt = 1e-3
 scheme = "Liska"
+st = 3
 tol = 1e-4
-num_params = NumParams(tf, dt, scheme, tol)
+num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
 gravity = [0., 0., 0., ] # [0., -9.8, 0., ]
 
 # set up bodys
-nbody = 8
+nbody = 4
 ndim = 2
 config_body = ConfigBody(nbody)
 

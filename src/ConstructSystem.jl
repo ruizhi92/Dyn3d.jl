@@ -186,13 +186,62 @@ function show(io::IO, m::SingleJoint)
 end
 
 #-------------------------------------------------------------------------------
-# mutable struct PreArray
-#     p_total::Vector{Float64}
-#     τ_total::Vector{Float64}
-#     A_total::Array{Float64,2}
-#     B_total::Array{Float64,2}
-# end
+mutable struct PreArray
+    # used in UpdatePosition, UpdateVelocity
+    q_temp::Vector{Float64}
+    x_temp::Vector{Float64}
+    rot::Array{Float64,2}
+    # used in HERK!
+    qJ::Array{Float64,2}
+    vJ::Array{Float64,2}
+    v::Array{Float64,2}
+    v̇::Array{Float64,2}
+    λ::Array{Float64,2}
+    v_temp::Vector{Float64}
+    lhs::Array{Float64,2}
+    rhs::Vector{Float64}
+    # used in HERKFuncM
+    Mᵢ₋₁::Array{Float64,2}
+    # used in HERKFuncf
+    p_total::Vector{Float64}
+    τ_total::Vector{Float64}
+    p_bias::Vector{Float64}
+    f_g::Vector{Float64}
+    f_ex::Vector{Float64}
+    r_temp::Vector{Float64}
+    Xic_to_i::Array{Float64,2}
+    fᵢ₋₁::Vector{Float64}
+    # used in HERKFuncf, HERKFuncGT
+    A_total::Array{Float64,2}
+    GTᵢ₋₁::Array{Float64,2}
+    # used in HERKFuncG
+    B_total::Array{Float64,2}
+    Gᵢ::Array{Float64,2}
+    # used in HERKFuncgti
+    v_gti::Vector{Float64}
+    va_gti::Vector{Float64}
+    gtiᵢ::Vector{Float64}
+end
 
+PreArray() = PreArray(
+    # UpdatePosition, UpdateVelocity
+    Float64[],Float64[],Array{Float64,2}(0,0),
+    # HERK!
+    Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0),
+    Array{Float64,2}(0,0),Array{Float64,2}(0,0),Float64[],
+    Array{Float64,2}(0,0),Float64[],
+    # HERKFuncM
+    Array{Float64,2}(0,0),
+    # HERKFuncf
+    Float64[],Float64[],Float64[],Float64[],Float64[],Float64[],
+    Array{Float64,2}(0,0),Float64[],
+    # HERKFuncf, HERKFuncGT
+    Array{Float64,2}(0,0),Array{Float64,2}(0,0),
+    # HERKFuncG
+    Array{Float64,2}(0,0),Array{Float64,2}(0,0),
+    # HERKFuncgti
+    Float64[],Float64[],Float64[]
+)
 #-------------------------------------------------------------------------------
 mutable struct System
     # general info
@@ -226,7 +275,7 @@ mutable struct System
     # numerical parameters
     num_params::NumParams
     # pre-allocation array
-    # pre_array::PreArray
+    pre_array::PreArray
 end
 
 # outer constructor
@@ -236,8 +285,8 @@ System(ndim, nbody, njoint, g, num_params) = System(
     Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
     0,0,Vector{Int}(0),
     Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),
-    g,Array{Int,2}(0,0),num_params
-    # PreArray()
+    g,Array{Int,2}(0,0),num_params,
+    PreArray()
 )
 
 function show(io::IO, m::System)

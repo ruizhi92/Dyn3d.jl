@@ -62,7 +62,7 @@ end
 
 #-------------------------------------------------------------------------------
 function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint},
-    sys::System, tol=1e-4, scheme = "Liska") where T <: AbstractFloat
+    sys::System, scheme = "Liska", tol=1e-4) where T <: AbstractFloat
 """
     HERKMain is a half-explicit Runge-Kutta solver based on the
     constrained body model in paper of V.Brasey and E.Hairer.
@@ -87,16 +87,24 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
 """
     # pick sheme parameters
     A, b, c, st = HERKScheme(scheme)
+    if st != sys.num_params.st error("Scheme stage not correctly specified") end
 
-    # allocation of local variables
+    # pointer to pre-allocated array
     qJ_dim = sys.ndof
     λ_dim =sys.ncdof_HERK
-    qJ = zeros(T, st+1, qJ_dim)
-    vJ = zeros(T, st+1, qJ_dim)
-    v = zeros(T, st+1, qJ_dim)
-    v̇ = zeros(T, st, qJ_dim)
-    λ = zeros(T, st, λ_dim)
-    v_temp = zeros(T, qJ_dim)
+    qJ = sys.pre_array.qJ
+    vJ = sys.pre_array.vJ
+    v = sys.pre_array.v
+    v̇ = sys.pre_array.v̇
+    λ = sys.pre_array.λ
+    v_temp = sys.pre_array.v_temp
+    Mᵢ₋₁ = sys.pre_array.Mᵢ₋₁
+    fᵢ₋₁ = sys.pre_array.fᵢ₋₁
+    GTᵢ₋₁ = sys.pre_array.GTᵢ₋₁
+    Gᵢ = sys.pre_array.Gᵢ
+    gtiᵢ = sys.pre_array.gtiᵢ
+    lhs = sys.pre_array.lhs
+    rhs = sys.pre_array.rhs
 
     # stage 1
     tᵢ₋₁ = sᵢₙ.t; tᵢ = sᵢₙ.t;; dt = sᵢₙ.dt
@@ -121,7 +129,7 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
 # println("GTᵢ₋₁ = ", GTᵢ₋₁)
         # advance qJ[i,:]
         for k = 1:i-1
-            qJ[i,:] += dt*A[i,k]*vJ[k,:]
+            qJ[i,:] += dt*A[i,k]*view(vJ,k,:)
         end
         # use new qJ to update system position
         bs, js, sys = UpdatePosition!(bs, js, sys, qJ[i,:])
@@ -136,13 +144,14 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
         # the accumulated v term on the right hand side
         v_temp = sᵢₙ.v
         for k = 1:i-2
-            v_temp += dt*A[i,k]*v̇[k,:]
+            v_temp += dt*A[i,k]*view(v̇,k,:)
         end
         # construct rhs
         rhs = [ fᵢ₋₁; -1./(dt*A[i,i-1])*(Gᵢ*v_temp + gtiᵢ) ]
 ######### use Julia's built in "\" operator for now
         # solve the eq
         x = lhs \ rhs
+        # x = BlockLU(lhs, rhs, qJ_dim, λ_dim)
 # println("HERK solution x = ", x)
         # apply the solution
         v̇[i-1,:] = x[1:qJ_dim]
@@ -150,7 +159,7 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
         # advance v[i,:]
         v[i,:] = sᵢₙ.v
         for k = 1:i-1
-            v[i,:] += dt*A[i,k]*v̇[k,:]
+            v[i,:] += dt*A[i,k]*view(v̇,k,:)
         end
         # update vJ using updated v
         bs, js, sys, vJ[i,:] = UpdateVelocity!(bs, js, sys, v[i,:])
@@ -159,12 +168,12 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
 
     # use norm(v[st+1,:]-v[st,:]) to determine next timestep
     sₒᵤₜ = Soln(tᵢ) # init struct
-    sₒᵤₜ.dt = sᵢₙ.dt*(tol/norm(v[st+1,:]-v[st,:]))^(1/3)
+    sₒᵤₜ.dt = sᵢₙ.dt*(tol/norm(view(v,st+1,:)-view(v,st,:)))^(1/3)
     sₒᵤₜ.t = sᵢₙ.t + sᵢₙ.dt
-    sₒᵤₜ.qJ = qJ[st+1, :]
-    sₒᵤₜ.v = v[st+1, :]
-    sₒᵤₜ.v̇ = v̇[st, :]
-    sₒᵤₜ.λ = λ[st, :]
+    sₒᵤₜ.qJ = view(qJ, st+1, :)
+    sₒᵤₜ.v = view(v, st+1, :)
+    sₒᵤₜ.v̇ = view(v̇, st, :)
+    sₒᵤₜ.λ = view(λ, st, :)
 
     return  sₒᵤₜ, bs, js, sys
 end
@@ -185,15 +194,20 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
     joint spring-damper forcing term. The bias term includes the change of
     inertia effect, together with gravity and external force.
 """
-    # allocation
-    p_total = zeros(Float64, sys.ndof)
-    τ_total = zeros(Float64, sys.nudof)
-    A_total = zeros(Float64, sys.ndof, sys.ndof)
+    # pointer to pre-allocated array
+    p_total = sys.pre_array.p_total
+    τ_total = sys.pre_array.τ_total
+    p_bias = sys.pre_array.p_bias
+    f_g = sys.pre_array.f_g
+    f_ex = sys.pre_array.f_ex
+    r_temp = sys.pre_array.r_temp
+    Xic_to_i = sys.pre_array.Xic_to_i
+    A_total = sys.pre_array.A_total
 
     # compute bias force, gravity and external force
     for i = 1:sys.nbody
         # bias force
-        p_temp = Mfcross(bs[i].v, (bs[i].inertia_b*bs[i].v))
+        p_bias = Mfcross(bs[i].v, (bs[i].inertia_b*bs[i].v))
         # gravity in inertial center coord
         f_g = bs[i].mass*[zeros(Float64, 3); sys.g]
         # get transform matrix from x_c in inertial frame to the origin of
@@ -208,7 +222,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
         f_ex = zeros(Float64, 6)
         f_ex = bs[i].Xb_to_i*f_ex
         # add up
-        p_total[6i-5:6i] = p_temp - (f_g + f_ex)
+        p_total[6i-5:6i] = p_bias - (f_g + f_ex)
     end
 
     # construct τ_total, this is related only to spring force.
@@ -242,7 +256,8 @@ function HERKFuncGT(bs::Vector{SingleBody}, sys::System)
     HERKFuncGT constructs the input function GT for HERK method.
     It returns the force constraint matrix acting on Lagrange multipliers.
 """
-    A_total = zeros(Float64, sys.ndof, sys.ndof)
+    # pointer to pre-allocated array
+    A_total = sys.pre_array.A_total
     # construct A_total to take in parent-child hierarchy
     for i = 1:sys.nbody
         # fill in parent joint blocks
@@ -265,7 +280,8 @@ function HERKFuncG(bs::Vector{SingleBody}, sys::System)
     body coord, for example if body 2 and 3 are connected then:
        v(3) = vJ(3) + X2_to_3*v(2)
 """
-    B_total = zeros(Float64, sys.ndof, sys.ndof)
+    # pointer to pre-allocated array
+    B_total = sys.pre_array.B_total
     # construct B_total to take in parent-child hierarchy
     for i = 1:sys.nbody
         # fill in child body blocks
@@ -286,19 +302,48 @@ function HERKFuncgti(js::Vector{SingleJoint}, sys::System, t::T) where
     HERKFuncgti returns all the collected prescribed active velocity of joints
     at given time.
 """
-    y = zeros(Float64, sys.ndof)
-    v_a = zeros(Float64, sys.na)
+    # pointer to pre-allocated array
+    v = sys.pre_array.v_gti
+    va = sys.pre_array.va_gti
     # give actual numbers from calling motion(t)
     for i = 1:sys.na
         jid = sys.kinmap[i,1]
         dofid = sys.kinmap[i,2]
-        _, v_a[i] = js[jid].joint_dof[dofid].motion(t)
+        _, va[i] = js[jid].joint_dof[dofid].motion(t)
     end
 
-    y[sys.udof_a] = v_a
-    return -(sys.T_total')*y
+    v[sys.udof_a] = va
+    return -(sys.T_total')*v
 end
 
+#-------------------------------------------------------------------------------
+function BlockLU(H::Array{T,2}, b::Vector{T}, qJ_dim::Int,
+    λ_dim::Int) where T
+"""
+    BlockLU solve the system H*xy = b using Schur complement reduction
+    [A  B₁ᵀ] * [x] = [f]
+    [B₂  -C]   [y]   [g]
+    -------   ---   ---
+       H    * xy  =  b
+    By computing the Schur complement S = -B₂*inv(A)*B₁ᵀ-C, the original system
+    of equations is transferred to
+    [A  B₁ᵀ] * [x] = [       f       ]
+    [0   S ]   [y]   [g - B₂*inv(A)*f]
+    Using lufact to solve the lower part y first, then get x by plugging in y.
+"""
+    # set pointers
+    A = view(H, 1:qJ_dim, 1:qJ_dim)
+    B₁ᵀ = view(H, 1:qJ_dim, qJ_dim+1:qJ_dim+λ_dim)
+    B₂ = view(H, qJ_dim+1:qJ_dim+λ_dim, 1:qJ_dim)
+    C = - view(H, qJ_dim+1:qJ_dim+λ_dim, qJ_dim+1:qJ_dim+λ_dim)
+    f = view(b, 1:qJ_dim)
+    g = view(b, qJ_dim+1:qJ_dim+λ_dim)
+    # compute Schur complement S
+    S = - B₂*inv(A)*B₁ᵀ - C
+    # compute y first, then compute x by substitute in y
+    y = S \ (g - B₂*inv(A)*f)
+    return [A \ (f - B₁ᵀ*y); y]
+end
 
 
 

@@ -95,6 +95,7 @@ mutable struct NumParams
     tf::Float64
     dt::Float64
     scheme::String
+    st::Int
     tol::Float64
 end
 

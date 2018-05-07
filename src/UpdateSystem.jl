@@ -54,6 +54,10 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     2. Update js[i].Xj by calling Jcalc
     3. Update bs[i].Xp_to_b using Xp_to_b = Xj_to_ch*Xj*Xp_to_j
 """
+    # pointer to pre-allocated array
+    q_temp = sys.pre_array.q_temp
+    x_temp = sys.pre_array.x_temp
+
     #-------------------------------------------------
     # First body
     #-------------------------------------------------
@@ -65,7 +69,6 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     bs[1].Xp_to_b = js[1].Xj_to_ch*js[1].Xj*js[1].Xp_to_j
     bs[1].Xb_to_i = inv(bs[1].Xp_to_b)
     # bs[1].x_i
-    q_temp = zeros(Float64, 6)
     q_temp[4:6] = js[1].qJ[4:6]
     q_temp = inv(js[1].Xp_to_j)*q_temp
     bs[1].x_i = js[1].shape1[4:6] + q_temp[4:6]
@@ -120,6 +123,9 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     With updated body velocity in the middle of HERK, update bs and js,
     return joint velocity in one array.
 """
+    # pointer to pre-allocated array
+    rot = sys.pre_array.rot
+
     # update bs[i].v using input argument v
     count = 0
     for i = 1:sys.nbody
@@ -138,7 +144,6 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         # which can be used directly as transformation matrix.
         if js[i].joint_type == "planar" ||
             js[i].joint_type == "extended_revolute"
-            rot = zeros(T, 6, 6)
             rot[1:3, 1:3] = js[i].Xj[1:3, 1:3]
             rot[4:6, 4:6] = rot[1:3, 1:3]
             js[i].vJ = (rot')*js[i].vJ
@@ -154,13 +159,58 @@ end
 
 #-------------------------------------------------------------------------------
 function InitSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
-    sys::System)
+    sys::System, scheme = "Liska")
 """
     InitSystem initialize the joint-body chain by assining values to
     bs[i].v and js[i].qJ at time=0. Body velocity are calculated from joint
     velocities, which are got through articulated body method, zero-out
     total initial momentum.
 """
+    #-------------------------------------------------
+    # Array Pre-allocation in UpdatePosition, UpdateVelocity
+    #-------------------------------------------------
+    sys.pre_array.q_temp = zeros(Float64, 6)
+    sys.pre_array.x_temp = zeros(Float64, 3)
+    sys.pre_array.rot = zeros(Float64, 6, 6)
+    #-------------------------------------------------
+    # Array Pre-allocation in TimeMarching
+    #-------------------------------------------------
+    # allocate PreArray used in HERK!
+    st = sys.num_params.st
+    sys.pre_array.qJ = zeros(Float64, st+1, sys.ndof)
+    sys.pre_array.vJ = zeros(Float64, st+1, sys.ndof)
+    sys.pre_array.v = zeros(Float64, st+1, sys.ndof)
+    sys.pre_array.v̇ = zeros(Float64, st, sys.ndof)
+    sys.pre_array.λ = zeros(Float64, st, sys.ncdof_HERK)
+    sys.pre_array.v_temp = zeros(Float64, sys.ndof)
+    sys.pre_array.lhs = zeros(Float64, sys.ndof+sys.ncdof_HERK,
+                                       sys.ndof+sys.ncdof_HERK)
+    sys.pre_array.rhs = zeros(Float64, sys.ndof+sys.ncdof_HERK)
+    # allocate PreArray used in HERKFuncM
+    sys.pre_array.Mᵢ₋₁ = zeros(Float64, sys.ndof, sys.ndof)
+    # allocate PreArray used in HERKFuncf
+    sys.pre_array.p_total = zeros(Float64, sys.ndof)
+    sys.pre_array.τ_total = zeros(Float64, sys.nudof)
+    sys.pre_array.p_bias = zeros(Float64, 6)
+    sys.pre_array.f_g = zeros(Float64, 6)
+    sys.pre_array.f_ex = zeros(Float64, 6)
+    sys.pre_array.r_temp = zeros(Float64, 6)
+    sys.pre_array.Xic_to_i = zeros(Float64, 6, 6)
+    sys.pre_array.fᵢ₋₁ = zeros(Float64, sys.ndof)
+    # allocate PreArray used in HERKFuncf, HERKFuncGT
+    sys.pre_array.A_total = zeros(Float64, sys.ndof, sys.ndof)
+    sys.pre_array.GTᵢ₋₁  = zeros(Float64, sys.ndof, sys.ncdof_HERK)
+    # allocate PreArray used in HERKFuncG
+    sys.pre_array.B_total = zeros(Float64, sys.ndof, sys.ndof)
+    sys.pre_array.Gᵢ  = zeros(Float64, sys.ncdof_HERK, sys.ndof)
+    # allocate PreArray used in HERKFuncgti
+    sys.pre_array.v_gti = zeros(Float64, sys.ndof)
+    sys.pre_array.va_gti = zeros(Float64, sys.na)
+    sys.pre_array.gtiᵢ = zeros(Float64, sys.ncdof_HERK)
+
+    #-------------------------------------------------
+    # Init system
+    #-------------------------------------------------
     # insert active motion
     for i = 1:sys.njoint, k = 1:js[i].na
         act= js[i].udof_a[k]
@@ -219,6 +269,7 @@ function InitSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     soln = Soln(0.0, sys.num_params.dt, qJ_total, v_total)
 
     return bs, js, sys, soln
+
 end
 
 
