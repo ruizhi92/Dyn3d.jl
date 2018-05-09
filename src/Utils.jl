@@ -15,12 +15,6 @@ function MassCenter(bs::Vector{SingleBody}, sys::System)
 end
 
 #-------------------------------------------------------------------------------
-# mutable struct VertsHistory
-#     t::Float64
-#     # dimension of vs is [nbody, nverts, xyz]
-#     verts::Array{Float64,3}
-# end
-
 function VertsHistory(nbody::Int, bs::Vector{SingleBody})
     verts_i = Array{Float64}(nbody,bs[1].nverts,3)
     for i = 1:nbody

@@ -6,7 +6,7 @@ import Base: show
 
 #-------------------------------------------------------------------------------
 # motion parameters to describe a motion
-struct Motions
+mutable struct Motions
     motion_type::String
     motion_params::Vector{Float64}
 end
@@ -40,7 +40,7 @@ function (m::Motions)(t)
 end
 #-------------------------------------------------------------------------------
 # single dof information for every dof in a joint
-struct Dof
+mutable struct Dof
     dof_id::Int
     dof_type::String
     stiff::Float64
@@ -51,7 +51,7 @@ end
 Dof() = Dof(3, "passive", 0.03, 0.01, Motions())
 #-------------------------------------------------------------------------------
 # configuration properties of a single body
-struct ConfigBody
+mutable struct ConfigBody
     nbody::Int
     nverts::Int
     verts::Array{Float64,2}
@@ -72,7 +72,6 @@ end
 # configuration properties of a single joint
 mutable struct ConfigJoint
     njoint::Int
-    joint_id::Int
     joint_type::String
     shape1::Vector{Float64}
     shape2::Vector{Float64}
@@ -81,13 +80,17 @@ mutable struct ConfigJoint
     qJ_init::Vector{Float64}
 end
 
-ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, 1, joint_type,
+ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, joint_type,
     [0., 0., 0., 1./njoint, 0., 0.], zeros(Float64,6),
     0, [Dof()], [0.])
 
-# function show(io::IO, m::ConfigJoint)
-#     println(io, " joint_type=$(m.joint_type)")
-# end
+function show(io::IO, m::ConfigJoint)
+    println(io, " joint_type=$(m.joint_type)")
+    println(io, " shape1=$(m.shape1)")
+    println(io, " shape2=$(m.shape2)")
+    println(io, " joint_dof=$(m.joint_dof)")
+    println(io, " qJ_init=$(m.qJ_init)")
+end
 
 #-------------------------------------------------------------------------------
 # numerical parameters

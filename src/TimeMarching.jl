@@ -214,7 +214,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
         # inertial frame
         r_temp = [zeros(Float64, 3); -bs[i].x_c]
         r_temp = bs[i].Xb_to_i*r_temp
-        r_temp = [zeros(Float64, 3); bs[i].x_i + r_temp[4:6]]
+        r_temp = [zeros(Float64, 3); -bs[i].x_i + r_temp[4:6]]
         Xic_to_i = TransMatrix(r_temp)
         # transform gravity force
         f_g = bs[i].Xb_to_i'*inv(Xic_to_i')*f_g

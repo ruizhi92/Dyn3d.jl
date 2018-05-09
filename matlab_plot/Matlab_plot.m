@@ -4,4 +4,4 @@ clc;clear;
 system = load('verts_i.mat');
 
 % plot using artic_movie_3d
-artic_movie_3d(system, 100, 'savemovie', 'movie.avi');
+artic_movie_3d(system, 80, 'savemovie', 'movie.avi');

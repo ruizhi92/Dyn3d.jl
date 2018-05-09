@@ -75,8 +75,8 @@ figure(1)
 clf
 axis equal
 
-attach = false;
-center = false;
+attach = 0;
+center = 0;
 
 %% Assign the system structure at the first time level
 
@@ -125,7 +125,7 @@ else
     end
     h = patch('Faces',faces,'Vertices',verts,'FaceColor','c');
 
-    axis([-2 2 -2 2 -2 1])
+    axis([-2 2 -2 2 -1 1])
     xlabel('$z$'); ylabel('$x$'); zlabel('$y$');
     view(112,34)
 %    view(122.5,14)

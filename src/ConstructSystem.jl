@@ -442,18 +442,6 @@ function AddJoint(id::Int, cf::ConfigJoint)
             j.nudof_HERK -= 1; j.ncdof_HERK += 1
         end
     end
-    # udof_HERK, modified by active motion
-    if j.nudof_HERK != 0
-        j.udof_HERK = Vector{Int}(j.nudof_HERK)
-        count = 1
-        for i = 1:6
-            if j.ncdof != 0
-                if !(i in j.cdof) j.udof_HERK[count] = i; count += 1 end
-            elseif j.na != 0
-                if !(i in j.udof_a) j.udof_HERK[count] = i; count += 1 end
-            end
-        end
-    end
     # cdof_HERK, modified by active motion
     if j.ncdof_HERK != 0
         j.cdof_HERK = Vector{Int}(j.ncdof_HERK)
@@ -465,6 +453,14 @@ function AddJoint(id::Int, cf::ConfigJoint)
             if j.na != 0
                 if (i in j.udof_a) j.cdof_HERK[count] = i; count += 1 end
             end
+        end
+    end
+    # udof_HERK, modified by active motion
+    if j.nudof_HERK != 0
+        j.udof_HERK = Vector{Int}(j.nudof_HERK)
+        count = 1
+        for i = 1:6
+            if !(i in j.cdof_HERK) j.udof_HERK[count] = i; count += 1 end
         end
     end
     # T_HERK
