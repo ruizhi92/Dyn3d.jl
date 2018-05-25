@@ -1,3 +1,5 @@
+https://travis-ci.org/ruizhi92/dyn3d.jl.svg?branch=master
+
 This is the 3d rigid body dynamic chain solver using 6d spatial vector.
 
 Code is written in Julia and Fortran on different branch.
