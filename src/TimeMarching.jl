@@ -10,6 +10,7 @@ using DocStringExtensions
 using ..ConstructSystem
 using ..SpatialAlgebra
 using ..UpdateSystem
+using ..Utils
 
 #-------------------------------------------------------------------------------
 function HERKScheme(name::String)
@@ -89,22 +90,12 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
     A, b, c, st = HERKScheme(scheme)
     if st != sys.num_params.st error("Scheme stage not correctly specified") end
 
-    # pointer to pre-allocated array
     qJ_dim = sys.ndof
     λ_dim =sys.ncdof_HERK
-    qJ = sys.pre_array.qJ
-    vJ = sys.pre_array.vJ
-    v = sys.pre_array.v
-    v̇ = sys.pre_array.v̇
-    λ = sys.pre_array.λ
-    v_temp = sys.pre_array.v_temp
-    Mᵢ₋₁ = sys.pre_array.Mᵢ₋₁
-    fᵢ₋₁ = sys.pre_array.fᵢ₋₁
-    GTᵢ₋₁ = sys.pre_array.GTᵢ₋₁
-    Gᵢ = sys.pre_array.Gᵢ
-    gtiᵢ = sys.pre_array.gtiᵢ
-    lhs = sys.pre_array.lhs
-    rhs = sys.pre_array.rhs
+
+    # pointer to pre-allocated array
+    @get sys.pre_array (qJ, vJ, v, v̇, λ, v_temp, Mᵢ₋₁, fᵢ₋₁, GTᵢ₋₁, Gᵢ, gtiᵢ,
+        lhs, rhs)
 
     # stage 1
     tᵢ₋₁ = sᵢₙ.t; tᵢ = sᵢₙ.t;; dt = sᵢₙ.dt
@@ -122,23 +113,17 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
         qJ[i,:] = sᵢₙ.qJ
         # calculate M, f and GT at tᵢ₋₁
         Mᵢ₋₁ = HERKFuncM(sys)
-# println("Mᵢ₋₁ = ", Mᵢ₋₁)
         fᵢ₋₁ = HERKFuncf(bs, js, sys)
-# println("fᵢ₋₁ = ", fᵢ₋₁)
         GTᵢ₋₁ = HERKFuncGT(bs, sys)
-# println("GTᵢ₋₁ = ", GTᵢ₋₁)
         # advance qJ[i,:]
         for k = 1:i-1
             qJ[i,:] += dt*A[i,k]*view(vJ,k,:)
         end
         # use new qJ to update system position
         bs, js, sys = UpdatePosition!(bs, js, sys, qJ[i,:])
-# println("qJ = ", qJ[i,:])
         # calculate G and gti at tᵢ
         Gᵢ = HERKFuncG(bs, sys)
-# println("Gᵢ = ", Gᵢ)
         gtiᵢ = HERKFuncgti(js, sys, tᵢ)
-# println("gtiᵢ = ", gtiᵢ)
         # construct lhs matrix
         lhs = [ Mᵢ₋₁ GTᵢ₋₁; Gᵢ zeros(T,λ_dim,λ_dim) ]
         # the accumulated v term on the right hand side
@@ -152,7 +137,6 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
         # solve the eq
         x = lhs \ rhs
         # x = BlockLU(lhs, rhs, qJ_dim, λ_dim)
-# println("HERK solution x = ", x)
         # apply the solution
         v̇[i-1,:] = x[1:qJ_dim]
         λ[i-1,:] = x[qJ_dim+1:end]
@@ -195,14 +179,8 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
     inertia effect, together with gravity and external force.
 """
     # pointer to pre-allocated array
-    p_total = sys.pre_array.p_total
-    τ_total = sys.pre_array.τ_total
-    p_bias = sys.pre_array.p_bias
-    f_g = sys.pre_array.f_g
-    f_ex = sys.pre_array.f_ex
-    r_temp = sys.pre_array.r_temp
-    Xic_to_i = sys.pre_array.Xic_to_i
-    A_total = sys.pre_array.A_total
+    @get sys.pre_array (p_total, τ_total, p_bias, f_g, f_ex, r_temp,
+        Xic_to_i, A_total)
 
     # compute bias force, gravity and external force
     for i = 1:sys.nbody
@@ -257,7 +235,8 @@ function HERKFuncGT(bs::Vector{SingleBody}, sys::System)
     It returns the force constraint matrix acting on Lagrange multipliers.
 """
     # pointer to pre-allocated array
-    A_total = sys.pre_array.A_total
+    @get sys.pre_array (A_total,)
+
     # construct A_total to take in parent-child hierarchy
     for i = 1:sys.nbody
         # fill in parent joint blocks
@@ -281,7 +260,8 @@ function HERKFuncG(bs::Vector{SingleBody}, sys::System)
        v(3) = vJ(3) + X2_to_3*v(2)
 """
     # pointer to pre-allocated array
-    B_total = sys.pre_array.B_total
+    @get sys.pre_array (B_total,)
+
     # construct B_total to take in parent-child hierarchy
     for i = 1:sys.nbody
         # fill in child body blocks
@@ -303,17 +283,17 @@ function HERKFuncgti(js::Vector{SingleJoint}, sys::System, t::T) where
     at given time.
 """
     # pointer to pre-allocated array
-    v = sys.pre_array.v_gti
-    va = sys.pre_array.va_gti
+    @get sys.pre_array (v_gti, va_gti)
+
     # give actual numbers from calling motion(t)
     for i = 1:sys.na
         jid = sys.kinmap[i,1]
         dofid = sys.kinmap[i,2]
-        _, va[i] = js[jid].joint_dof[dofid].motion(t)
+        _, va_gti[i] = js[jid].joint_dof[dofid].motion(t)
     end
 
-    v[sys.udof_a] = va
-    return -(sys.T_total')*v
+    v_gti[sys.udof_a] = va_gti
+    return -(sys.T_total')*v_gti
 end
 
 #-------------------------------------------------------------------------------
