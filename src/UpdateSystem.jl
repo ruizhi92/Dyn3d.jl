@@ -15,7 +15,7 @@ using ..SpatialAlgebra
 #-------------------------------------------------------------------------------
 function Jcalc(kind::String, qJ::Vector{T}) where T <: AbstractFloat
     if kind == "revolute" || kind == "prismatic" || kind == "cylindrical" ||
-       kind == "planar" || kind == "extended_revolute"
+       kind == "planar"
        Xj = TransMatrix(qJ)
    elseif kind == "helical"
        # set fixed screw parameter h
@@ -142,8 +142,7 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         # for planar type joints, we rotate the joint velocity from Fs back to
         # Fp so that the integrated result in q described in Fp coord,
         # which can be used directly as transformation matrix.
-        if js[i].joint_type == "planar" ||
-            js[i].joint_type == "extended_revolute"
+        if js[i].joint_type == "planar"
             rot[1:3, 1:3] = js[i].Xj[1:3, 1:3]
             rot[4:6, 4:6] = rot[1:3, 1:3]
             js[i].vJ = (rot')*js[i].vJ

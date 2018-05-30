@@ -60,14 +60,6 @@ function ChooseJoint(kind)
         cdof = Nullable{Int}()
         S = eye(Int,6)[:,udof]
         T = Nullable{Int}()
-
-    elseif kind == "extended_revolute"
-        nudof = 2
-        ncdof = 4
-        udof = [3, 4]
-        cdof = [1, 2, 5, 6]
-        S = eye(Int,6)[:,udof]
-        T = eye(Int,6)[:,cdof]
     end
 
     return ChooseJoint(nudof, ncdof, udof, cdof, S, T)

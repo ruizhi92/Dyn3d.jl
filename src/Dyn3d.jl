@@ -1,25 +1,26 @@
+__precompile__()
+
 module Dyn3d
-#=
-    Include this module for any examples in notebook.
-=#
+
+using Reexport
 
 include("Config_files/ConfigDataType.jl")
-using .ConfigDataType
+@reexport using .ConfigDataType
 
 include("SpatialAlgebra.jl")
-using .SpatialAlgebra
+@reexport using .SpatialAlgebra
 
 include("ConstructSystem.jl")
-using .ConstructSystem
+@reexport using .ConstructSystem
 
 include("Utils.jl")
-using .Utils
+@reexport using .Utils
 
 include("UpdateSystem.jl")
-using .UpdateSystem
+@reexport using .UpdateSystem
 
 include("TimeMarching.jl")
-using .TimeMarching
+@reexport using .TimeMarching
 
 #=
 21-element Array{Coverage.MallocInfo,1}:

@@ -7,10 +7,11 @@ export SingleBody, SingleJoint, System, Soln,
 # use registered packages
 using DocStringExtensions
 import Base: show
+using Reexport
 
 # import self-defined modules
 include("JointType.jl")
-using .JointType
+@reexport using .JointType
 using ..ConfigDataType
 using ..SpatialAlgebra
 

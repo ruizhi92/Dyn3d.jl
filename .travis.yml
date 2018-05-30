@@ -11,4 +11,7 @@ notifications:
   email: false
 
 after_success:
-- julia -e 'cd(Pkg.dir("Dyn3d")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  # push coverage results to Codecov
+  - julia -e 'cd(Pkg.dir("Dyn3d")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  # push coverage results to Coveralls
+  - julia -e 'cd(Pkg.dir("Dyn3d")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'

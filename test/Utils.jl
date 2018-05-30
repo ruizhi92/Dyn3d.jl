@@ -1,5 +1,3 @@
-import Dyn3d.Utils: @get
-
 @testset "Utils" begin
     @testset "get" begin
         z = rand(Complex128)
