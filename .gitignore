@@ -3,3 +3,5 @@ test/casual_test.ipynb
 *.avi
 *.mat
 *.mem
+docs/build
+*.cov

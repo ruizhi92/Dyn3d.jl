@@ -6,11 +6,15 @@ julia:
   - 0.6
 branches:
   only:
-    -master
+    - master
 notifications:
   email: false
 
 after_success:
+  after_success:
+  # deploy docs
+  - julia -e 'Pkg.add("Documenter")'
+  - julia -e 'cd(Pkg.dir("Dyn3d")); include(joinpath("docs", "make.jl"))'
   # push coverage results to Codecov
   - julia -e 'cd(Pkg.dir("Dyn3d")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
   # push coverage results to Coveralls

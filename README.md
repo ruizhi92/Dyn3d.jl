@@ -1,6 +1,6 @@
 # Dyn3d
 
-[![Build Status](https://travis-ci.org/ruizhi92/dyn3d.jl.png?branch=master)](https://travis-ci.org/ruizhi92/dyn3d.jl)
+[![Build Status](https://travis-ci.org/ruizhi92/Dyn3d.jl.png?branch=master)](https://travis-ci.org/ruizhi92/Dyn3d.jl)
 
 This is the 3d rigid body dynamic chain solver using 6d spatial vector.
 
