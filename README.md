@@ -1,6 +1,8 @@
 # Dyn3d
 
 [![Build Status](https://travis-ci.org/ruizhi92/Dyn3d.jl.png?branch=master)](https://travis-ci.org/ruizhi92/Dyn3d.jl)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://ruizhi92.github.io/Dyn3d.jl/latest)
+
 
 This is the 3d rigid body dynamic chain solver using 6d spatial vector.
 
