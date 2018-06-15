@@ -1,0 +1,21 @@
+site_name:        Dyn3d.jl
+repo_url:         https://github.com/ruizhi92/Dyn3d.jl
+site_description:
+site_author:      Ruizhi_Yang
+
+theme: readthedocs
+
+extra_javascript:
+  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML
+  - assets/mathjaxhelper.js
+
+markdown_extensions:
+  - extra
+  - tables
+  - fenced_code
+  - mdx_math
+
+docs_dir: 'build'
+
+pages:
+  - Home: index.md
