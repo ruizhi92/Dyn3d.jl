@@ -23,7 +23,7 @@ makedocs(
 
 if "DOCUMENTER_KEY" in keys(ENV)
     deploydocs(
-     repo = "github.com/ruizhi92/Dyn3d.jl",
+     repo = "github.com/ruizhi92/Dyn3d.jl.git",
      target = "build",
      deps = nothing,
      make = nothing,
