@@ -11,7 +11,6 @@ notifications:
   email: false
 
 after_success:
-  after_success:
   # deploy docs
   - julia -e 'Pkg.add("Documenter")'
   - julia -e 'cd(Pkg.dir("Dyn3d")); include(joinpath("docs", "make.jl"))'
