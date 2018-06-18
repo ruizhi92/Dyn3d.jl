@@ -3,7 +3,7 @@ include(Pkg.dir("Dyn3d")*"/src/Dyn3d.jl")
 using Dyn3d
 
 makedocs(
-    format =:html,
+    format = :html,
     sitename = "Dyn3d.jl",
     pages = [
         "Home" => "index.md",
@@ -21,12 +21,13 @@ makedocs(
 )
 
 
-if "DOCUMENTER_KEY" in keys(ENV)
-    deploydocs(
-     repo = "github.com/ruizhi92/Dyn3d.jl.git",
-     target = "build",
-     deps = nothing,
-     make = nothing,
-     julia = "0.6"
-    )
-end
+# if "DOCUMENTER_KEY" in keys(ENV)
+deploydocs(
+ repo = "github.com/ruizhi92/Dyn3d.jl.git",
+ target = "build",
+ branch = "gh-pages",
+ deps = nothing,
+ make = nothing,
+ julia = "0.6"
+)
+# end
