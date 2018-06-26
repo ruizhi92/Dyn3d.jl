@@ -20,7 +20,7 @@ function (m::Motions)(t)
         v = 0
 
     elseif m.motion_type == "velocity"
-        q = m.motion_params[1]
+        q = m.motion_params[1] + t*m.motion_params[2]
         v = m.motion_params[2]
 
     elseif m.motion_type == "oscillatory"
@@ -31,11 +31,34 @@ function (m::Motions)(t)
         q = amp*cos(arg)
         v = -2π*freq*amp*sin(arg)
 
-    elseif m.motion_type == "ramp"
-        error("under construction")
+    elseif m.motion_type == "ramp_1"
+        # Eldredge ramp from 2009 AIAA paper
+        # parameters are a and t[4], this motion is not periodic
+        a = m.motion_params[1]
+        tᵣ = m.motion_params[2:5]
+        f(t) = cosh(a*(t-tᵣ[1]))
+        g(t) = cosh(a*(t-tᵣ[2]))
+        u(t) = cosh(a*(t-tᵣ[3]))
+        n(t) = cosh(a*(t-tᵣ[4]))
+
+        ḟ(t) = a*sinh(a*(t-tᵣ[1]))
+        ġ(t) = a*sinh(a*(t-tᵣ[2]))
+        u̇(t) = a*sinh(a*(t-tᵣ[3]))
+        ṅ(t) = a*sinh(a*(t-tᵣ[4]))
+
+        q = log(f(t)*n(t)/(g(t)*u(t)))
+        v = g(t)*u(t)/(f(t)*n(t))*
+              (-f(t)*n(t)*(ġ(t)*u(t)+u̇(t)*g(t))/(g(t).^2*u(t).^2)
+                  + (ḟ(t)*n(t)+ṅ(t)*f(t))/(g(t)*u(t)))
+
+    elseif m.motion_type == "ramp_2"
+        a = m.motion_params[1]
+        q = 0.5*(tanh(a*t) + 1)
+        v = 0.5*a*sech(a*t).^2
     else
-        error("This motion type doesn't exist")
+        error("This motion type does not exist")
     end
+
     return q, v
 end
 #-------------------------------------------------------------------------------
@@ -62,10 +85,10 @@ ConfigBody(nbody) = ConfigBody(nbody, 4,
     [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 0.01)
 
 function show(io::IO, m::ConfigBody)
-    println(io, " nbody=$(m.nbody)")
-    println(io, " nverts=$(m.nverts)")
-    println(io, " verts=$(m.verts)")
-    println(io, " ρ=$(m.ρ)")
+    println(io, " nbody = $(m.nbody)")
+    println(io, " nverts = $(m.nverts)")
+    println(io, " verts = $(m.verts)")
+    println(io, " ρ = $(m.ρ)")
 end
 
 #-------------------------------------------------------------------------------
@@ -85,11 +108,20 @@ ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, joint_type,
     0, [Dof()], [0.])
 
 function show(io::IO, m::ConfigJoint)
-    println(io, " joint_type=$(m.joint_type)")
-    println(io, " shape1=$(m.shape1)")
-    println(io, " shape2=$(m.shape2)")
-    println(io, " joint_dof=$(m.joint_dof)")
-    println(io, " qJ_init=$(m.qJ_init)")
+    println(io, " joint type = $(m.joint_type)")
+    println(io, " joint position in parent body coord = $(m.shape1)")
+    println(io, " joint position in child body coord = $(m.shape2)")
+    for i = 1:size(m.joint_dof,1)
+        if m.joint_dof[i].dof_type == "passive"
+            println(io, " joint unconstrained dof = ",
+            "$(m.joint_dof[i].dof_id), under $(m.joint_dof[i].dof_type) motion")
+        else
+            println(io, " joint unconstrained dof = ",
+            "$(m.joint_dof[i].dof_id), under $(m.joint_dof[i].dof_type) ",
+            "$(m.joint_dof[i].motion.motion_type) motion")
+        end
+    end
+    println(io, " initial unconstrained dof position = $(m.qJ_init)")
 end
 
 #-------------------------------------------------------------------------------

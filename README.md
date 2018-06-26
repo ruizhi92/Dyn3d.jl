@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ruizhi92/Dyn3d.jl.png?branch=master)](https://travis-ci.org/ruizhi92/Dyn3d.jl)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://ruizhi92.github.io/Dyn3d.jl/latest)
-
+[![codecov](https://codecov.io/gh/ruizhi92/Dyn3d.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/ruizhi92/Dyn3d.jl)
 
 This is the 3d rigid body dynamic chain solver using 6d spatial vector.
 

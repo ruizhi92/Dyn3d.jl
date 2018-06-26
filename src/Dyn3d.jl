@@ -4,7 +4,7 @@ module Dyn3d
 
 using Reexport
 
-include("Config_files/ConfigDataType.jl")
+include("config_files/ConfigDataType.jl")
 @reexport using .ConfigDataType
 
 include("SpatialAlgebra.jl")
