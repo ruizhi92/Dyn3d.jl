@@ -27,7 +27,7 @@ HERKScheme provides a set of HERK coefficients, expressed in Butcher table form.
         A = [0.0 0.0 0.0;
              0.5 0.0 0.0;
              √3/3 (3.0-√3)/3 0.0]
-        b = [(3.0+√3)/6 -√3/3 (3.0+√3)/6]
+        b = [(3.0+√3)/6, -√3/3, (3.0+√3)/6]
         c = [0.0, 0.5, 1.0]
         st = 3
         p = 2
@@ -55,7 +55,7 @@ HERKScheme provides a set of HERK coefficients, expressed in Butcher table form.
         error("This HERK scheme doesn't exist now.")
     end
     # modify for last stage
-    A = [A; b]
+    A = [A; b']
     c = [c; 1.0]
 
     return A, b, c, st

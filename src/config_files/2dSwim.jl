@@ -14,8 +14,8 @@ ndim = 2
 # numerical params
 tf = 4
 dt = 1e-3
-scheme = "Liska"
-st = 3
+scheme = "BH5"
+st = 5
 tol = 1e-4
 num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
