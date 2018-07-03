@@ -60,7 +60,10 @@ end
             # check BuildChain
             bodys, joints, system = BuildChain(config_bodys, config_joints,
                                                config_system)
-            
+
+            # init system
+            bodys, joints, system, soln = InitSystem!(bodys, joints, system)
+
             # test printing using one example
             if k == 3
                 print(bodys[1])

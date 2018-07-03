@@ -158,7 +158,7 @@ end
 
 #-------------------------------------------------------------------------------
 function InitSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
-    sys::System, scheme = "Liska")
+    sys::System)
 """
     InitSystem initialize the joint-body chain by assining values to
     bs[i].v and js[i].qJ at time=0. Body velocity are calculated from joint

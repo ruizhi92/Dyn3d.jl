@@ -1,7 +1,7 @@
 module TimeMarching
 
 # export
-export HERK!, Soln
+export HERK!, Soln, BlockLU
 
 # use registered packages
 using DocStringExtensions
@@ -63,7 +63,7 @@ end
 
 #-------------------------------------------------------------------------------
 function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint},
-    sys::System, scheme = "Liska", tol=1e-4) where T <: AbstractFloat
+    sys::System) where T <: AbstractFloat
 """
     HERKMain is a half-explicit Runge-Kutta solver based on the
     constrained body model in paper of V.Brasey and E.Hairer.
@@ -86,6 +86,8 @@ function HERK!(sᵢₙ::Soln{T}, bs::Vector{SingleBody}, js::Vector{SingleJoint}
     So we need a step to calculate v from vJ solved. The motion constraint
     (prescribed active motion) is according to joint, not body.
 """
+    @get sys.num_params (scheme, tol)
+
     # pick sheme parameters
     A, b, c, st = HERKScheme(scheme)
     if st != sys.num_params.st error("Scheme stage not correctly specified") end
