@@ -8,6 +8,8 @@ joint, and each connected to the next by revolute joint. All joints are passive,
 the body system is under gravity.
 =#
 
+# problem dimension
+ndim = 2
 # numerical params
 tf = 6
 dt = 1e-3
@@ -18,10 +20,13 @@ num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
 gravity = [0., -9.8, 0., ]
 
+# set up system config info
+config_system = ConfigSystem(ndim, gravity, num_params)
+
 # set up bodys
 nbody = 6
-ndim = 2
 config_body = ConfigBody(nbody)
+config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody

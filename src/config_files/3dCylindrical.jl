@@ -9,6 +9,8 @@ cylindrical joint, passive in θ and hold in z. Each following joint is connecte
 to the previous one by a  cylindrical joint. The system is under gravity.
 =#
 
+# problem dimension
+ndim = 3
 # numerical params
 tf = 4
 dt = 1e-3
@@ -19,9 +21,11 @@ num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
 gravity = [0., -9.8, 0., ]
 
+# set up system config info
+config_system = ConfigSystem(ndim, gravity, num_params)
+
 # set up bodys
 nbody = 4
-ndim = 3
 α = 0.
 shape = "quadrilateral"
 if shape == "quadrilateral"
@@ -31,6 +35,7 @@ elseif shape == "triangle"
     config_body = ConfigBody(nbody, 3,
         [0. 0.; 1. 0.; cos(α) sin(α)], 0.01)
 end
+config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody

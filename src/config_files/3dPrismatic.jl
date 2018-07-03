@@ -9,6 +9,8 @@ prismatic joint, and each connected to the  next by a prismatic joint.
 The first joint has active oscillatory motion while the others are all passive.
 =#
 
+# problem dimension
+ndim = 3
 # numerical params
 tf = 4
 dt = 1e-3
@@ -19,9 +21,11 @@ num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
 gravity = [0., 0., 0., ]
 
+# set up system config info
+config_system = ConfigSystem(ndim, gravity, num_params)
+
 # set up bodys
 nbody = 6
-ndim = 3
 α = π/2/nbody
 shape = "triangle"
 if shape == "quadrilateral"
@@ -31,6 +35,7 @@ elseif shape == "triangle"
     config_body = ConfigBody(nbody, 3,
         [0. 0.; 1. 0.; cos(α) sin(α)], 0.01)
 end
+config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody

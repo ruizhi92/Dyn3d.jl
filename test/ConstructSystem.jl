@@ -1,12 +1,13 @@
 @testset "JointType" begin
     kind_group = ["revolute", "prismatic", "cylindrical", "planar", "spherical"]
     for i = 1:length(kind_group)
-        j = Dyn3d.ChooseJoint(kind_group[i])
+        j = ChooseJoint(kind_group[i])
         @test j.nudof == length(j.udof)
         @test j.ncdof == length(j.cdof)
         @test (6,j.nudof) == size(j.S)
         @test (6,j.ncdof) == size(j.T)
     end
+    j = ChooseJoint("free")
 
 end
 
@@ -50,32 +51,16 @@ end
 
             # check ConfigDataType
             @test njoint == nbody
-            if isdefined(:config_bodys)
-                for i = 1:length(config_bodys)
-                    @test config_bodys[i].nverts == size(config_bodys[i].verts,1)
-                    @test length(config_joints[i].joint_dof) ==
-                          length(config_joints[i].qJ_init)
-                end
-            else
-                @test config_body.nverts == size(config_body.verts,1)
+            for i = 1:length(config_bodys)
+                @test config_bodys[i].nverts == size(config_bodys[i].verts,1)
+                @test length(config_joints[i].joint_dof) ==
+                      length(config_joints[i].qJ_init)
             end
 
-            # check AddBody
-            bodys = Vector{Dyn3d.SingleBody}(nbody)
-            for i = 1:nbody
-                bodys[i] = Dyn3d.AddBody(i, config_body)
-            end
-
-            # check AddJoint
-            joints = Vector{Dyn3d.SingleJoint}(njoint)
-            for i = 1:njoint
-                joints[i] = Dyn3d.AddJoint(i, config_joints[i])
-            end
-
-            # check AssembleSystem
-            system = Dyn3d.System(ndim, nbody, njoint, gravity, num_params)
-            bodys, joints, system = Dyn3d.AssembleSystem!(bodys, joints, system)
-
+            # check BuildChain
+            bodys, joints, system = BuildChain(config_bodys, config_joints,
+                                               config_system)
+            
             # test printing using one example
             if k == 3
                 print(bodys[1])
@@ -86,5 +71,9 @@ end
             @test system.ndof == system.nudof + system.ncdof
         end
     end
+
+    # create soln structure
+    soln_1 = Soln(2.0, 0.01, zeros(Float64,3), zeros(Float64,3))
+    soln_2 = Soln(5.0)
 
 end

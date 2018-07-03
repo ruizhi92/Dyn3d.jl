@@ -2,7 +2,7 @@ module ConstructSystem
 
 # export
 export SingleBody, SingleJoint, System, Soln,
-       AddBody, AddJoint, AssembleSystem!
+       AddBody, AddJoint, AssembleSystem, BuildChain
 
 # use registered packages
 using DocStringExtensions
@@ -12,6 +12,7 @@ using Reexport
 # import self-defined modules
 include("JointType.jl")
 @reexport using .JointType
+using ..Utils
 using ..ConfigDataType
 using ..SpatialAlgebra
 
@@ -19,7 +20,7 @@ using ..SpatialAlgebra
 This module construct the body-joint system by:
     1. AddBody
     2. AddJoint
-    3. AssembleSystem!
+    3. AssembleSystem
 """
 
 #-------------------------------------------------------------------------------
@@ -485,7 +486,7 @@ end
 
 #-------------------------------------------------------------------------------
 # connects body and joint system
-function AssembleSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
+function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
                         sys::System)
     #-------------------------------------------------
     # re-order bs and js to make the array in id-order
@@ -652,5 +653,29 @@ function AssembleSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     return bs, js, sys
 end
 
+function BuildChain(cbs::Vector{ConfigBody}, cjs::Vector{ConfigJoint},
+                    csys::ConfigSystem)
+    nbody = cbs[1].nbody
+    njoint = cjs[1].njoint
+    @get csys (ndim, gravity, num_params)
+
+    # add bodys
+    bodys = Vector{SingleBody}(nbody) # body system
+    for i = 1:nbody
+        bodys[i] = AddBody(i, cbs[i]) # add body
+    end
+
+    # add joints
+    joints = Vector{SingleJoint}(njoint) # joint system
+    for i = 1:njoint
+        joints[i] = AddJoint(i, cjs[i]) # add joint
+    end
+
+    # assemble system to a chain
+    system = System(ndim, nbody, njoint, gravity, num_params)
+    bodys, joints, system = AssembleSystem(bodys, joints, system)
+
+    return bodys, joints, system
+end
 
 end

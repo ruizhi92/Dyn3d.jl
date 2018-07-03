@@ -7,14 +7,14 @@ using Reexport
 include("config_files/ConfigDataType.jl")
 @reexport using .ConfigDataType
 
+include("Utils.jl")
+@reexport using .Utils
+
 include("SpatialAlgebra.jl")
 @reexport using .SpatialAlgebra
 
 include("ConstructSystem.jl")
 @reexport using .ConstructSystem
-
-include("Utils.jl")
-@reexport using .Utils
 
 include("UpdateSystem.jl")
 @reexport using .UpdateSystem

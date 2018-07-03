@@ -1,6 +1,6 @@
 module ConfigDataType
 
-export ConfigBody, ConfigJoint, Dof, Motions, NumParams
+export ConfigBody, ConfigJoint, ConfigSystem, Dof, Motions, NumParams
 
 import Base: show
 
@@ -132,6 +132,14 @@ mutable struct NumParams
     scheme::String
     st::Int
     tol::Float64
+end
+
+#-------------------------------------------------------------------------------
+# config_system parameters
+mutable struct ConfigSystem
+    ndim::Int
+    gravity::Vector{Float64}
+    num_params::NumParams
 end
 
 end

@@ -9,6 +9,8 @@ and is passive, while the other joints either passive or have active oscillatory
 motion. Here all the other joints are active.
 =#
 
+# problem dimension
+ndim = 2
 # numerical params
 tf = 4
 dt = 1e-3
@@ -19,10 +21,13 @@ num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
 gravity = [0., 0., 0., ]
 
+# set up system config info
+config_system = ConfigSystem(ndim, gravity, num_params)
+
 # set up bodys
 nbody = 6
-ndim = 2
 config_body = ConfigBody(nbody)
+config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody
