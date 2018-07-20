@@ -1,7 +1,7 @@
 module ConstructSystem
 
 # export
-export SingleBody, SingleJoint, System, Soln,
+export SingleBody, SingleJoint, System, BodyDyn, Soln,
        AddBody, AddJoint, AssembleSystem, BuildChain
 
 # use registered packages
@@ -304,6 +304,13 @@ function show(io::IO, m::System)
     println(io, "udof_HERK = $(m.udof_HERK)")
     println(io, "gravity = $(m.g)")
     # println(io, "kinmap = $(m.kinmap)")
+end
+
+#-------------------------------------------------------------------------------
+mutable struct BodyDyn
+    bs::Vector{SingleBody}
+    js::Vector{SingleJoint}
+    sys::System
 end
 
 #-------------------------------------------------------------------------------

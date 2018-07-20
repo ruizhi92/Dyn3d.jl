@@ -1,7 +1,7 @@
 module TimeMarching
 
 # export
-export HERK!, Soln, BlockLU
+export HERK!, BlockLU
 
 # use registered packages
 using DocStringExtensions
