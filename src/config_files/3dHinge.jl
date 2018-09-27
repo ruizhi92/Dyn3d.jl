@@ -51,7 +51,9 @@ active_motion = Motions("oscillatory", [0.5, 1., 0.])
 dof₁[3] = Dof(5, "active", 0., 0., active_motion)
 # set the first active joint
 config_joints[1] = ConfigJoint(njoint, "planar",
-    zeros(Float64,6), zeros(Float64,6), 0, dof₁, zeros(Float64,3))
+    # zeros(Float64,6), zeros(Float64,6), 0, dof₁, zeros(Float64,3))
+    zeros(Float64,6), zeros(Float64,6), 0, dof₁, [0.,π/2,0.])
+
 
 # set the rest passive joint
 dofₚ = Dof(3, "passive", stiff, damp, Motions())

@@ -81,6 +81,15 @@ mutable struct ConfigBody
     ρ::Float64
 end
 
+
+"""
+the final plotting direction is:
+         ^(y)
+         |_____>(z)
+     (-x)
+the coordinate for verts in 2d input is in [z,x]. So y direction only allow
+zero-width body
+"""
 ConfigBody(nbody) = ConfigBody(nbody, 4,
     [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 0.01)
 

@@ -1,8 +1,5 @@
  """
-    HERK(u,f,Δt,plan_intfact,B₁ᵀ,B₂,r₁,r₂;[tol=1e-3],[issymmetric=false],[rk::RKParams=RK31])
-    HERKBody
-
-    HERK is a half-explicit Runge-Kutta solver based on the
+    HERKBody is a half-explicit Runge-Kutta solver based on the
     constrained body model in paper of V.Brasey and E.Hairer.
     The following ODE system is being solved:
        | dq/dt = v                     |
@@ -23,18 +20,11 @@
     So we need a step to calculate v from vJ solved. The motion constraint
     (prescribed active motion) is according to joint, not body.
 
-# Arguments
-
-- `u` : example of state vector data
-- `f` : example of constraint force vector data
-- `Δt` : time-step size
-- `plan_intfact` : constructor to set up integrating factor operator for `A` that
-              will act on type `u` (by left multiplication) and return same type as `u`
-- `plan_constraints` : constructor to set up the
-- `B₁ᵀ` : operator acting on type `f` and returning type `u`
-- `B₂` : operator acting on type `u` and returning type `f`
-- `r₁` : operator acting on type `u` and `t` and returning `u`
-- `r₂` : operator acting on type `u` and `t` and returning type `f`
+    Here we write the system of equations in a general form:
+    [A B₁ᵀ] * [v] = [r₁]
+    [B₂ 0 ]   [λ]   [r₂]
+    so A = M(qJ), B₁ᵀ = GT(qJ), B₂ = G(qJ), r₁ = f(qJ,v,vJ), r₂ = -gti(qJ)
+    the equation of dqJ/dt = vJ gets updated in HERK.
 """
 
 mutable struct HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}
@@ -59,6 +49,22 @@ mutable struct HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}
 end
 
 #-------------------------------------------------------------------------------
+"""
+    HERKBody(num_params, A, B₁ᵀ, B₂, rhs, up)
+
+Constructs the object-like function HERKBody, with operator functions A, B₁ᵀ,
+B₂, rhs and up. This is used before timemarching.
+
+# Arguments
+
+- `num_params` : struct that contain tol and scheme name to be called in RKParams
+- `A` :
+- `B₁ᵀ` : operator acting on type `λ` and returning type `v`
+- `B₂` : operator acting on type `v` and returning type `λ`
+- `rhs` : tuple of (r₁,r₂)
+- `up` : tuple of function (UpP,UpV) that updates qJ and v respectively
+"""
+
 function (::Type{HERKBody})(num_params::NumParams, A::FA, B₁ᵀ::FB1, B₂::FB2,
                             rhs::Tuple{FR1,FR2}, up::Tuple{FP,FV},
                             ) where {FA,FB1,FB2,FR1,FR2,FP,FV}
@@ -70,32 +76,42 @@ function (::Type{HERKBody})(num_params::NumParams, A::FA, B₁ᵀ::FB1, B₂::FB
                 B₂, rhs[1], rhs[2], up[1], up[2])
 end
 
-#-------------------------------------------------------------------------------
 function Base.show(io::IO, scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}) where {FA,FB1,FB2,FR1,FR2,FP,FV}
     println(io, "Order-$(scheme.rk.st) HERK integrator.")
 end
 
 #-------------------------------------------------------------------------------
-function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::BodyDyn) where
-        {T<:AbstractFloat,FA,FB1,FB2,FR1,FR2,FP,FV}
+"""
+    (scheme::HERKBody)(sᵢₙ, bd)
+
+The object-like function of type HERKBody gets updated during timemarching.
+
+# Arguments
+
+- `sᵢₙ` : solution of the last step, containing current time, timestep, qJ, v
+          and λ
+- `bd` : BodyDyn object, containing all bs, js and sys info that needs to be updated
+"""
+
+function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::BodyDyn;
+        _isfixedstep=false) where {T<:AbstractFloat,FA,FB1,FB2,FR1,FR2,FP,FV}
 
     @get scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV)
     @get bd (bs, js, sys)
     @get rk (st, c, a)
 
-    if st != sys.num_params.st error("Scheme stage not correctly specified") end
-
     bs, js, sys = bd.bs, bd.js, bd.sys
 
     qJ_dim = sys.ndof
-    λ_dim =sys.ncdof_HERK
+    λ_dim = sys.ncdof_HERK
 
     # pointer to pre-allocated array
     @get sys.pre_array (qJ, vJ, v, v̇, λ, v_temp, Mᵢ₋₁, fᵢ₋₁, GTᵢ₋₁, Gᵢ, gtiᵢ,
         lhs, rhs)
 
     # stage 1
-    tᵢ₋₁ = sᵢₙ.t; tᵢ = sᵢₙ.t;; dt = sᵢₙ.dt
+    tᵢ₋₁ = sᵢₙ.t; tᵢ = sᵢₙ.t;
+    dt = _isfixedstep ? sys.num_params.dt : sᵢₙ.dt
     qJ[1,:] = sᵢₙ.qJ
     v[1,:] = sᵢₙ.v
     # update vJ using v
@@ -130,7 +146,6 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         end
         # construct rhs
         rhs = [ fᵢ₋₁; -1./(dt*a[i,i-1])*(Gᵢ*v_temp + gtiᵢ) ]
-######### use Julia's built in "\" operator for now
         # solve the eq
         x = lhs \ rhs
         # x = BlockLU(lhs, rhs, qJ_dim, λ_dim)
@@ -144,12 +159,12 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         end
         # update vJ using updated v
         bs, js, sys, vJ[i,:] = UpV(bs, js, sys, v[i,:])
-# println("v = ", v[i,:])
     end
 
     # use norm(v[st+1,:]-v[st,:]) to determine next timestep
     sₒᵤₜ = Soln(tᵢ) # init struct
-    sₒᵤₜ.dt = sᵢₙ.dt*(tol/norm(view(v,st+1,:)-view(v,st,:)))^(1/3)
+    sₒᵤₜ.dt = _isfixedstep ? sys.num_params.dt :
+        sᵢₙ.dt*(tol/norm(view(v,st+1,:)-view(v,st,:)))^(1/3)
     sₒᵤₜ.t = sᵢₙ.t + sᵢₙ.dt
     sₒᵤₜ.qJ = view(qJ, st+1, :)
     sₒᵤₜ.v = view(v, st+1, :)
@@ -158,7 +173,6 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
 
     return  sₒᵤₜ, bs, js, sys
 end
-
 
 #-------------------------------------------------------------------------------
 function BlockLU(H::Array{T,2}, b::Vector{T}, qJ_dim::Int,

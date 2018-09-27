@@ -13,7 +13,7 @@ using Dyn3d
 #-------------------------------------------------------------------------------
 function Jcalc(kind::String, qJ::Vector{T}) where T <: AbstractFloat
     if kind == "revolute" || kind == "prismatic" || kind == "cylindrical" ||
-       kind == "planar"
+       kind == "planar" || kind == "custom"
        Xj = TransMatrix(qJ)
    elseif kind == "helical"
        # set fixed screw parameter h
@@ -21,11 +21,6 @@ function Jcalc(kind::String, qJ::Vector{T}) where T <: AbstractFloat
        r = h*qJ[4:6]
        θ = qJ[1:3]
        Xj = TransMatrix([θ; r])
-   elseif kind == "spherical"
-       # use quartonians
-       error("Under construction")
-   elseif kind == "free"
-       error("Under construction")
    end
    return Xj
 end

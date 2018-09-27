@@ -1,20 +1,10 @@
 module TimeMarching
 
-# export
 export HERKBody
 export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
 
-# import
 import Base: show
 
-# use registered packages
-using DocStringExtensions
-
-# import self-defined modules
-# using ..ConstructSystem
-# using ..SpatialAlgebra
-# using ..UpdateSystem
-# using ..Utils
 using Dyn3d
 
 #-------------------------------------------------------------------------------
@@ -35,6 +25,7 @@ RKParams provides a set of HERK coefficients, expressed in Butcher table form.
 """
     # Scheme of 3-stage HERK in Liska's paper
     if name == "Liska"
+        |
         a = [0.0 0.0 0.0;
              0.5 0.0 0.0;
              √3/3 (3.0-√3)/3 0.0]
