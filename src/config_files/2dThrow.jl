@@ -26,7 +26,6 @@ config_system = ConfigSystem(ndim, gravity, num_params)
 
 # set up bodys
 nbody = 4
-ndim = 2
 config_body = ConfigBody(nbody)
 config_bodys = fill(config_body, nbody)
 

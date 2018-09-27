@@ -3,6 +3,7 @@ __precompile__()
 module Dyn3d
 
 using Reexport
+using DocStringExtensions
 
 include("config_files/ConfigDataType.jl")
 @reexport using .ConfigDataType

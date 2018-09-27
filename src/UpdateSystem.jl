@@ -2,15 +2,13 @@ module UpdateSystem
 
 export  UpdatePosition!, UpdateVelocity!, InitSystem!, VertsHistory, MassCenter
 
-# use registered packages
-using DocStringExtensions
-
 # abstract type Velocity end
 # abstract type Position end
 
 # import self-defined modules
-using ..ConstructSystem
-using ..SpatialAlgebra
+# using ..ConstructSystem
+# using ..SpatialAlgebra
+using Dyn3d
 
 #-------------------------------------------------------------------------------
 function Jcalc(kind::String, qJ::Vector{T}) where T <: AbstractFloat
@@ -157,14 +155,14 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
 end
 
 #-------------------------------------------------------------------------------
-function InitSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
-    sys::System)
+function InitSystem!(bd::BodyDyn)
 """
     InitSystem initialize the joint-body chain by assining values to
     bs[i].v and js[i].qJ at time=0. Body velocity are calculated from joint
     velocities, which are got through articulated body method, zero-out
     total initial momentum.
 """
+    @get bd (bs, js, sys)
     #-------------------------------------------------
     # Array Pre-allocation in UpdatePosition, UpdateVelocity
     #-------------------------------------------------
@@ -267,7 +265,7 @@ function InitSystem!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     end
     soln = Soln(0.0, sys.num_params.dt, qJ_total, v_total)
 
-    return bs, js, sys, soln
+    return bd, soln
 
 end
 

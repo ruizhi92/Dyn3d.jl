@@ -4,17 +4,16 @@ module ConstructSystem
 export SingleBody, SingleJoint, System, BodyDyn, Soln,
        AddBody, AddJoint, AssembleSystem, BuildChain
 
-# use registered packages
-using DocStringExtensions
 import Base: show
-using Reexport
 
 # import self-defined modules
+using Reexport
 include("JointType.jl")
 @reexport using .JointType
-using ..Utils
-using ..ConfigDataType
-using ..SpatialAlgebra
+# using ..Utils
+# using ..ConfigDataType
+# using ..SpatialAlgebra
+using Dyn3d
 
 """
 This module construct the body-joint system by:
@@ -311,6 +310,13 @@ mutable struct BodyDyn
     bs::Vector{SingleBody}
     js::Vector{SingleJoint}
     sys::System
+end
+
+function show(io::IO, bd::BodyDyn)
+    @get bd (bs, js, sys)
+    println("This is a $(sys.nbody) body-joint system.")
+    js[1].joint_type == "planar"? println("System is un-mounted from space") :
+                                  println("System is fixed in space")
 end
 
 #-------------------------------------------------------------------------------
