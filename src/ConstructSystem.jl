@@ -62,7 +62,7 @@ mutable struct SingleBody
     Xb_to_c::Array{Float64,2}
     Xb_to_i::Array{Float64,2}
     Xp_to_b::Array{Float64,2}
-    # motion vectors
+    # motion vectors in body local frame
     q::Vector{Float64}
     v::Vector{Float64}
     v̇::Vector{Float64}

@@ -34,7 +34,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
         f_g = bs[i].Xb_to_i'*inv(Xic_to_i')*f_g
         # external force described in inertial coord
         f_ex = zeros(Float64, 6)
-        f_ex = bs[i].Xb_to_i*f_ex
+        f_ex = bs[i].Xb_to_i'*f_ex
         # add up
         p_total[6i-5:6i] = p_bias - (f_g + f_ex)
     end

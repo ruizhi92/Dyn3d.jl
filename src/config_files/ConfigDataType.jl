@@ -85,8 +85,8 @@ end
 """
 the final plotting direction is:
          ^(y)
-         |_____>(z)
-     (-x)
+         |_____>(x)
+     (-z)
 the coordinate for verts in 2d input is in [z,x]. So y direction only allow
 zero-width body
 """

@@ -8,7 +8,7 @@ This circle is in x-z plane and falls in z direction.
 =#
 
 # problem dimension
-ndim = 3
+ndim = 2
 # numerical params
 tf = 2
 dt = 1e-3
@@ -18,6 +18,8 @@ tol = 1e-4
 num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
 gravity = [0., 0., -9.8]
+# plot direction
+plot_dir = (1,3)
 
 # set up system config info
 config_system = ConfigSystem(ndim, gravity, num_params)
@@ -27,13 +29,13 @@ function circle(z₀::Vector{Float64}, r::Float64, n::Int)
     # z₀ for circle center location, r for radius and n for # of points on circle
     verts = zeros(n,2)
     for i = 1:n
-        verts[i,:] = [r*sin(2π/n*(i-1)) + z₀[1], r*cos(2π/n*(i-1)) + z₀[2]]
+        verts[i,:] = [r*sin(2π/(n-1)*(i-1)) + z₀[1], r*cos(2π/(n-1)*(i-1)) + z₀[2]]
     end
     verts
 end
 
 nbody = 1
-nverts = 25
+nverts = 51
 verts = circle([0.,0.], 0.2, nverts)
 config_body = ConfigBody(nbody, nverts, verts, 0.01)
 config_bodys = fill(config_body, nbody)
