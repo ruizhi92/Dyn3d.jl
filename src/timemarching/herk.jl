@@ -69,7 +69,7 @@ function (::Type{HERKBody})(num_params::NumParams, A::FA, B₁ᵀ::FB1, B₂::FB
                             rhs::Tuple{FR1,FR2}, up::Tuple{FP,FV},
                             ) where {FA,FB1,FB2,FR1,FR2,FP,FV}
 
-    @get num_params (scheme, tol)
+    @get_field num_params (scheme, tol)
     rk = RKParams(scheme)
 
     return HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}(rk, tol, A, B₁ᵀ,
@@ -96,9 +96,9 @@ The object-like function of type HERKBody gets updated during timemarching.
 function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::BodyDyn;
         _isfixedstep=false) where {T<:AbstractFloat,FA,FB1,FB2,FR1,FR2,FP,FV}
 
-    @get scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV)
-    @get bd (bs, js, sys)
-    @get rk (st, c, a)
+    @get_field scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV)
+    @get_field bd (bs, js, sys)
+    @get_field rk (st, c, a)
 
     bs, js, sys = bd.bs, bd.js, bd.sys
 
@@ -106,7 +106,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
     λ_dim = sys.ncdof_HERK
 
     # pointer to pre-allocated array
-    @get sys.pre_array (qJ, vJ, v, v̇, λ, v_temp, Mᵢ₋₁, fᵢ₋₁, GTᵢ₋₁, Gᵢ, gtiᵢ,
+    @get_field sys.pre_array (qJ, vJ, v, v̇, λ, v_temp, Mᵢ₋₁, fᵢ₋₁, GTᵢ₋₁, Gᵢ, gtiᵢ,
         lhs, rhs)
 
     # stage 1

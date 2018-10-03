@@ -313,7 +313,7 @@ mutable struct BodyDyn
 end
 
 function show(io::IO, bd::BodyDyn)
-    @get bd (bs, js, sys)
+    @get_field bd (bs, js, sys)
     println("This is a $(sys.nbody) body-joint system.")
     js[1].joint_type == "planar"? println("System is un-mounted from space") :
                                   println("System is fixed in space")
@@ -670,7 +670,7 @@ function BuildChain(cbs::Vector{ConfigBody}, cjs::Vector{ConfigJoint},
                     csys::ConfigSystem)
     nbody = cbs[1].nbody
     njoint = cjs[1].njoint
-    @get csys (ndim, gravity, num_params)
+    @get_field csys (ndim, gravity, num_params)
 
     # add bodys
     bodys = Vector{SingleBody}(nbody) # body system

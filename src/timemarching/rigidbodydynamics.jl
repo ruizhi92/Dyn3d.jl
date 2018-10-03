@@ -7,7 +7,8 @@ function HERKFuncM(sys::System)
 end
 
 #-------------------------------------------------------------------------------
-function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
+function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System;
+    f_ex=zeros(Float64, 6))
 """
     HERKFuncf construct the input function f for HERK method.
     It returns a forcing term, whchild_count is a summation of bias force term and
@@ -15,7 +16,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
     inertia effect, together with gravity and external force.
 """
     # pointer to pre-allocated array
-    @get sys.pre_array (p_total, τ_total, p_bias, f_g, f_ex, r_temp,
+    @get_field sys.pre_array (p_total, τ_total, p_bias, f_g, f_ex, r_temp,
         Xic_to_i, A_total)
 
     # compute bias force, gravity and external force
@@ -33,7 +34,6 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
         # transform gravity force
         f_g = bs[i].Xb_to_i'*inv(Xic_to_i')*f_g
         # external force described in inertial coord
-        f_ex = zeros(Float64, 6)
         f_ex = bs[i].Xb_to_i'*f_ex
         # add up
         p_total[6i-5:6i] = p_bias - (f_g + f_ex)
@@ -71,7 +71,7 @@ function HERKFuncGT(bs::Vector{SingleBody}, sys::System)
     It returns the force constraint matrix acting on Lagrange multipliers.
 """
     # pointer to pre-allocated array
-    @get sys.pre_array (A_total,)
+    @get_field sys.pre_array (A_total,)
 
     # construct A_total to take in parent-child hierarchy
     for i = 1:sys.nbody
@@ -96,7 +96,7 @@ function HERKFuncG(bs::Vector{SingleBody}, sys::System)
        v(3) = vJ(3) + X2_to_3*v(2)
 """
     # pointer to pre-allocated array
-    @get sys.pre_array (B_total,)
+    @get_field sys.pre_array (B_total,)
 
     # construct B_total to take in parent-child hierarchy
     for i = 1:sys.nbody
@@ -119,7 +119,7 @@ function HERKFuncgti(js::Vector{SingleJoint}, sys::System, t::T) where
     at given time.
 """
     # pointer to pre-allocated array
-    @get sys.pre_array (v_gti, va_gti)
+    @get_field sys.pre_array (v_gti, va_gti)
 
     # give actual numbers from calling motion(t)
     for i = 1:sys.na
