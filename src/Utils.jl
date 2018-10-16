@@ -1,6 +1,6 @@
 module Utils
 
-export @get_field
+export @getfield
 
 """
 A macro for extracting fields from an object.  For example, instead of a statement
@@ -16,18 +16,18 @@ it is more readable if we first locally bind the variables
 
     (a + b)^c
 
-Using the `@get_field` marco, this becomes
+Using the `@getfield` marco, this becomes
 
-    @get_field obj (a, b, c)
+    @getfield obj (a, b, c)
 
     (a + b)^c
 
 We can also locally assign different names to the binding
 
-    @get_field obj (a, b, c) (α, β, γ)
+    @getfield obj (a, b, c) (α, β, γ)
     (α + β)^γ
 """
-macro get(object, fields...)
+macro getfield(object, fields...)
     if length(fields) == 1
         try
             @assert typeof(fields[1]) == Expr
@@ -52,7 +52,7 @@ macro get(object, fields...)
         @assert nargs == length(fields[2].args) "field name tuples must have the same length"
         esc(Expr(:block, [:($(fields[2].args[i]) = $object.$(fields[1].args[i])) for i in 1:nargs]...))
     else
-        throw(ArgumentError("Usage: @get_field <object> (field names...) [(reference names...)]"))
+        throw(ArgumentError("Usage: @getfield <object> (field names...) [(reference names...)]"))
     end
 end
 

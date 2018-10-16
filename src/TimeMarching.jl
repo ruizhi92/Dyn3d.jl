@@ -69,7 +69,7 @@ const RKConst = RKParams("Liska")
 # contain HERK matrix blocks and right hand side
 include("timemarching/rigidbodydynamics.jl")
 # contain herk algorithm
-include("timemarching/herk.jl")
+include("timemarching/herkbody.jl")
 
 
 end

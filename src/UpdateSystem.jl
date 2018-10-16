@@ -157,7 +157,7 @@ function InitSystem!(bd::BodyDyn)
     velocities, which are got through articulated body method, zero-out
     total initial momentum.
 """
-    @get_field bd (bs, js, sys)
+    @getfield bd (bs, js, sys)
     #-------------------------------------------------
     # Array Pre-allocation in UpdatePosition, UpdateVelocity
     #-------------------------------------------------

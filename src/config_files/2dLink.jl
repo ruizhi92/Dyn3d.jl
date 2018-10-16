@@ -25,11 +25,15 @@ config_system = ConfigSystem(ndim, gravity, num_params)
 
 # set up bodys
 nbody = 4
-config_body = ConfigBody(nbody)
+# config_body = ConfigBody(nbody)
+config_body = ConfigBody(nbody, 4,
+    [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 0.01)
 config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody
+stiff = 0.03
+damp = 0.01
 config_joints = Vector{ConfigJoint}(njoint)
 
 # set the first active joint
@@ -43,6 +47,8 @@ config_joints[1] = ConfigJoint(njoint, "revolute",
 for i = 2:njoint
 #     config_joints[i] = deepcopy(config_joints[1])
     config_joints[i] = ConfigJoint(njoint, "revolute")
+    config_joints[i].joint_dof[1].stiff = stiff
+    config_joints[i].joint_dof[1].damp = damp
     config_joints[i].body1 = i-1
 end
 

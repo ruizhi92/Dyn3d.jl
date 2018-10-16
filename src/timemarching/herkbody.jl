@@ -69,7 +69,7 @@ function (::Type{HERKBody})(num_params::NumParams, A::FA, B₁ᵀ::FB1, B₂::FB
                             rhs::Tuple{FR1,FR2}, up::Tuple{FP,FV},
                             ) where {FA,FB1,FB2,FR1,FR2,FP,FV}
 
-    @get_field num_params (scheme, tol)
+    @getfield num_params (scheme, tol)
     rk = RKParams(scheme)
 
     return HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}(rk, tol, A, B₁ᵀ,
@@ -94,19 +94,20 @@ The object-like function of type HERKBody gets updated during timemarching.
 """
 
 function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::BodyDyn;
-        _isfixedstep=false) where {T<:AbstractFloat,FA,FB1,FB2,FR1,FR2,FP,FV}
+        _isfixedstep=false, f_exi::Array{Float64,2}=zeros(Float64,1,6)
+        ) where {T<:AbstractFloat,FA,FB1,FB2,FR1,FR2,FP,FV}
 
-    @get_field scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV)
-    @get_field bd (bs, js, sys)
-    @get_field rk (st, c, a)
+    @getfield scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV)
+    @getfield bd (bs, js, sys)
+    @getfield rk (st, c, a)
 
-    bs, js, sys = bd.bs, bd.js, bd.sys
+    if f_exi == zeros(Float64,1,6) f_exi = zeros(Float64,sys.nbody,6) end
 
     qJ_dim = sys.ndof
     λ_dim = sys.ncdof_HERK
 
     # pointer to pre-allocated array
-    @get_field sys.pre_array (qJ, vJ, v, v̇, λ, v_temp, Mᵢ₋₁, fᵢ₋₁, GTᵢ₋₁, Gᵢ, gtiᵢ,
+    @getfield sys.pre_array (qJ, vJ, v, v̇, λ, v_temp, Mᵢ₋₁, fᵢ₋₁, GTᵢ₋₁, Gᵢ, gtiᵢ,
         lhs, rhs)
 
     # stage 1
@@ -126,7 +127,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         qJ[i,:] = sᵢₙ.qJ
         # calculate M, f and GT at tᵢ₋₁
         Mᵢ₋₁ = A(sys)
-        fᵢ₋₁ = r₁(bs, js, sys)
+        fᵢ₋₁ = r₁(bs, js, sys, f_exi)
         GTᵢ₋₁ = B₁ᵀ(bs, sys)
         # advance qJ[i,:]
         for k = 1:i-1
@@ -171,7 +172,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
     sₒᵤₜ.v̇ = view(v̇, st, :)
     sₒᵤₜ.λ = view(λ, st, :)
 
-    return  sₒᵤₜ, bs, js, sys
+    return  sₒᵤₜ, bd
 end
 
 #-------------------------------------------------------------------------------

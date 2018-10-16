@@ -24,20 +24,24 @@ gravity = [0., -9.8, 0., ]
 config_system = ConfigSystem(ndim, gravity, num_params)
 
 # set up bodys
-nbody = 6
-config_body = ConfigBody(nbody)
+nbody = 1
+# config_body = ConfigBody(nbody)
+config_body = ConfigBody(nbody, 4,
+   [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 0.1)
 config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody
-stiff = 0.02
-damp = 0.002
+stiff = 0.075
+damp = 0.0016
 config_joints = Vector{ConfigJoint}(njoint)
 
 # set the first passive joint with no stiff and damp
 dof_1 = Dof(3, "passive", 0., 0., Motions())
+# config_joints[1] = ConfigJoint(njoint, "revolute",
+#     zeros(Float64,6), zeros(Float64,6), 0, [dof_1], [0.])
 config_joints[1] = ConfigJoint(njoint, "revolute",
-    zeros(Float64,6), zeros(Float64,6), 0, [dof_1], [0.])
+    [0.,0.,0.,1.0,1.0,0.], zeros(Float64,6), 0, [dof_1], [0.])
 
 # set all the rest joints
 for i = 2:njoint

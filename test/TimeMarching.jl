@@ -19,7 +19,7 @@
         bodys, joints, system, soln = InitSystem!(bodys, joints, system)
 
         while soln.t < system.num_params.tf
-            soln, bodys, joints, system = HERK!(soln, bodys, joints, system)
+            soln, bodys, joints, system = HERKBody(soln, bodys, joints, system)
         end
     end
 end

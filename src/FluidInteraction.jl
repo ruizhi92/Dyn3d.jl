@@ -24,6 +24,9 @@ BodyGrid(bid,np,points) = BodyGrid(bid,np,points,[zeros(3) for i=1:np],
 
 #-------------------------------------------------------------------------------
 """
+This function need to be called only once after GenerateBodyGrid for 2d case of
+flat plats.
+
 Since both for 2d and 3d cases, bodies are constructed by quadrilateral/triangles,
 not lines. Thus for 2d cases where only the line matters, we cut out the info on
 the other sides of the plate. Note that verts are formulated in clockwise
@@ -34,6 +37,7 @@ function CutOut2d(bd::BodyDyn,bgs::Vector{BodyGrid})
         for i = 1:length(bgs)
             nverts = bd.bs[bgs[i].bid].nverts
             cutout = round(Int,(bgs[i].np-1)/nverts)
+            bgs[i].np = round((bgs[i].np-1)/4)+1
             bgs[i].points = bgs[i].points[end:-1:end-cutout]
             bgs[i].q_i = bgs[i].q_i[end:-1:end-cutout]
             bgs[i].v_i = bgs[i].v_i[end:-1:end-cutout]
@@ -52,7 +56,7 @@ frame of given number of points np by interpolation, of all bodies in the system
 """
     # here we assume the body chain consists of only 1 body, or several bodies
     # of the same shape
-    @get_field bd (bs,sys)
+    @getfield bd (bs,sys)
 
     bodygrids = Vector{BodyGrid}(sys.nbody)
     # for cases with only 1 body, which has more than 4 grid points(like a circle)
@@ -85,20 +89,24 @@ Given updated bd structure, which contains 3d bs[i].x_i in inertial frame and
 6d bs[i].v of each body in the body local frame, return 3d linear q_i and v_i of
 each body point in the inertial frame.
 """
-    @get_field bd (bs, sys)
+    @getfield bd (bs, sys)
 
     # the j-th q_i in body points of a body = bs[i].x_i + Xb_to_i*points[j]
-    # the j-th v_i in body points of a body is calculated by first calculating
-    # the linear velocity of point j in the coordinate of body i, then do a
-    # Xb_to_i transformation
+    # the j-th v_i in body points of a body is calculated by transferring to
+    # a coordinate that sits at the beginning point of the first body but with
+    # zero angle.
+
     for i = 1:length(bgs)
         b = bs[bgs[i].bid]
+        if b.bid == 1
+            X_ref = TransMatrix([zeros(Float64,3);b.x_i])
+        end
         for j = 1:bgs[i].np
             q_temp = [zeros(Float64, 3); bgs[i].points[j]]
             q_temp = [zeros(Float64, 3); b.x_i] + b.Xb_to_i*q_temp
             bgs[i].q_i[j] = q_temp[4:6]
             v_temp = bs[i].v + [zeros(Float64, 3); cross(bs[i].v[1:3],bgs[i].points[j])]
-            bgs[i].v_i[j] = (b.Xb_to_i*v_temp)[4:6]
+            bgs[i].v_i[j] = (X_ref*b.Xb_to_i*v_temp)[4:6]
         end
     end
     return bgs
@@ -111,9 +119,10 @@ Given external 3d linear fluid force f_ex of each body point contained in update
 bgs structure, do intergral to return integrated 6d body force([torque,force])
 exerting on the beginning of current body.
 """
-    @get_field bd (bs,sys)
+    @getfield bd (bs,sys)
     for i = 1:length(bgs)
         b = bs[bgs[i].bid]
+        bgs[i].f_ex6d = zeros(6)
         for j = 1:bgs[i].np
             # linear force in inertial grid coord
             f_temp = [zeros(Float64, 3); bgs[i].f_ex3d[j]]
@@ -124,7 +133,7 @@ exerting on the beginning of current body.
             Xic_to_i = TransMatrix(r_temp)
             # transform force to body local frame
             f_temp = b.Xb_to_i'*inv(Xic_to_i')*f_temp
-            println("j= ",j," points[j]= ",bgs[i].points[j]," f_temp= ",f_temp)
+            # println("j= ",j," points[j]= ",bgs[i].points[j]," f_temp= ",f_temp)
             bgs[i].f_ex6d += f_temp
         end
     end
