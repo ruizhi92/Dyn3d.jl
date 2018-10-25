@@ -18,7 +18,7 @@ st = 3
 tol = 1e-4
 num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
-gravity = [0., -9.8, 0., ]
+gravity = [0., -1., 0., ]
 
 # set up system config info
 config_system = ConfigSystem(ndim, gravity, num_params)
@@ -27,7 +27,7 @@ config_system = ConfigSystem(ndim, gravity, num_params)
 nbody = 1
 # config_body = ConfigBody(nbody)
 config_body = ConfigBody(nbody, 4,
-   [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 0.1)
+   [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 1.0)
 config_bodys = fill(config_body, nbody)
 
 # set up joints

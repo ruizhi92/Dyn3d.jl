@@ -95,12 +95,16 @@ each body point in the inertial frame.
     # the j-th v_i in body points of a body is calculated by transferring to
     # a coordinate that sits at the beginning point of the first body but with
     # zero angle.
-
+    X_ref = zeros(Float64,6)
     for i = 1:length(bgs)
         b = bs[bgs[i].bid]
         if b.bid == 1
             X_ref = TransMatrix([zeros(Float64,3);b.x_i])
         end
+    end
+
+    for i = 1:length(bgs)
+        b = bs[bgs[i].bid]
         for j = 1:bgs[i].np
             q_temp = [zeros(Float64, 3); bgs[i].points[j]]
             q_temp = [zeros(Float64, 3); b.x_i] + b.Xb_to_i*q_temp
