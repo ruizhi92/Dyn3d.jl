@@ -112,7 +112,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
 
     # stage 1
     tᵢ₋₁ = sᵢₙ.t; tᵢ = sᵢₙ.t;
-    dt = _isfixedstep ? sys.num_params.dt : sᵢₙ.dt
+    dt = sᵢₙ.dt
     qJ[1,:] = sᵢₙ.qJ
     v[1,:] = sᵢₙ.v
     # update vJ using v
@@ -164,7 +164,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
 
     # use norm(v[st+1,:]-v[st,:]) to determine next timestep
     sₒᵤₜ = Soln(tᵢ) # init struct
-    sₒᵤₜ.dt = _isfixedstep ? sys.num_params.dt :
+    sₒᵤₜ.dt = _isfixedstep ? sᵢₙ.dt :
         sᵢₙ.dt*(tol/norm(view(v,st+1,:)-view(v,st,:)))^(1/3)
     sₒᵤₜ.t = sᵢₙ.t + sᵢₙ.dt
     sₒᵤₜ.qJ = view(qJ, st+1, :)
