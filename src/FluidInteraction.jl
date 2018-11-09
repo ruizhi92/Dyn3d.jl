@@ -126,18 +126,17 @@ exerting on the beginning of current body.
     @getfield bd (bs,sys)
     for i = 1:length(bgs)
         b = bs[bgs[i].bid]
-        bgs[i].f_ex6d = zeros(6)
+        bgs[i].f_ex6d = zeros(Float64,6)
         for j = 1:bgs[i].np
             # linear force in inertial grid coord
             f_temp = [zeros(Float64, 3); bgs[i].f_ex3d[j]]
             # get transform matrix from grid points in inertial frame to the origin of inertial frame
-            r_temp = [zeros(Float64, 3); -(bgs[i].points[1]-bgs[i].points[j])]
+            r_temp = [zeros(Float64, 3); bgs[i].points[1]-bgs[i].points[j]]
             r_temp = b.Xb_to_i*r_temp
             r_temp = [zeros(Float64, 3); -b.x_i + r_temp[4:6]]
             Xic_to_i = TransMatrix(r_temp)
-            # transform force to body local frame
-            f_temp = b.Xb_to_i'*inv(Xic_to_i')*f_temp
-            # println("j= ",j," points[j]= ",bgs[i].points[j]," f_temp= ",f_temp)
+            # express force in inertial frame at origin
+            f_temp = inv(Xic_to_i')*f_temp
             bgs[i].f_ex6d += f_temp
         end
     end

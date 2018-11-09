@@ -94,14 +94,18 @@ The object-like function of type HERKBody gets updated during timemarching.
 """
 
 function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::BodyDyn;
-        _isfixedstep=false, f_exi::Array{Float64,2}=zeros(Float64,1,6)
+        _isfixedstep=false, _outputmode=false,
+        f_exi::Union{Array{Float64,2},Vector{Array{Float64,2}}}=zeros(Float64,1,6)
         ) where {T<:AbstractFloat,FA,FB1,FB2,FR1,FR2,FP,FV}
 
     @getfield scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV)
     @getfield bd (bs, js, sys)
     @getfield rk (st, c, a)
 
-    if f_exi == zeros(Float64,1,6) f_exi = zeros(Float64,sys.nbody,6) end
+    if f_exi == zeros(Float64,1,6)
+        f_exi = [zeros(Float64,sys.nbody,6) for k=1:st]
+    end
+    if _outputmode bds = Vector{BodyDyn}(st) end
 
     qJ_dim = sys.ndof
     λ_dim = sys.ncdof_HERK
@@ -118,6 +122,8 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
     # update vJ using v
     bs, js, sys, vJ[1,:] = UpV(bs, js, sys, v[1,:])
 
+    if _outputmode bds[1] = deepcopy(BodyDyn(bs,js,sys)) end
+
     # stage 2 to st+1
     for i = 2:st+1
         # time of i-1 and i
@@ -127,7 +133,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         qJ[i,:] = sᵢₙ.qJ
         # calculate M, f and GT at tᵢ₋₁
         Mᵢ₋₁ = A(sys)
-        fᵢ₋₁ = r₁(bs, js, sys, f_exi)
+        fᵢ₋₁ = r₁(bs, js, sys, f_exi[i-1])
         GTᵢ₋₁ = B₁ᵀ(bs, sys)
         # advance qJ[i,:]
         for k = 1:i-1
@@ -160,7 +166,13 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         end
         # update vJ using updated v
         bs, js, sys, vJ[i,:] = UpV(bs, js, sys, v[i,:])
+
+        if _outputmode && i<st
+            bds[i] = deepcopy(BodyDyn(bs,js,sys))
+        end
     end
+
+    if _outputmode bds[st] = deepcopy(BodyDyn(bs,js,sys)) end
 
     # use norm(v[st+1,:]-v[st,:]) to determine next timestep
     sₒᵤₜ = Soln(tᵢ) # init struct
@@ -172,7 +184,11 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
     sₒᵤₜ.v̇ = view(v̇, st, :)
     sₒᵤₜ.λ = view(λ, st, :)
 
-    return  sₒᵤₜ, bd
+    if !_outputmode
+        return  sₒᵤₜ, bd
+    else
+        return sₒᵤₜ, bds
+    end
 end
 
 #-------------------------------------------------------------------------------

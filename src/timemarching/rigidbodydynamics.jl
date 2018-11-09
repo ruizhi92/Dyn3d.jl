@@ -15,6 +15,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
     joint spring-damper forcing term. The bias term includes the change of
     inertia effect, together with gravity and external force.
 """
+
     # pointer to pre-allocated array
     @getfield sys.pre_array (p_total, τ_total, p_bias, f_g, f_ex, r_temp,
         Xic_to_i, A_total)
@@ -34,6 +35,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
         f_g = bs[i].Xb_to_i'*inv(Xic_to_i')*f_g
         # input external force f_exi described in inertial coord
         f_ex = bs[i].Xb_to_i'*f_exi[i,:]
+# println("gravity force: ",f_g," fluid force: ",f_ex)
         # add up
         p_total[6i-5:6i] = p_bias - (f_g + f_ex)
     end

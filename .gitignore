@@ -6,3 +6,4 @@ test/casual_test.ipynb
 docs/build
 *.cov
 notebook/Untitled.ipynb
+*.gif
