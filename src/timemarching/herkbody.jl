@@ -77,7 +77,7 @@ function (::Type{HERKBody})(num_params::NumParams, A::FA, B₁ᵀ::FB1, B₂::FB
 end
 
 function Base.show(io::IO, scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}) where {FA,FB1,FB2,FR1,FR2,FP,FV}
-    println(io, "Order-$(scheme.rk.st) HERK integrator.")
+    println(io, "Order-$(scheme.rk.st) HERK time-marching function like object for Dyn3d")
 end
 
 #-------------------------------------------------------------------------------

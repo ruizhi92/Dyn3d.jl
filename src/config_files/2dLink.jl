@@ -32,7 +32,7 @@ config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody
-stiff = 0.075
+stiff = 0.0075
 damp = 0.0016
 config_joints = Vector{ConfigJoint}(njoint)
 
@@ -58,11 +58,11 @@ config_joints = Vector{ConfigJoint}(njoint)
 dof = Dof(3, "passive", stiff, damp, Motions())
 
 config_joints[1] = ConfigJoint(njoint, "revolute",
-    [0.,0.,0.,1.0,1.0,0.], zeros(Float64,6), 0, [dof], [π/4])
+    [0.,0.,0.,1.0,1.0,0.], zeros(Float64,6), 0, [dof], [0.])
 
 for i = 2:njoint
     config_joints[i] = ConfigJoint(njoint, "revolute", [0., 0., 0., 1./njoint, 0., 0.],
-        zeros(Float64,6), i-1, [dof], [0.])
+        zeros(Float64,6), i-1, [dof], [π/4])
 end
 # ------------------------------------------------------------------------------
 

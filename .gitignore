@@ -7,3 +7,4 @@ docs/build
 *.cov
 notebook/Untitled.ipynb
 *.gif
+*.jld

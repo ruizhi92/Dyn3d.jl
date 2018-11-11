@@ -1,6 +1,6 @@
 module FluidInteraction
 
-export BodyGrid, CutOut2d
+export BodyGrid, CutOut2d, DetermineNP
 export AcquireBodyGridKinematics, IntegrateBodyGridDynamics, GenerateBodyGrid
 
 using Dyn3d
@@ -45,6 +45,27 @@ function CutOut2d(bd::BodyDyn,bgs::Vector{BodyGrid})
         end
     end
     return bgs
+end
+
+#-------------------------------------------------------------------------------
+"""
+Run this function before running GenerateBodyGrid, to determine number of points
+on a 2d body, in order to satisfy the desired number of points on the 1d body.
+np = (# of points on 1d plate - 1)*4+1.
+So np=201 has 51 points(1 body), np=101 has 26 points(2 body)
+np=49 has 13 points(4 body), np=25 has 7 points(8 body), etc.
+"""
+function DetermineNP(nbody, Δx)
+   # default total body length is 1
+    n = round(Int,1/Δx) + 1
+    while mod(n,nbody) != 0
+        n +=1
+    end
+    n_per_b = round(Int,n/nbody)
+    if n_per_b < 5
+        error("Use less number of bodys, otherwise too little points on a body")
+    end
+    return (n_per_b-1)*4+1
 end
 
 #-------------------------------------------------------------------------------
