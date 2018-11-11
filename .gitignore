@@ -8,3 +8,4 @@ docs/build
 notebook/Untitled.ipynb
 *.gif
 *.jld
+notebook/local_run
