@@ -9,7 +9,10 @@ branches:
     - master
 notifications:
   email: false
-
+addons:
+  apt:
+    update: true
+    
 after_success:
   # deploy docs
   - julia -e 'Pkg.add("Documenter")'
