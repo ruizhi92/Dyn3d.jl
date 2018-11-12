@@ -62,7 +62,8 @@ end
                                                config_system)
 
             # init system
-            bodys, joints, system, soln = InitSystem!(bodys, joints, system)
+            bd = BodyDyn(bodys, joints, system)
+            bd, soln = InitSystem!(bd)
 
             # test printing using one example
             if k == 3
