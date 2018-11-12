@@ -62,6 +62,15 @@ function ChooseJoint(kind)
         S = eye(Int,6)[:,udof]
         T = eye(Int,6)[:,cdof]
 
+    elseif kind == "custom_fall_in_z"
+        # custom joints only allow a maximum of 2 dofs
+        nudof = 1
+        ncdof = 5
+        udof = [6]
+        cdof = [1, 2, 3, 4, 5]
+        S = eye(Int,6)[:,udof]
+        T = eye(Int,6)[:,cdof]
+
     elseif kind == "free"
         nudof = 6
         ncdof = 0

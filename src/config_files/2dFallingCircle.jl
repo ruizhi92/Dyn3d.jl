@@ -10,7 +10,7 @@ This circle is in x-z plane and falls in z direction.
 # problem dimension
 ndim = 2
 # numerical params
-tf = 2
+tf = 1.0
 dt = 1e-3
 scheme = "BH3"
 st = 3
@@ -46,7 +46,7 @@ config_joints = Vector{ConfigJoint}(njoint)
 
 # set the first passive joint with no stiff and damp
 dofₚ = Dof(6, "passive", 0., 0., Motions())
-config_joints[1] = ConfigJoint(njoint, "custom",
+config_joints[1] = ConfigJoint(njoint, "custom_fall_in_z",
     zeros(Float64,6), zeros(Float64,6), 0, [dofₚ], [0.])
 
 println("Config info set up.")

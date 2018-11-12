@@ -13,7 +13,7 @@ using Dyn3d
 #-------------------------------------------------------------------------------
 function Jcalc(kind::String, qJ::Vector{T}) where T <: AbstractFloat
     if kind == "revolute" || kind == "prismatic" || kind == "cylindrical" ||
-       kind == "planar" || kind == "custom"
+       kind == "planar" || kind == "custom" || kind == "custom_fall_in_z"
        Xj = TransMatrix(qJ)
    elseif kind == "helical"
        # set fixed screw parameter h
