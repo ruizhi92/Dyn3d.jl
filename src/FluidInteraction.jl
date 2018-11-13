@@ -8,27 +8,47 @@ using Interpolations
 
 #-------------------------------------------------------------------------------
 """
-Design this structure to contain info used by fluid-structure interaction
+    BodyGrid(bid::Int, np::Int, points, q_i, f_ex3d, f_ex6d)
+
+Design this structure to contain body points coord, motion and forces used in fluid-structure interaction
+
+## Fields
+
+- `bid`: body id in the joint-body chain
+- `np`: number of grid points on this body
+- `points`: (x,y,z) coordinates of all body points in local body frame
+- `q_i`: (x,y,z) coordinates of all body points in inertial frame
+- `v_i`: velocity of all body points in inertial frame
+- `f_ex3d`: external force(fluid force) on all body points in inertial frame
+- `f_ex6d`: f_ex3d integrated through all body points on one body and described in 6d spatial vector form
+
+## Constructors
+
+- `BodyGrid(bid,np,points)`: initialize q_i, v_i, f_ex3d to be Vector of zeros(3),
+                             f_ex6d to be zeros(6)
 """
 mutable struct BodyGrid
-    bid::Int    # body id in the joint-body chain
-    np::Int     # number of grid points on this body
-    points::Vector{Vector{Float64}}  # the (x,y,z) coord of points in local body frame
-    q_i::Vector{Vector{Float64}}  # the position of all body points in inertial frame
-    v_i::Vector{Vector{Float64}}  # the velocity of all body points in inertial frame
-    f_ex3d::Vector{Vector{Float64}}  # the external force on all body points in inertial grid frame
-    f_ex6d::Vector{Float64}  # f_ex3d integrated and transformed to body's origin
+    bid::Int
+    np::Int
+    points::Vector{Vector{Float64}}
+    q_i::Vector{Vector{Float64}}
+    v_i::Vector{Vector{Float64}}
+    f_ex3d::Vector{Vector{Float64}}
+    f_ex6d::Vector{Float64}
 end
-BodyGrid(bid,np,points) = BodyGrid(bid,np,points,[zeros(3) for i=1:np],
-    [zeros(3) for i=1:np],[zeros(3) for i=1:np],zeros(6))
+BodyGrid(bid,np,points) = BodyGrid(bid,np,points,[zeros(Float64,3) for i=1:np],
+    [zeros(Float64,3) for i=1:np], [zeros(Float64,3) for i=1:np], zeros(Float64,6))
 
 #-------------------------------------------------------------------------------
 """
-This function need to be called only once after GenerateBodyGrid for 2d case of
-flat plats.
+    CutOut2d(bd::BodyDyn,bgs::Vector{BodyGrid})
 
-Since both for 2d and 3d cases, bodies are constructed by quadrilateral/triangles,
-not lines. Thus for 2d cases where only the line matters, we cut out the info on
+This function need to be called only once after GenerateBodyGrid for 2d case of
+flat plates.
+
+In `Dyn3d`, bodies are constructed by quadrilateral/triangles(not lines) in x-z plane
+for both 2d/3d cases. In `Whirl`, fluid in 2d cases are constructed in x-y plane.
+Thus to describe plates as lines in x-y space, we cut out the info on
 the other sides of the plate. Note that verts are formulated in clockwise
 direction, with the left-bottom corner as origin.
 """
@@ -49,13 +69,18 @@ end
 
 #-------------------------------------------------------------------------------
 """
+    DetermineNP(nbody::Int, Δx)
+
 Run this function before running GenerateBodyGrid, to determine number of points
 on a 2d body, in order to satisfy the desired number of points on the 1d body.
+
 np = (# of points on 1d plate - 1)*4+1.
-So np=201 has 51 points(1 body), np=101 has 26 points(2 body)
-np=49 has 13 points(4 body), np=25 has 7 points(8 body), etc.
+So np=201 has 51 points(1 body),
+np=101 has 26 points(2 body),
+np=49 has 13 points(4 body),
+np=25 has 7 points(8 body), etc.
 """
-function DetermineNP(nbody, Δx)
+function DetermineNP(nbody::Int, Δx)
    # default total body length is 1
     n = round(Int,1/Δx) + 1
     while mod(n,nbody) != 0
@@ -69,12 +94,14 @@ function DetermineNP(nbody, Δx)
 end
 
 #-------------------------------------------------------------------------------
-function GenerateBodyGrid(bd::BodyDyn; np=101)
 """
+    GenerateBodyGrid(bd::BodyDyn; np=101)
+
 Given BodyDyn structure, where each body only consists of several verts(usually
 4 for quadrilateral and 3 for triangle), return the verts position in inertial
 frame of given number of points np by interpolation, of all bodies in the system.
 """
+function GenerateBodyGrid(bd::BodyDyn; np=101)
     # here we assume the body chain consists of only 1 body, or several bodies
     # of the same shape
     @getfield bd (bs,sys)
@@ -104,12 +131,14 @@ frame of given number of points np by interpolation, of all bodies in the system
 end
 
 #-------------------------------------------------------------------------------
-function AcquireBodyGridKinematics(bd::BodyDyn, bgs::Vector{BodyGrid})
 """
+    AcquireBodyGridKinematics(bd::BodyDyn, bgs::Vector{BodyGrid})
+
 Given updated bd structure, which contains 3d bs[i].x_i in inertial frame and
 6d bs[i].v of each body in the body local frame, return 3d linear q_i and v_i of
 each body point in the inertial frame.
 """
+function AcquireBodyGridKinematics(bd::BodyDyn, bgs::Vector{BodyGrid})
     @getfield bd (bs, sys)
 
     # the j-th q_i in body points of a body = bs[i].x_i + Xb_to_i*points[j]
@@ -138,12 +167,14 @@ each body point in the inertial frame.
 end
 
 #-------------------------------------------------------------------------------
-function IntegrateBodyGridDynamics(bd::BodyDyn,bgs::Vector{BodyGrid})
 """
+    IntegrateBodyGridDynamics(bd::BodyDyn, bgs::Vector{BodyGrid})
+
 Given external 3d linear fluid force f_ex of each body point contained in updated
 bgs structure, do intergral to return integrated 6d body force([torque,force])
-exerting on the beginning of current body.
+exerting on the beginning of current body, desribed in inertial frame.
 """
+function IntegrateBodyGridDynamics(bd::BodyDyn, bgs::Vector{BodyGrid})
     @getfield bd (bs,sys)
     for i = 1:length(bgs)
         b = bs[bgs[i].bid]

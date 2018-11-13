@@ -7,12 +7,12 @@ makedocs(
     sitename = "Dyn3d.jl",
     pages = [
         "Home" => "index.md",
-        "Manual" => ["manual/construct_system.md"
+        "Manual" => ["manual/construct_system.md",
         #             "manual/elements.md",
         #             "manual/velocities.md",
         #             "manual/timemarching.md",
         #             "manual/noflowthrough.md",
-        #             "manual/motions.md"
+                    "manual/fluid_interaction.md"
                      ]
         #"Internals" => [ "internals/properties.md"]
     ],

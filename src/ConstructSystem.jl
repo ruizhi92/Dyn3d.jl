@@ -10,9 +10,7 @@ import Base: show
 using Reexport
 include("JointType.jl")
 @reexport using .JointType
-# using ..Utils
-# using ..ConfigDataType
-# using ..SpatialAlgebra
+
 using Dyn3d
 
 """
@@ -319,7 +317,11 @@ function show(io::IO, bd::BodyDyn)
 end
 
 #-------------------------------------------------------------------------------
-# add a single body
+"""
+    AddBody(id::Int, cf::ConfigBody)
+
+Using ConfigBody information, add one body to the body system bs
+"""
 function AddBody(id::Int, cf::ConfigBody)
     # init a single body object
     b = SingleBody()
@@ -396,7 +398,11 @@ function AddBody(id::Int, cf::ConfigBody)
 end
 
 #-------------------------------------------------------------------------------
-# add a single joint
+"""
+    AddJoint(id::Int, cf::ConfigJoint)
+
+Using ConfigJoint information, add one joint to the joint system js
+"""
 function AddJoint(id::Int, cf::ConfigJoint)
     # init SingleJoint
     j = SingleJoint()
@@ -497,7 +503,12 @@ function AddJoint(id::Int, cf::ConfigJoint)
 end
 
 #-------------------------------------------------------------------------------
-# connects body and joint system
+"""
+    AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System)
+
+With body system bs and joint system js, fill in extra hierarchy information
+about the whole system, connects bodies and joints.
+"""
 function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
                         sys::System)
     #-------------------------------------------------
@@ -665,6 +676,12 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     return bs, js, sys
 end
 
+#-------------------------------------------------------------------------------
+"""
+    BuildChain(cbs::Vector{ConfigBody}, cjs::Vector{ConfigJoint}, csys::ConfigSystem)
+
+Put AddBody, AddJoint and AssembleSystem in sequential order in a single function
+"""
 function BuildChain(cbs::Vector{ConfigBody}, cjs::Vector{ConfigJoint},
                     csys::ConfigSystem)
     nbody = cbs[1].nbody
