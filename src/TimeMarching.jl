@@ -1,7 +1,6 @@
 module TimeMarching
 
-export HERKBody
-export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti, RKParams
+export HERKBody, RKParams
 
 import Base: show
 

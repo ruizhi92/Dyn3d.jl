@@ -1,8 +1,7 @@
 # RigidBodyDynamics contain HERK matrix blocks and right hand side
 module RigidBodyDynamics
 
-export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti,
-       UpdatePosition!, UpdateVelocity!
+export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
 
 using Dyn3d
 
