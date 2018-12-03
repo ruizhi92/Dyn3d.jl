@@ -1,3 +1,11 @@
+# RigidBodyDynamics contain HERK matrix blocks and right hand side
+module RigidBodyDynamics
+
+export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti,
+       UpdatePosition!, UpdateVelocity!
+
+using Dyn3d
+
 function HERKFuncM(sys::System)
 """
     HERKFuncM constructs the input function M for HERK method.
@@ -131,4 +139,7 @@ function HERKFuncgti(js::Vector{SingleJoint}, sys::System, t::T) where
 
     v_gti[sys.udof_a] = va_gti
     return -(sys.T_total')*v_gti
+end
+
+
 end

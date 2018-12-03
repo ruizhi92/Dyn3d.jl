@@ -20,6 +20,9 @@ include("ConstructSystem.jl")
 include("UpdateSystem.jl")
 @reexport using .UpdateSystem
 
+include("RigidBodyDynamics.jl")
+@reexport using .RigidBodyDynamics
+
 include("TimeMarching.jl")
 @reexport using .TimeMarching
 

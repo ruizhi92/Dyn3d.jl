@@ -1,7 +1,7 @@
 module TimeMarching
 
 export HERKBody
-export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
+export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti, RKParams
 
 import Base: show
 
@@ -64,10 +64,8 @@ RKParams provides a set of HERK coefficients, expressed in Butcher table form.
 end
 
 #-------------------------------------------------------------------------------
-const RKConst = RKParams("Liska")
+const RK31 = RKParams("Liska")
 
-# contain HERK matrix blocks and right hand side
-include("timemarching/rigidbodydynamics.jl")
 # contain herk algorithm
 include("timemarching/herkbody.jl")
 
