@@ -141,9 +141,9 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         end
         # use new qJ to update system position
         bs, js, sys = UpP(bs, js, sys, qJ[i,:])
-        # calculate G at tᵢ, gti at tᵢ₋₁
+        # calculate G and gti at tᵢ
         Gᵢ = B₂(bs, sys)
-        gtiᵢ = r₂(js, sys, tᵢ₋₁)
+        gtiᵢ = r₂(js, sys, tᵢ)
         # construct lhs matrix
         lhs = [ Mᵢ₋₁ GTᵢ₋₁; Gᵢ zeros(T,λ_dim,λ_dim) ]
         # the accumulated v term on the right hand side

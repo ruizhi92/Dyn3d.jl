@@ -24,7 +24,6 @@ RKParams provides a set of HERK coefficients, expressed in Butcher table form.
 """
     # Scheme of 3-stage HERK in Liska's paper
     if name == "Liska"
-        |
         a = [0.0 0.0 0.0;
              0.5 0.0 0.0;
              √3/3 (3.0-√3)/3 0.0]
@@ -52,6 +51,26 @@ RKParams provides a set of HERK coefficients, expressed in Butcher table form.
         c = [0.0, 0.3, (4.0-√6)/10, (4.0+√6)/10, 1.0]
         st = 5
         p = 4
+    elseif name == "Euler"
+        a = ones(1,1)
+        b = [1.0]
+        c = [0.0]
+        st = 1
+        p = 1
+    elseif name == "RK2"
+        a = [0.0 0.0;
+             0.5 0.0]
+        b = [0.0, 1.0]
+        c = [0.0, 0.5]
+        st = 2
+        p = 2
+    elseif name == "RK22"
+        a = [0.0 0.0;
+             2/3 0.0]
+        b = [1/4, 3/4]
+        c = [0.0, 2/3]
+        st = 2
+        p = 2
     else
         error("This HERK scheme doesn't exist now.")
     end
@@ -64,6 +83,11 @@ end
 
 #-------------------------------------------------------------------------------
 const RK31 = RKParams("Liska")
+const RK32 = RKParams("BH3")
+const Euler = RKParams("Euler")
+const RK2 = RKParams("RK2")
+const RK22 = RKParams("RK22")
+const RK4 = RKParams("BH5")
 
 # contain herk algorithm
 include("timemarching/herkbody.jl")
