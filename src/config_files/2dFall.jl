@@ -24,7 +24,7 @@ gravity = [0., -1., 0., ]
 config_system = ConfigSystem(ndim, gravity, num_params)
 
 # set up bodys
-nbody = 1
+nbody = 6
 # config_body = ConfigBody(nbody)
 config_body = ConfigBody(nbody, 4,
    [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 1.0)

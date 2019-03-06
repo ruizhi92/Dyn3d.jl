@@ -268,6 +268,7 @@ mutable struct System
     S_total::Array{Int,2}
     T_total::Array{Int,2}
     Ib_total::Array{Float64,2}
+    M⁻¹::Array{Float64,2}
     # gravity
     g::Vector{Float64}
     # kinematic map
@@ -284,7 +285,7 @@ System(ndim, nbody, njoint, g, num_params) = System(
     0,0,0,0,0,
     Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
     0,0,Vector{Int}(0),
-    Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),
+    Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0),
     g,Array{Int,2}(0,0),num_params,
     PreArray()
 )
@@ -658,6 +659,7 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     for i = 1:sys.nbody
         sys.Ib_total[6i-5:6i, 6i-5:6i] = bs[i].inertia_b
     end
+    sys.M⁻¹ = inv(sys.Ib_total)
     # diagonal block of S_total is S of each joint in joint coord
     sys.S_total = zeros(Int, sys.ndof, sys.nudof)
     for i = 1:sys.njoint

@@ -1,7 +1,7 @@
 # RigidBodyDynamics contain HERK matrix blocks and right hand side
 module RigidBodyDynamics
 
-export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
+export HERKFuncM, HERKFuncM⁻¹, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
 
 using Dyn3d
 
@@ -11,6 +11,13 @@ function HERKFuncM(sys::System)
     It returns the collected inertia matrix of all body in their own body coord
 """
     return sys.Ib_total
+end
+
+function HERKFuncM⁻¹(sys::System)
+"""
+    HERKFuncM⁻¹ returns inverse matrix of M.
+"""
+    return sys.M⁻¹
 end
 
 #-------------------------------------------------------------------------------
