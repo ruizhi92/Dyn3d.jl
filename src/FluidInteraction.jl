@@ -80,13 +80,13 @@ np=101 has 26 points(2 body),
 np=49 has 13 points(4 body),
 np=25 has 7 points(8 body), etc.
 """
-function DetermineNP(nbody::Int, Δx)
+function DetermineNP(nbody::Int, Δx::Float64;fine::Union{Float64,Int64}=1.0)
    # default total body length is 1
     n = round(Int,1/Δx) + 1
     while mod(n,nbody) != 0
         n +=1
     end
-    n_per_b = round(Int,n/nbody)
+    n_per_b = round(Int,n/nbody)*fine
     if n_per_b < 5
         error("Use less number of bodys, otherwise too little points on a body")
     end
