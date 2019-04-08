@@ -185,7 +185,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "manual/fluid_interaction.html#Dyn3d.FluidInteraction.DetermineNP-Tuple{Int64,Any}",
+    "location": "manual/fluid_interaction.html#Dyn3d.FluidInteraction.DetermineNP-Tuple{Int64,Float64}",
     "page": "Fluid-Structure Interaction",
     "title": "Dyn3d.FluidInteraction.DetermineNP",
     "category": "method",
