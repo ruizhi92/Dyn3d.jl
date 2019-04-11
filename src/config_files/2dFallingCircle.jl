@@ -17,7 +17,7 @@ st = 3
 tol = 1e-4
 num_params = NumParams(tf, dt, scheme, st, tol)
 # gravity
-gravity = [0., 0., -9.8]
+gravity = [0., 0., -1.0]
 # plot direction
 plot_dir = (1,3)
 

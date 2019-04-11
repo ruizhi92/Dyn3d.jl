@@ -11,7 +11,7 @@ the body system is under gravity.
 # problem dimension
 ndim = 2
 # numerical params
-tf = 6
+tf = 20
 dt = 1e-3
 scheme = "Liska"
 st = 3
@@ -24,7 +24,7 @@ gravity = [0., -1., 0., ]
 config_system = ConfigSystem(ndim, gravity, num_params)
 
 # set up bodys
-nbody = 6
+nbody = 8
 # config_body = ConfigBody(nbody)
 config_body = ConfigBody(nbody, 4,
    [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 1.0)
@@ -41,7 +41,7 @@ dof_1 = Dof(3, "passive", 0., 0., Motions())
 # config_joints[1] = ConfigJoint(njoint, "revolute",
 #     zeros(Float64,6), zeros(Float64,6), 0, [dof_1], [0.])
 config_joints[1] = ConfigJoint(njoint, "revolute",
-    [0.,0.,0.,1.0,1.0,0.], zeros(Float64,6), 0, [dof_1], [0.])
+    [0.,0.,0.,0.0,0.5,0.], zeros(Float64,6), 0, [dof_1], [0.])
 
 # set all the rest joints
 for i = 2:njoint

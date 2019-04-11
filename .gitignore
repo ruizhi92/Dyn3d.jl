@@ -5,7 +5,6 @@ test/casual_test.ipynb
 *.mem
 docs/build
 *.cov
-notebook/Untitled.ipynb
-*.gif
-*.jld
 notebook/local_run
+notebook/movies
+notebook/saved_data
