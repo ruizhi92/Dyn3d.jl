@@ -9,11 +9,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#Dyn3d-1",
+    "location": "index.html#Dyn3d.jl-1",
     "page": "Home",
-    "title": "Dyn3d",
+    "title": "Dyn3d.jl",
     "category": "section",
-    "text": "A 2d/3d rigid body dynamics solverThe main goal of this repository is to construct a rigid body-joint system and solve forward/backward dynamics problem on it. This package is functioned throughconstructing 2d/3d rigid body-joints system\nsolving motions on unconstrained degrees of freedom(passive joints)\nsolving forces on constrained degrees of freedom(active joints)\nplotting/making gif in Julia or making movies in MatlabTo solve a rigid body dynamics problem, this package express the dynamics using 6D spatial vector developed by Roy Featherstone. The governing equations are formulated to fit in half explicit Runge-Kutta method on index-2 differential equations. Constrained forces on joints are represented in Lagrange multiplier terms and solved together with motions of all degrees of freedom.Based on the calculation of dynamical systems, Dyn3d can also be used to simulate fluid-structure interaction problems using package Whirl, with strongly coupled method(finished) and fully coupled method(to be done)."
+    "text": "A 2d/3d rigid body dynamics solverThe main goal of this repository is to construct a rigid body-joint system and solve forward/backward dynamics problem on it. This package is functioned through:constructing 2d polygon shape rigid bodies and allow motion in 3d space\nconnecting bodies by joints which has 6 degree of freedoms for each\nsolving motions on unconstrained degrees of freedom(passive joints)\nsolving forces on constrained degrees of freedom(active joints)\nplotting/making gif in Julia or making movies in MatlabTo solve a rigid body dynamics problem, this package express the dynamics using 6D spatial vector developed by Roy Featherstone. The governing equations are formulated to fit in half explicit Runge-Kutta method on index-2 differential equations. Constrained forces on joints are represented in Lagrange multiplier terms and solved together with motions of all degrees of freedom.Based on the calculation of dynamical systems, Dyn3d.jl can also be used to simulate fluid-structure interaction problems using package Whirl.jl, with strongly coupled method(finished) and fully coupled method(in package FSI.jl).(Image: )"
 },
 
 {
@@ -21,7 +21,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "Installation",
     "category": "section",
-    "text": "This package requires Julia 0.6 and above. To install, simply download this Github repository, find the location of this repository expressed in Julia byjulia> Dyn3d_dir = Pkg.dir(\"Dyn3d\")and then setup a symbolic link in shell followingshell$ sudo ln -s actual_address Dyn3d_dirThe plots in this documentation are generated using Plots.jl. You might want to install that too to follow the examples."
+    "text": "This package requires Julia 0.6. To install, simply download this Github repository, find the location of this repository expressed in Julia byjulia> Dyn3d_dir = Pkg.dir(\"Dyn3d\")and then setup a symbolic link in shell followingshell$ sudo ln -s actual_address Dyn3d_dirThe plots in this documentation are generated using Plots.jl. You might want to install that too to follow the examples.Or a simple solution asinclude(path*\"Dyn3d.jl\")"
 },
 
 {
