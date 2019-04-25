@@ -46,7 +46,7 @@ BodyGrid(bid,np,points) = BodyGrid(bid,np,points,[zeros(Float64,3) for i=1:np],
 This function need to be called only once after GenerateBodyGrid for 2d case of
 flat plates.
 
-In `Dyn3d`, bodies are constructed by quadrilateral/triangles(not lines) in x-z plane
+In `Dyn3d`, bodies are constructed by quadrilateral/triangles(not lines) in z-x plane
 for both 2d/3d cases. In `Whirl`, fluid in 2d cases are constructed in x-y plane.
 Thus to describe plates as lines in x-y space, we cut out the info on
 the other sides of the plate. Note that verts are formulated in clockwise
@@ -63,6 +63,7 @@ function CutOut2d(bd::BodyDyn,bgs::Vector{BodyGrid})
             bgs[i].v_i = bgs[i].v_i[end:-1:end-cutout]
             bgs[i].f_ex3d = bgs[i].f_ex3d[end:-1:end-cutout]
         end
+    else error("function Cutout2d currently only support quadrilateral shape.")
     end
     return bgs
 end

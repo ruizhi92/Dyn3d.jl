@@ -16,3 +16,5 @@ This package's local dir will be set by user. Find Julia repo address by
 julia> Pkg.dir("Dyn3d")
 Then you can make a symlinking by
 shell$ sudo ln -s actual_address Julia_repo_address
+
+![](https://github.com/ruizhi92/Dyn3d.jl/raw/master/example_gif.gif)

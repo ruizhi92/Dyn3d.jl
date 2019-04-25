@@ -14,7 +14,6 @@ makedocs(
         #             "manual/noflowthrough.md",
                     "manual/fluid_interaction.md"
                      ]
-        #"Internals" => [ "internals/properties.md"]
     ],
     assets = ["assets/custom.css"],
     strict = true
