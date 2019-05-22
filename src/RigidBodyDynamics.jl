@@ -32,7 +32,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
 
     # pointer to pre-allocated array
     @getfield sys.pre_array (p_total, τ_total, p_bias, f_g, f_ex, r_temp,
-        Xic_to_i, A_total)
+        Xic_to_i, A_total, la_tmp1, la_tmp2)
     # compute bias force, gravity and external force
     for i = 1:sys.nbody
         # bias force
@@ -44,7 +44,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
         r_temp = [zeros(Float64, 3); -bs[i].x_c]
         r_temp = bs[i].Xb_to_i*r_temp
         r_temp = [zeros(Float64, 3); -bs[i].x_i + r_temp[4:6]]
-        Xic_to_i = TransMatrix(r_temp)
+        Xic_to_i = TransMatrix(r_temp,la_tmp1,la_tmp2)
         # transform gravity force
         f_g = bs[i].Xb_to_i'*inv(Xic_to_i')*f_g
         # input external force f_exi described in inertial coord
@@ -53,7 +53,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
         # add up
         p_total[6i-5:6i] = p_bias - (f_g + f_ex)
     end
-
+# println("f_g: ",f_g)
     # construct τ_total, this is related only to spring force.
     # τ is only determined by whether the dof has resistance(damp and
     # stiff) or not. Both active dof and passive dof can have τ term

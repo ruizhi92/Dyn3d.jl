@@ -187,6 +187,9 @@ end
 
 #-------------------------------------------------------------------------------
 mutable struct PreArray
+    # used in LinearAlgebra
+    la_tmp1::Matrix{Float64}
+    la_tmp2::Matrix{Float64}
     # used in UpdatePosition, UpdateVelocity
     q_temp::Vector{Float64}
     x_temp::Vector{Float64}
@@ -224,6 +227,8 @@ mutable struct PreArray
 end
 
 PreArray() = PreArray(
+    # LinearAlgebra
+    zeros(Float64,6,6),zeros(Float64,6,6),
     # UpdatePosition, UpdateVelocity
     Float64[],Float64[],Array{Float64,2}(0,0),
     # HERK!
@@ -385,7 +390,9 @@ function AddBody(id::Int, cf::ConfigBody)
                    zeros(Float64,3,3) mass_3d]
 
     # Xb_to_c
-    b.Xb_to_c = TransMatrix([zeros(Float64,3);b.x_c])
+    la_tmp1 = zeros(Float64,6,6)
+    la_tmp2 = zeros(Float64,6,6)
+    b.Xb_to_c = TransMatrix([zeros(Float64,3);b.x_c],la_tmp1,la_tmp2)
 
     # inertia_b in body frame at point b
     b.inertia_b = b.Xb_to_c'*b.inertia_c*b.Xb_to_c
@@ -492,8 +499,11 @@ function AddJoint(id::Int, cf::ConfigJoint)
         for i = 1:j.ncdof_HERK j.T_HERK[j.cdof_HERK[i],i] = 1 end
     end
     # Xp_to_j, Xj_to_ch
-    j.Xp_to_j = TransMatrix(j.shape1)
-    j.Xj_to_ch = TransMatrix(j.shape2)
+    la_tmp1 = zeros(Float64,6,6)
+    la_tmp2 = zeros(Float64,6,6)
+    j.Xp_to_j = TransMatrix(j.shape1,la_tmp1,la_tmp2)
+    la_tmp1 .= 0.0; la_tmp2 .= 0.0
+    j.Xj_to_ch = TransMatrix(j.shape2,la_tmp1,la_tmp2)
     # qJ, vJ and cJ
     j.qJ = zeros(Float64,6)
     j.qJ[j.udof] = cf.qJ_init

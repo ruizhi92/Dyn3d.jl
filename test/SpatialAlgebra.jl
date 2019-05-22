@@ -1,12 +1,14 @@
 @testset "TransMatrix" begin
     a = [π/4, π/6, π/8]
     b = zeros(Float64,3)
-    @test TransMatrix([a;b]) ≈ TransMatrix([[0., 0., a[3]];b])*
-                               TransMatrix([[0., a[2], 0.];b])*
-                               TransMatrix([[a[1], 0., 0.];b])
-    c = TransMatrix([0., 0., 0., 1., 2., 3.])
+    la_tmp1 = zeros(Float64,6,6)
+    la_tmp2 = zeros(Float64,6,6)
+    @test TransMatrix([a;b],la_tmp1,la_tmp2) ≈ TransMatrix([[0., 0., a[3]];b],la_tmp1,la_tmp2)*
+                               TransMatrix([[0., a[2], 0.];b],la_tmp1,la_tmp2)*
+                               TransMatrix([[a[1], 0., 0.];b],la_tmp1,la_tmp2)
+    c = TransMatrix([0., 0., 0., 1., 2., 3.],la_tmp1,la_tmp2)
     @test diag(c) == ones(Float64,6)
-    d = TransMatrix([π/4, π/6, π/8, 1., 2., 3.])
+    d = TransMatrix([π/4, π/6, π/8, 1., 2., 3.],la_tmp1,la_tmp2)
     @test Any(d[4:6,1:3]) != 0.
 end
 

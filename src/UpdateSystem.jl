@@ -11,16 +11,16 @@ export  UpdatePosition!, UpdateVelocity!, InitSystem!, VertsHistory, MassCenter
 using Dyn3d
 
 #-------------------------------------------------------------------------------
-function Jcalc(kind::String, qJ::Vector{T}) where T <: AbstractFloat
+function Jcalc(kind::String, qJ::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T <: AbstractFloat
     if kind == "revolute" || kind == "prismatic" || kind == "cylindrical" ||
        kind == "planar" || kind == "custom" || kind == "custom_fall_in_z"
-       Xj = TransMatrix(qJ)
+       Xj = TransMatrix(qJ,X,X_2)
    elseif kind == "helical"
        # set fixed screw parameter h
        h = 0.1
        r = h*qJ[4:6]
        θ = qJ[1:3]
-       Xj = TransMatrix([θ; r])
+       Xj = TransMatrix([θ; r],X,X_2)
    end
    return Xj
 end
@@ -48,8 +48,7 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     3. Update bs[i].Xp_to_b using Xp_to_b = Xj_to_ch*Xj*Xp_to_j
 """
     # pointer to pre-allocated array
-    q_temp = sys.pre_array.q_temp
-    x_temp = sys.pre_array.x_temp
+    @getfield sys.pre_array (q_temp,x_temp,la_tmp1,la_tmp2)
 
     #-------------------------------------------------
     # First body
@@ -57,7 +56,7 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     # starting from joint 1, which is connected to the inertial system
     # (always true) and is the parent of every other body.
     # js[1].Xj
-    js[1].Xj = Jcalc(js[1].joint_type, js[1].qJ)
+    js[1].Xj = Jcalc(js[1].joint_type, js[1].qJ, la_tmp1, la_tmp2)
     # bs[1].Xp_to_b and bs[1].Xb_to_i
     bs[1].Xp_to_b = js[1].Xj_to_ch*js[1].Xj*js[1].Xp_to_j
     bs[1].Xb_to_i = inv(bs[1].Xp_to_b)
@@ -80,7 +79,7 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         for k = 1:bs[i].nchild
             chid = bs[i].chid[k]
             # update js[i].Xj
-            js[chid].Xj = Jcalc(js[chid].joint_type, js[chid].qJ)
+            js[chid].Xj = Jcalc(js[chid].joint_type, js[chid].qJ, la_tmp1, la_tmp2)
             # bs[chid].Xp_to_b
             bs[chid].Xp_to_b = js[chid].Xj_to_ch*js[chid].Xj*
                                js[chid].Xp_to_j

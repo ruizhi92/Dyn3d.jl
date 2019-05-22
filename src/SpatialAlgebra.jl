@@ -13,13 +13,18 @@ using DocStringExtensions
 #-------------------------------------------------------------------------------
 # using 6d vector v[theta_x, theta_y, theta_z, x, y, z], get transformation
 # matrix X
-function TransMatrix(v::Vector{T}) where T <: AbstractFloat
+function TransMatrix(v::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T <: AbstractFloat
     # check input size
     if length(v) != 6 error("TransMatrix method need input vector length 6") end
 
+    # tmp memory
+    E_temp = eye(T,3)
+
     # rotation
-    θ = v[1:3]; r = v[4:6]
-    E₁ = eye(T,3); E₂ = eye(T,3); E₃ = eye(T,3)
+    θ = view(v,1:3); r = view(v,4:6)
+    E₁ = copy(E_temp)
+    E₂ = copy(E_temp)
+    E₃ = copy(E_temp)
 
     if θ[1] != 0.
         E₁ = [1. 0. 0.; 0. cos(θ[1]) sin(θ[1]); 0. -sin(θ[1]) cos(θ[1])]
@@ -33,17 +38,23 @@ function TransMatrix(v::Vector{T}) where T <: AbstractFloat
     E = E₃*E₂*E₁
 
     # translation
-    rcross = [0. -r[3] r[2]; r[3] 0. -r[1]; -r[2] r[1] 0.]
+    rcross = [0. r[3] -r[2]; -r[3] 0. r[1]; r[2] -r[1] 0.]
 
     # combine, return X
-    X = [E zeros(T,3,3); zeros(T,3,3) E]*
-        [eye(T,3) zeros(T,3,3); -rcross eye(T,3)]
+    X[1:3,1:3] .= E
+    X[4:6,4:6] .= E
+    X_2[1:3,1:3] .= E_temp
+    X_2[4:6,1:3] .= rcross
+    X_2[4:6,4:6] .= E_temp
+
+    return X*X_2
 end
 
 #-------------------------------------------------------------------------------
 # 6d motion vector m cross 6d force vector f
 function Mfcross(m::Vector{T}, f::Vector{T}) where T <: AbstractFloat
-    ω = m[1:3]; v = m[4:6]
+    ω = view(m,1:3)
+    v = view(m,4:6)
     ωcross = [0. -ω[3] ω[2]; ω[3] 0. -ω[1]; -ω[2] ω[1] 0.]
     vcross = [0. -v[3] v[2]; v[3] 0. -v[1]; -v[2] v[1] 0.]
     p = Vector{T}(6)
