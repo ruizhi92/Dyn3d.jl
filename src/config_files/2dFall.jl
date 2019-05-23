@@ -11,7 +11,7 @@ the body system is under gravity.
 # problem dimension
 ndim = 2
 # numerical params
-tf = 20
+tf = 8
 dt = 1e-3
 scheme = "Liska"
 st = 3

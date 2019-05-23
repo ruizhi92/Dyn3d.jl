@@ -502,7 +502,6 @@ function AddJoint(id::Int, cf::ConfigJoint)
     la_tmp1 = zeros(Float64,6,6)
     la_tmp2 = zeros(Float64,6,6)
     j.Xp_to_j = TransMatrix(j.shape1,la_tmp1,la_tmp2)
-    la_tmp1 .= 0.0; la_tmp2 .= 0.0
     j.Xj_to_ch = TransMatrix(j.shape2,la_tmp1,la_tmp2)
     # qJ, vJ and cJ
     j.qJ = zeros(Float64,6)

@@ -34,7 +34,7 @@ config_joints[1] = ConfigJoint(njoint, "custom",
 dof₂ = Vector{Dof}(3)
 dof₂[1] = Dof(3, "active", 0., 0., Motions("hold",[π/2]))
 dof₂[2] = Dof(4, "active", 0., 0., Motions("hold",[0.0]))
-dof₂[3] = Dof(5, "active", 0., 0., Motions("oscillatory", [0.06,2,0.0]))
+dof₂[3] = Dof(5, "active", 0., 0., Motions("oscillatory", [0.06,2.0,0.0]))
 
 config_joints[2] = ConfigJoint(njoint, "planar",
                                [0.,0.,0.,0.25-0.06,0.,0.], [0.,0.,0.,0.0,0.,0.],

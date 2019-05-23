@@ -19,7 +19,9 @@ function TransMatrix(v::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T <: Abstra
 
     # tmp memory
     E_temp = eye(T,3)
-
+    X .= 0.0
+    X_2 .= 0.0
+    
     # rotation
     θ = view(v,1:3); r = view(v,4:6)
     E₁ = copy(E_temp)

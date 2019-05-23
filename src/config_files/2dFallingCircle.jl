@@ -29,7 +29,7 @@ function circle(z₀::Vector{Float64}, r::Float64, n::Int)
     # z₀ for circle center location, r for radius and n for # of points on circle
     verts = zeros(n,2)
     for i = 1:n
-        verts[i,:] = [r*sin(2π/(n-1)*(i-1)) + z₀[1], r*cos(2π/(n-1)*(i-1)) + z₀[2]]
+        verts[i,:] = [r*cos(2π/(n-1)*(i-1)) + z₀[1], r*sin(2π/(n-1)*(i-1)) + z₀[2]]
     end
     verts
 end
