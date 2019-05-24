@@ -17,4 +17,7 @@ julia> Pkg.dir("Dyn3d")
 Then you can make a symlinking by
 shell$ sudo ln -s actual_address Julia_repo_address
 
+A more systematic way of doing this in `Julia 0.7` is:
+(v0.7) pkg> add Dyn3d_local_address
+
 ![](https://github.com/ruizhi92/Dyn3d.jl/raw/master/example_gif.gif)

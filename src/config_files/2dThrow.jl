@@ -33,7 +33,7 @@ config_bodys = fill(config_body, nbody)
 njoint = nbody
 stiff = 0.6
 damp = 0.1
-config_joints = Vector{ConfigJoint}(njoint)
+config_joints = Vector{ConfigJoint}(undef,njoint)
 
 # set the first active revolute joint
 active_motion = Motions("oscillatory", [π/4, 1., 0.])
@@ -42,14 +42,14 @@ config_joints[1] = ConfigJoint(njoint, "revolute",
     zeros(Float64,6), zeros(Float64,6), 0, [dof₁], [0.])
 
 # set the rest planar passive joint
-dof₂ = Vector{Dof}(3)
+dof₂ = Vector{Dof}(undef,3)
 dof₂[1] = Dof(3, "passive", stiff, damp, Motions())
 dof₂[2] = Dof(4, "passive", stiff, damp, Motions())
 dof₂[3] = Dof(5, "active", 0., 0., Motions("hold",[0.]))
 
 for i = 2:njoint
     config_joints[i] = ConfigJoint(njoint, "planar",
-        [0., 0., 0., 1./njoint, 0., 0.],
+        [0., 0., 0., 1.0/njoint, 0., 0.],
         zeros(Float64,6), i-1, dof₂, zeros(Float64,3))
 end
 

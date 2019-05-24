@@ -26,12 +26,12 @@ config_system = ConfigSystem(ndim, gravity, num_params)
 nbody = 2
 # config_body = ConfigBody(nbody)
 config_body = ConfigBody(nbody, 4,
-    [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 1.0)
+    [0. 0.; 1. 0.; 1. 1.0/nbody; 0. 1.0/nbody], 1.0)
 config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody
-config_joints = Vector{ConfigJoint}(njoint)
+config_joints = Vector{ConfigJoint}(undef,njoint)
 
 # set the first active joint
 motion₁ = Motions("oscillatory", [π/4, 1., 0.])

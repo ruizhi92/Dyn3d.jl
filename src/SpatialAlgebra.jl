@@ -4,24 +4,23 @@ export TransMatrix, Mfcross
 
 # use registered packages
 using DocStringExtensions
+using LinearAlgebra
 
 """
- This module contain several linear algebra functions used in 6d spatial
- linear algebra.
+    TransMatrix(v::Vector,X::Matrix,X_2::Matrix)
+This module contain several linear algebra functions used in 6d spatial
+linear algebra using 6d vector v[theta_x, theta_y, theta_z, x, y, z], get transformation
+matrix X.
 """
-
-#-------------------------------------------------------------------------------
-# using 6d vector v[theta_x, theta_y, theta_z, x, y, z], get transformation
-# matrix X
 function TransMatrix(v::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T <: AbstractFloat
     # check input size
     if length(v) != 6 error("TransMatrix method need input vector length 6") end
 
     # tmp memory
-    E_temp = eye(T,3)
+    E_temp = Matrix{Int}(I, 3, 3)
     X .= 0.0
     X_2 .= 0.0
-    
+
     # rotation
     θ = view(v,1:3); r = view(v,4:6)
     E₁ = copy(E_temp)
@@ -59,7 +58,7 @@ function Mfcross(m::Vector{T}, f::Vector{T}) where T <: AbstractFloat
     v = view(m,4:6)
     ωcross = [0. -ω[3] ω[2]; ω[3] 0. -ω[1]; -ω[2] ω[1] 0.]
     vcross = [0. -v[3] v[2]; v[3] 0. -v[1]; -v[2] v[1] 0.]
-    p = Vector{T}(6)
+    p = Vector{T}(undef,6)
     p[1:3] = ωcross*f[1:3] + vcross*f[4:6]
     p[4:6] = ωcross*f[4:6]
     return p

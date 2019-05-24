@@ -6,19 +6,21 @@ export SingleBody, SingleJoint, System, BodyDyn, Soln,
 
 import Base: show
 
-# import self-defined modules
 using Reexport
+using Dyn3d
+using LinearAlgebra
+
+# import self-defined modules
 include("JointType.jl")
 @reexport using .JointType
 
-using Dyn3d
 
-"""
-This module construct the body-joint system by:
-    1. AddBody
-    2. AddJoint
-    3. AssembleSystem
-"""
+
+# This module construct the body-joint system by:
+#    1. AddBody
+#    2. AddJoint
+#    3. AssembleSystem
+
 
 #-------------------------------------------------------------------------------
 mutable struct Soln{T}
@@ -33,10 +35,10 @@ mutable struct Soln{T}
 end
 
 Soln(t, dt, q, v) = Soln(t, dt, q, v,
-    Vector{typeof(t)}(0), Vector{typeof(t)}(0))
+    Vector{typeof(t)}(undef,0), Vector{typeof(t)}(undef,0))
 
-Soln(t) = Soln(t, 0., Vector{typeof(t)}(0), Vector{typeof(t)}(0),
-        Vector{typeof(t)}(0), Vector{typeof(t)}(0))
+Soln(t) = Soln(t, 0., Vector{typeof(t)}(undef,0), Vector{typeof(t)}(undef,0),
+        Vector{typeof(t)}(undef,0), Vector{typeof(t)}(undef,0))
 
 #-------------------------------------------------------------------------------
 mutable struct SingleBody
@@ -47,38 +49,38 @@ mutable struct SingleBody
     nchild::Int
     # verts
     nverts::Int
-    verts::Array{Float64,2}
-    verts_i::Array{Float64,2}
+    verts::Matrix{Float64}
+    verts_i::Matrix{Float64}
     # coord in body frame and inertial frame
     x_c::Vector{Float64}
     x_i::Vector{Float64}
     # mass and inertia
     mass::Float64
-    inertia_c::Array{Float64,2}
-    inertia_b::Array{Float64,2}
+    inertia_c::Matrix{Float64}
+    inertia_b::Matrix{Float64}
     # transform matrix
-    Xb_to_c::Array{Float64,2}
-    Xb_to_i::Array{Float64,2}
-    Xp_to_b::Array{Float64,2}
+    Xb_to_c::Matrix{Float64}
+    Xb_to_i::Matrix{Float64}
+    Xp_to_b::Matrix{Float64}
     # motion vectors in body local frame
     q::Vector{Float64}
     v::Vector{Float64}
     v̇::Vector{Float64}
     # articulated body info
     pA::Vector{Float64}
-    Ib_A::Array{Float64,2}
+    Ib_A::Matrix{Float64}
 end
 
 # outer constructor
 function SingleBody()
     body = SingleBody(
-    0,0,Vector{Int}(0),0,
-    0,Array{Float64,2}(0,0),Array{Float64,2}(0,0),
-    Vector{Float64}(0),Vector{Float64}(0),
-    0,Array{Float64,2}(0,0),Array{Float64,2}(0,0),
-    Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0),
-    Vector{Float64}(0),Vector{Float64}(0),Vector{Float64}(0),
-    Vector{Float64}(0),Array{Float64,2}(0,0)
+    0,0,Vector{Int}(undef,0),0,
+    0,Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
+    Vector{Float64}(undef,0),Vector{Float64}(undef,0),
+    0,Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
+    Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
+    Vector{Float64}(undef,0),Vector{Float64}(undef,0),Vector{Float64}(undef,0),
+    Vector{Float64}(undef,0),Matrix{Float64}(undef,0,0)
     )
     return body
 end
@@ -115,22 +117,22 @@ mutable struct SingleJoint
     np::Int
     na::Int
     udof::Vector{Int} # newline in constructor
-    cdof::Union{Vector{Int},Nullable{Int}}
-    udof_p::Union{Vector{Int},Nullable{Int}} # newline in constructor
-    udof_a::Union{Vector{Int},Nullable{Int}}
-    i_udof_p::Union{Vector{Int},Nullable{Int}} # newline in constructor
-    i_udof_a::Union{Vector{Int},Nullable{Int}}
+    cdof::Union{Vector{Int},Nothing}
+    udof_p::Union{Vector{Int},Nothing} # newline in constructor
+    udof_a::Union{Vector{Int},Nothing}
+    i_udof_p::Union{Vector{Int},Nothing} # newline in constructor
+    i_udof_a::Union{Vector{Int},Nothing}
     udofmap::Vector{Int}
     # dof info modified by HERK
     nudof_HERK::Int
     ncdof_HERK::Int
-    udof_HERK::Union{Vector{Int},Nullable{Int}}
-    cdof_HERK::Union{Vector{Int},Nullable{Int}}
-    cdofmap_HERK::Union{Vector{Int},Nullable{Int}}
+    udof_HERK::Union{Vector{Int},Nothing}
+    cdof_HERK::Union{Vector{Int},Nothing}
+    cdofmap_HERK::Union{Vector{Int},Nothing}
     # joint basis matrix
-    S::Union{Vector{Int},Array{Int,2}}
-    T::Union{Vector{Int},Array{Int,2},Nullable{Int}}
-    T_HERK::Union{Vector{Int},Array{Int,2},Nullable{Int}}
+    S::Union{Vector{Int},Matrix{Int}}
+    T::Union{Vector{Int},Matrix{Int},Nothing}
+    T_HERK::Union{Vector{Int},Matrix{Int},Nothing}
     # joint dof
     joint_dof::Vector{Dof}
     # motion vectors
@@ -138,24 +140,24 @@ mutable struct SingleJoint
     vJ::Vector{Float64}
     v̇J::Vector{Float64}
     # transform matrix
-    Xj::Array{Float64,2}
-    Xp_to_j::Array{Float64,2}
-    Xj_to_ch::Array{Float64,2}
+    Xj::Matrix{Float64}
+    Xp_to_j::Matrix{Float64}
+    Xj_to_ch::Matrix{Float64}
 end
 
 # outer constructor
 function SingleJoint()
     joint = SingleJoint(
-    0," ",0,Vector{Float64}(0),Vector{Float64}(0),
+    0," ",0,Vector{Float64}(undef,0),Vector{Float64}(undef,0),
     0,0,0,0,
-    Vector{Int}(0),Vector{Int}(0),
-    Vector{Int}(0),Vector{Int}(0),
-    Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
-    0,0,Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
-    Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Int,2}(0,0),
+    Vector{Int}(undef,0),Vector{Int}(undef,0),
+    Vector{Int}(undef,0),Vector{Int}(undef,0),
+    Vector{Int}(undef,0),Vector{Int}(undef,0),Vector{Int}(undef,0),
+    0,0,Vector{Int}(undef,0),Vector{Int}(undef,0),Vector{Int}(undef,0),
+    Matrix{Int}(undef,0,0),Matrix{Int}(undef,0,0),Matrix{Int}(undef,0,0),
     [Dof()], # dof
-    Vector{Float64}(0),Vector{Float64}(0),Vector{Float64}(0),
-    Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0)
+    Vector{Float64}(undef,0),Vector{Float64}(undef,0),Vector{Float64}(undef,0),
+    Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0)
     )
     return joint
 end
@@ -193,18 +195,18 @@ mutable struct PreArray
     # used in UpdatePosition, UpdateVelocity
     q_temp::Vector{Float64}
     x_temp::Vector{Float64}
-    rot::Array{Float64,2}
+    rot::Matrix{Float64}
     # used in HERK!
-    qJ::Array{Float64,2}
-    vJ::Array{Float64,2}
-    v::Array{Float64,2}
-    v̇::Array{Float64,2}
-    λ::Array{Float64,2}
+    qJ::Matrix{Float64}
+    vJ::Matrix{Float64}
+    v::Matrix{Float64}
+    v̇::Matrix{Float64}
+    λ::Matrix{Float64}
     v_temp::Vector{Float64}
-    lhs::Array{Float64,2}
+    lhs::Matrix{Float64}
     rhs::Vector{Float64}
     # used in HERKFuncM
-    Mᵢ₋₁::Array{Float64,2}
+    Mᵢ₋₁::Matrix{Float64}
     # used in HERKFuncf
     p_total::Vector{Float64}
     τ_total::Vector{Float64}
@@ -212,14 +214,14 @@ mutable struct PreArray
     f_g::Vector{Float64}
     f_ex::Vector{Float64}
     r_temp::Vector{Float64}
-    Xic_to_i::Array{Float64,2}
+    Xic_to_i::Matrix{Float64}
     fᵢ₋₁::Vector{Float64}
     # used in HERKFuncf, HERKFuncGT
-    A_total::Array{Float64,2}
-    GTᵢ₋₁::Array{Float64,2}
+    A_total::Matrix{Float64}
+    GTᵢ₋₁::Matrix{Float64}
     # used in HERKFuncG
-    B_total::Array{Float64,2}
-    Gᵢ::Array{Float64,2}
+    B_total::Matrix{Float64}
+    Gᵢ::Matrix{Float64}
     # used in HERKFuncgti
     v_gti::Vector{Float64}
     va_gti::Vector{Float64}
@@ -230,20 +232,20 @@ PreArray() = PreArray(
     # LinearAlgebra
     zeros(Float64,6,6),zeros(Float64,6,6),
     # UpdatePosition, UpdateVelocity
-    Float64[],Float64[],Array{Float64,2}(0,0),
+    Float64[],Float64[],Matrix{Float64}(undef,0,0),
     # HERK!
-    Array{Float64,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0),
-    Array{Float64,2}(0,0),Array{Float64,2}(0,0),Float64[],
-    Array{Float64,2}(0,0),Float64[],
+    Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
+    Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),Float64[],
+    Matrix{Float64}(undef,0,0),Float64[],
     # HERKFuncM
-    Array{Float64,2}(0,0),
+    Matrix{Float64}(undef,0,0),
     # HERKFuncf
     Float64[],Float64[],Float64[],Float64[],Float64[],Float64[],
-    Array{Float64,2}(0,0),Float64[],
+    Matrix{Float64}(undef,0,0),Float64[],
     # HERKFuncf, HERKFuncGT
-    Array{Float64,2}(0,0),Array{Float64,2}(0,0),
+    Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
     # HERKFuncG
-    Array{Float64,2}(0,0),Array{Float64,2}(0,0),
+    Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
     # HERKFuncgti
     Float64[],Float64[],Float64[]
 )
@@ -270,14 +272,14 @@ mutable struct System
     ncdof_HERK::Int
     udof_HERK::Vector{Int}
     # system info in matrix
-    S_total::Array{Int,2}
-    T_total::Array{Int,2}
-    Ib_total::Array{Float64,2}
-    M⁻¹::Array{Float64,2}
+    S_total::Matrix{Int}
+    T_total::Matrix{Int}
+    Ib_total::Matrix{Float64}
+    M⁻¹::Matrix{Float64}
     # gravity
     g::Vector{Float64}
     # kinematic map
-    kinmap::Array{Int,2}
+    kinmap::Matrix{Int}
     # numerical parameters
     num_params::NumParams
     # pre-allocation array
@@ -288,10 +290,10 @@ end
 System(ndim, nbody, njoint, g, num_params) = System(
     ndim,nbody,njoint,0.,0.,
     0,0,0,0,0,
-    Vector{Int}(0),Vector{Int}(0),Vector{Int}(0),
-    0,0,Vector{Int}(0),
-    Array{Int,2}(0,0),Array{Int,2}(0,0),Array{Float64,2}(0,0),Array{Float64,2}(0,0),
-    g,Array{Int,2}(0,0),num_params,
+    Vector{Int}(undef,0),Vector{Int}(undef,0),Vector{Int}(undef,0),
+    0,0,Vector{Int}(undef,0),
+    Matrix{Int}(undef,0,0),Matrix{Int}(undef,0,0),Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
+    g,Matrix{Int}(undef,0,0),num_params,
     PreArray()
 )
 
@@ -318,7 +320,7 @@ end
 
 function show(io::IO, bd::BodyDyn)
     print("This is a $(bd.sys.nbody) body-joint system, ")
-    bd.js[1].joint_type == "planar"? print("system is un-mounted from space") :
+    (bd.js[1].joint_type == "planar") ? print("system is un-mounted from space") :
                                   print("system is fixed in space")
 end
 
@@ -359,8 +361,8 @@ function AddBody(id::Int, cf::ConfigBody)
         Zc = Zc + (zj + zjp1)*fact
         A  = A  + 0.5*fact
     end
-    Xc = Xc/(6.*A); Zc = Zc/(6.*A)
-    b.x_c = [Xc, 0., Zc]
+    Xc = Xc/(6*A); Zc = Zc/(6*A)
+    b.x_c = [Xc, 0, Zc]
 
     # mass in scalar, inertia_c in 6d form
     b.mass  = cf.ρ*A
@@ -378,14 +380,14 @@ function AddBody(id::Int, cf::ConfigBody)
         fact = zj*xjp1 - zjp1*xj
         Ix =   Ix + (zj^2+zj*zjp1+zjp1^2)*fact
         Iz =   Iz + (xj^2+xj*xjp1+xjp1^2)*fact
-        Ixz = Ixz + (xj*zjp1+2.*xj*zj+2.*xjp1*zjp1+xjp1*zj)*fact
+        Ixz = Ixz + (xj*zjp1+2*xj*zj+2*xjp1*zjp1+xjp1*zj)*fact
     end
     Ix = Ix/12.
     Iz = Iz/12.
     Iy = Ix + Iz
     Ixz = Ixz/24.
     inertia_3d = cf.ρ*[Ix 0. -Ixz; 0. Iy 0.; -Ixz 0. Iz]
-    mass_3d = b.mass*eye(3)
+    mass_3d = b.mass*Matrix{Float64}(I,3,3)
     b.inertia_c = [inertia_3d zeros(Float64,3,3);
                    zeros(Float64,3,3) mass_3d]
 
@@ -441,8 +443,8 @@ function AddJoint(id::Int, cf::ConfigJoint)
     # udof_p and i_udof_p
     count = 1
     if j.np != 0
-        j.udof_p = Vector{Int}(j.np)
-        j.i_udof_p = Vector{Int}(j.np)
+        j.udof_p = Vector{Int}(undef,j.np)
+        j.i_udof_p = Vector{Int}(undef,j.np)
         for i = 1:j.nudof
             if j.joint_dof[i].dof_type == "passive"
                 j.udof_p[count] = j.joint_dof[i].dof_id
@@ -454,8 +456,8 @@ function AddJoint(id::Int, cf::ConfigJoint)
     # udof_a and i_udof_a
     count = 1
     if j.na != 0
-        j.udof_a = Vector{Int}(j.na)
-        j.i_udof_a = Vector{Int}(j.na)
+        j.udof_a = Vector{Int}(undef,j.na)
+        j.i_udof_a = Vector{Int}(undef,j.na)
         for i = 1:j.nudof
             if j.joint_dof[i].dof_type == "active"
                 j.udof_a[count] = j.joint_dof[i].dof_id
@@ -473,7 +475,7 @@ function AddJoint(id::Int, cf::ConfigJoint)
     end
     # cdof_HERK, modified by active motion
     if j.ncdof_HERK != 0
-        j.cdof_HERK = Vector{Int}(j.ncdof_HERK)
+        j.cdof_HERK = Vector{Int}(undef,j.ncdof_HERK)
         count = 1
         for i = 1:6
             if j.ncdof != 0
@@ -486,7 +488,7 @@ function AddJoint(id::Int, cf::ConfigJoint)
     end
     # udof_HERK, modified by active motion
     if j.nudof_HERK != 0
-        j.udof_HERK = Vector{Int}(j.nudof_HERK)
+        j.udof_HERK = Vector{Int}(undef,j.nudof_HERK)
         count = 1
         for i = 1:6
             if !(i in j.cdof_HERK) j.udof_HERK[count] = i; count += 1 end
@@ -549,28 +551,28 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     end
     # udof
     count = 1
-    sys.udof = Vector{Int}(sys.nudof)
+    sys.udof = Vector{Int}(undef,sys.nudof)
     for i = 1:sys.njoint, k = 1:js[i].nudof
         sys.udof[count] = 6*(i-1) + js[i].udof[k]
         count += 1
     end
     # udof_a
     count = 1
-    sys.udof_a = Vector{Int}(sys.na)
+    sys.udof_a = Vector{Int}(undef,sys.na)
     for i = 1:sys.njoint, k = 1:js[i].na
         sys.udof_a[count] = 6*(i-1) + js[i].udof_a[k]
         count += 1
     end
     # udof_p
     count = 1
-    sys.udof_p = Vector{Int}(sys.np)
+    sys.udof_p = Vector{Int}(undef,sys.np)
     for i = 1:sys.njoint, k = 1:js[i].np
         sys.udof_p[count] = 6*(i-1) + js[i].udof_p[k]
         count += 1
     end
     # udof_HERK
     count = 1
-    sys.udof_HERK = Vector{Int}(sys.nudof_HERK)
+    sys.udof_HERK = Vector{Int}(undef,sys.nudof_HERK)
     for i = 1:sys.njoint, k = 1:js[i].nudof_HERK
         sys.udof_HERK[count] = 6*(i-1) + js[i].udof_HERK[k]
         count += 1
@@ -588,7 +590,7 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         end
         # if at least exists one child, allocate chid
         if bs[i].nchild != 0
-            bs[i].chid = Vector{Int}(bs[i].nchild)
+            bs[i].chid = Vector{Int}(undef,bs[i].nchild)
             for k = 1:sys.njoint
                 if js[k].body1 == bs[i].bid
                     bs[i].chid[ch_cnt] = js[k].jid
@@ -603,8 +605,8 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     last = 0
     for i = 1:sys.njoint
         if js[i].nudof != 0
-                js[i].udofmap = Vector{Int}(js[i].nudof)
-                js[i].udofmap = last + [k for k=1:js[i].nudof]
+                js[i].udofmap = Vector{Int}(undef,js[i].nudof)
+                js[i].udofmap = last .+ [k for k=1:js[i].nudof]
                 last = js[i].udofmap[js[i].nudof]
         end
     end
@@ -612,13 +614,13 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     last = 0
     for i = 1:sys.njoint
         if js[i].ncdof_HERK != 0
-            js[i].cdofmap_HERK = Vector{Int}(js[i].ncdof_HERK)
-            js[i].cdofmap_HERK = last + [k for k=1:js[i].ncdof_HERK]
+            js[i].cdofmap_HERK = Vector{Int}(undef,js[i].ncdof_HERK)
+            js[i].cdofmap_HERK = last .+ [k for k=1:js[i].ncdof_HERK]
             last = js[i].cdofmap_HERK[js[i].ncdof_HERK]
         end
     end
     # kinmap
-    sys.kinmap = Array{Int}(sys.na, 2)
+    sys.kinmap = Array{Int}(undef,sys.na, 2)
     count = 1
     for i = 1:sys.njoint, k = 1:js[i].na
         sys.kinmap[count,1] = i
@@ -634,9 +636,9 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         Xj_to_ch_old = js[i].Xj_to_ch
         rot_old = Xj_to_ch_old[1:3,1:3]
         # The body frame origin now coincides with the joint location
-        js[i].shape2[1:3] = 0.0
+        js[i].shape2[1:3] .= 0.0
         # the new transform from parent joint to body is the identity
-        js[i].Xj_to_ch = eye(Float64,6)
+        js[i].Xj_to_ch .= Matrix{Float64}(I,6,6)
         # update all the vertices
         for k = 1:bs[i].nverts
             r_temp = -r_old + bs[i].verts[k,:]
@@ -700,13 +702,13 @@ function BuildChain(cbs::Vector{ConfigBody}, cjs::Vector{ConfigJoint},
     @getfield csys (ndim, gravity, num_params)
 
     # add bodys
-    bodys = Vector{SingleBody}(nbody) # body system
+    bodys = Vector{SingleBody}(undef,nbody) # body system
     for i = 1:nbody
         bodys[i] = AddBody(i, cbs[i]) # add body
     end
 
     # add joints
-    joints = Vector{SingleJoint}(njoint) # joint system
+    joints = Vector{SingleJoint}(undef,njoint) # joint system
     for i = 1:njoint
         joints[i] = AddJoint(i, cjs[i]) # add joint
     end

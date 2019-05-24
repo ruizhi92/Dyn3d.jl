@@ -26,7 +26,6 @@
     so A = M(qJ), B₁ᵀ = GT(qJ), B₂ = G(qJ), r₁ = f(qJ,v,vJ), r₂ = -gti(qJ)
     the equation of dqJ/dt = vJ gets updated in HERK.
 """
-
 mutable struct HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}
 
     # numerical parameters
@@ -64,7 +63,6 @@ B₂, rhs and up. This is used before timemarching.
 - `rhs` : tuple of (r₁,r₂)
 - `up` : tuple of function (UpP,UpV) that updates qJ and v respectively
 """
-
 function (::Type{HERKBody})(num_params::NumParams, A::FA, B₁ᵀ::FB1, B₂::FB2,
                             rhs::Tuple{FR1,FR2}, up::Tuple{FP,FV},
                             ) where {FA,FB1,FB2,FR1,FR2,FP,FV}
@@ -92,7 +90,6 @@ The object-like function of type HERKBody gets updated during timemarching.
           and λ
 - `bd` : BodyDyn object, containing all bs, js and sys info that needs to be updated
 """
-
 function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::BodyDyn;
         _isfixedstep=false, _outputmode=false,
         f_exi::Union{Array{Float64,2},Vector{Array{Float64,2}}}=zeros(Float64,1,6)
@@ -152,7 +149,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
             v_temp += dt*a[i,k]*view(v̇,k,:)
         end
         # construct rhs
-        rhs = [ fᵢ₋₁; -1./(dt*a[i,i-1])*(Gᵢ*v_temp + gtiᵢ) ]
+        rhs = [ fᵢ₋₁; -1.0/(dt*a[i,i-1])*(Gᵢ*v_temp + gtiᵢ) ]
         # solve the eq
         x = lhs \ rhs
         # x = BlockLU(lhs, rhs, qJ_dim, λ_dim)

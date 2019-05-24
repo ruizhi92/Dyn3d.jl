@@ -42,7 +42,7 @@ config_bodys = fill(config_body, nbody)
 
 # set up joints
 njoint = nbody
-config_joints = Vector{ConfigJoint}(njoint)
+config_joints = Vector{ConfigJoint}(undef,njoint)
 
 # set the first passive joint with no stiff and damp
 dofₚ = Dof(6, "passive", 0., 0., Motions())

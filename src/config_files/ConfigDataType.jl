@@ -149,7 +149,7 @@ mutable struct ConfigBody
 end
 
 ConfigBody(nbody) = ConfigBody(nbody, 4,
-    [0. 0.; 1. 0.; 1. 1./nbody; 0. 1./nbody], 0.01)
+    [0. 0.; 1. 0.; 1. 1.0/nbody; 0. 1.0/nbody], 0.01)
 
 function show(io::IO, m::ConfigBody)
     println(io, " nbody = $(m.nbody)")
@@ -196,7 +196,7 @@ mutable struct ConfigJoint
 end
 
 ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, joint_type,
-    [0., 0., 0., 1./njoint, 0., 0.], zeros(Float64,6),
+    [0., 0., 0., 1.0/njoint, 0., 0.], zeros(Float64,6),
     0, [Dof()], [0.])
 
 function show(io::IO, m::ConfigJoint)

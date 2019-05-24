@@ -4,6 +4,7 @@ module RigidBodyDynamics
 export HERKFuncM, HERKFuncM⁻¹, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
 
 using Dyn3d
+using LinearAlgebra
 
 function HERKFuncM(sys::System)
 """
@@ -67,7 +68,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
     # construct A_total to take in parent-child hierarchy
     for i = 1:sys.nbody
         # fill in parent joint blocks
-        A_total[6i-5:6i, 6i-5:6i] = eye(Float64, 6)
+        A_total[6i-5:6i, 6i-5:6i] = Matrix{Float64}(I, 6, 6)
         # fill in child joint blocks except for those body whose nchild=0
         for child_count = 1:bs[i].nchild
             chid = bs[i].chid[child_count]
@@ -91,7 +92,7 @@ function HERKFuncGT(bs::Vector{SingleBody}, sys::System)
     # construct A_total to take in parent-child hierarchy
     for i = 1:sys.nbody
         # fill in parent joint blocks
-        A_total[6i-5:6i, 6i-5:6i] = eye(Float64, 6)
+        A_total[6i-5:6i, 6i-5:6i] = Matrix{Float64}(I, 6, 6)
         # fill in child joint blocks except for those body whose nchild=0
         for child_count = 1:bs[i].nchild
             chid = bs[i].chid[child_count]
@@ -116,7 +117,7 @@ function HERKFuncG(bs::Vector{SingleBody}, sys::System)
     # construct B_total to take in parent-child hierarchy
     for i = 1:sys.nbody
         # fill in child body blocks
-        B_total[6i-5:6i, 6i-5:6i] = eye(Float64, 6)
+        B_total[6i-5:6i, 6i-5:6i] = Matrix{Float64}(I, 6, 6)
         # fill in parent body blocks except for those body whose pid=0
         if bs[i].pid != 0
             pid = bs[i].pid

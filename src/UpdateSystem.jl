@@ -266,7 +266,7 @@ end
 #-------------------------------------------------------------------------------
 # record verts history
 function VertsHistory(nbody::Int, bs::Vector{SingleBody})
-    verts_i = Array{Float64}(nbody,bs[1].nverts,3)
+    verts_i = Array{Float64}(undef,nbody,bs[1].nverts,3)
     for i = 1:nbody
         verts_i[i,:,:] = bs[i].verts_i
     end

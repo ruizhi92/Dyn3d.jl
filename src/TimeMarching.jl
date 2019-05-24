@@ -5,6 +5,7 @@ export HERKBody, RKParams
 import Base: show
 
 using Dyn3d
+using LinearAlgebra
 
 #-------------------------------------------------------------------------------
 struct RKParams

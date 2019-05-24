@@ -30,7 +30,7 @@ nbody = 6
 shape = "triangle"
 if shape == "quadrilateral"
     config_body = ConfigBody(nbody, 4,
-        [0. 0.; 1. 0.; cos(α) 1./nbody+sin(α); 0. 1./nbody], 0.01)
+        [0. 0.; 1. 0.; cos(α) 1.0/nbody+sin(α); 0. 1.0/nbody], 0.01)
 elseif shape == "triangle"
     config_body = ConfigBody(nbody, 3,
         [0. 0.; 1. 0.; cos(α) sin(α)], 0.01)
@@ -41,7 +41,7 @@ config_bodys = fill(config_body, nbody)
 njoint = nbody
 stiff = 0.03
 damp = 0.01
-config_joints = Vector{ConfigJoint}(njoint)
+config_joints = Vector{ConfigJoint}(undef,njoint)
 
 # set the joint_dof of the first active joint
 active_motion = Motions("oscillatory", [0.25, 1., 0.])
