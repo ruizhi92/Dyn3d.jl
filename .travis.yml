@@ -3,7 +3,7 @@ language: julia
 os:
   - linux
 julia:
-  - 0.6
+  - 1.1
 branches:
   only:
     - master
@@ -12,7 +12,7 @@ notifications:
 addons:
   apt:
     update: true
-    
+
 after_success:
   # deploy docs
   - julia -e 'Pkg.add("Documenter")'
