@@ -2,6 +2,7 @@
 
 *A 2d/3d rigid body dynamics solver*
 
+This package is written to support different versions of *Julia* and *Fortran*.
 The main goal of this repository is to construct a rigid body-joint system
 and solve forward/backward dynamics problem on it. This package is functioned
 through:
@@ -10,7 +11,7 @@ through:
 - connecting bodies by joints which has 6 degree of freedoms for each
 - solving motions on unconstrained(passive) degrees of freedom of joints
 - solving forces on constrained degrees of freedom, allowing active motion
-- plotting/making gif in *Julia* or making movies in *Matlab*
+- plotting/making gif
 
 To solve a rigid body dynamics problem, this package express the dynamics using
 6D spatial vector developed by Roy Featherstone[^1]. The governing equations are
@@ -28,15 +29,17 @@ in package `FSI.jl`.
 
 ## Installation
 
-This package currently requires *Julia* 0.6.
-To install, simply download this Github repository, find the location of this repository
-expressed in *Julia* by
+This package supports *Julia* 0.6 and 1.1 versions for now.
+For *Julia 0.7* or higher versions, this package uses the local environment specified
+in *Project.toml*. User doesn't need to do any set up except for possible denpendency
+package required. For *Julia 0.6* version, this package's local dir need to be set by user.
+Find Julia repo address by
 ```
-julia> Dyn3d_dir = Pkg.dir("Dyn3d")
+julia> Pkg.dir("Dyn3d")
 ```
-and then setup a symbolic link in shell following
+Then you can make a symlinking by
 ```
-shell$ sudo ln -s actual_address Dyn3d_dir
+shell$ sudo ln -s actual_address Julia_repo_address
 ```
 
 The plots in this documentation are generated using [Plots.jl](http://docs.juliaplots.org/latest/).

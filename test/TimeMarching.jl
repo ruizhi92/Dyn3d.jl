@@ -2,7 +2,7 @@
     # preparation for testing HERK
     methods = ["Liska", "BH3", "BH5"]
     sts = [3, 3, 5]
-    path = Pkg.dir("Dyn3d")*"/src/config_files/2dLink.jl"
+    path = "../src/config_files/2dLink.jl"
     include(path)
 
     # begin time marching

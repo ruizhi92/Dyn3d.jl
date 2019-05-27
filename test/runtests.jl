@@ -1,15 +1,14 @@
-using Base.Test
-using TestSetExtensions
+using Pkg
+Pkg.activate("..")
 
-include(Pkg.dir("Dyn3d")*"/src/Dyn3d.jl")
+using Compat
+using Compat.Test
+
 using Dyn3d
 
-@test isempty(detect_ambiguities(Dyn3d))
-
-@testset ExtendedTestSet "All tests" begin
-    @includetests ARGS
-end
-
-if isempty(ARGS)
-    println("Test done.")
-end
+include("config_body.jl")
+include("ConstructSystem.jl")
+include("Timemarching.jl")
+include("SpatialAlgebra.jl")
+include("FluidInteraction.jl")
+include("Utils.jl")

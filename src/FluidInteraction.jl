@@ -3,6 +3,7 @@ module FluidInteraction
 export BodyGrid, CutOut2d, DetermineNP
 export AcquireBodyGridKinematics, IntegrateBodyGridDynamics, GenerateBodyGrid
 
+using LinearAlgebra
 using Dyn3d
 using Interpolations
 
@@ -107,7 +108,7 @@ function GenerateBodyGrid(bd::BodyDyn; np=101)
     # of the same shape
     @getfield bd (bs,sys)
 
-    bodygrids = Vector{BodyGrid}(sys.nbody)
+    bodygrids = Vector{BodyGrid}(undef,sys.nbody)
     # for cases with only 1 body, which has more than 4 grid points(like a circle)
     if bs[1].nverts != 3 && bs[1].nverts != 4
         a = bs[1].verts
@@ -117,15 +118,15 @@ function GenerateBodyGrid(bd::BodyDyn; np=101)
 
     if (np-1) % bd.bs[1].nverts != 0 error("Number of points can't be divided by system.nverts") end
 
-    bodygrids = Vector{BodyGrid}(sys.nbody)
+    bodygrids = Vector{BodyGrid}(undef,sys.nbody)
     for i = 1:sys.nbody
         bid = bs[i].bid
-        verts_id = linspace(1, np, bs[bid].nverts+1)
+        verts_id = range(1, stop=np, length=bs[bid].nverts+1)
         verts = vcat(bs[bid].verts,bs[bid].verts[1,:]')
         it_x = interpolate((verts_id,), verts[:,1], Gridded(Linear()))
         it_y = interpolate((verts_id,), verts[:,2], Gridded(Linear()))
         it_z = interpolate((verts_id,), verts[:,3], Gridded(Linear()))
-        grid = [[it_x[j],it_y[j],it_z[j]] for j=1:np]
+        grid = [[it_x(j),it_y(j),it_z(j)] for j=1:np]
         bodygrids[i] = BodyGrid(bid,np,grid)
     end
     return bodygrids

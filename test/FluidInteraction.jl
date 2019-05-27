@@ -8,7 +8,7 @@
     end
 
     # Construct a BodyDyn structure
-    include(Pkg.dir("Dyn3d")*"/test/config_body.jl")
+    include("../test/config_body.jl")
     bodys, joints, system = BuildChain(config_bodys, config_joints, config_system)
     bd = BodyDyn(bodys, joints, system)
     bd, soln = InitSystem!(bd)
@@ -36,7 +36,7 @@
     NS = 3
 
     # check body points position & velocity
-    bkins = Vector{Array{Float64,2}}(NS)
+    bkins = Vector{Array{Float64,2}}(undef,NS)
     for k = 1:NS
         bgs = AcquireBodyGridKinematics(bds[k],bgs)
         coord = hcat(bgs[1].q_i...)'[:,[1,2]]

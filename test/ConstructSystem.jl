@@ -14,7 +14,7 @@ end
 @testset "ConfigDataType" begin
     # check print results
     config_body = ConfigBody(4)
-    dof = Vector{Dof}(3)
+    dof = Vector{Dof}(undef,3)
     dof[1] = Dof(3, "passive", 0., 0., Motions())
     dof[2] = Dof(4, "passive", 0., 0., Motions())
     dof[3] = Dof(5, "active", 0., 0., Motions("hold",[0.]))
@@ -40,7 +40,7 @@ end
 end
 
 @testset "ConstructSystem" begin
-    path = Pkg.dir("Dyn3d")*"/src/config_files"
+    path ="../src/config_files"
     names = readdir(path)
 
     # tests through every config files in config_files folder

@@ -1,5 +1,5 @@
 using Documenter
-include(Pkg.dir("Dyn3d")*"/src/Dyn3d.jl")
+include("../src/Dyn3d.jl")
 using Dyn3d
 
 makedocs(

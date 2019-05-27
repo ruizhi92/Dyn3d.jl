@@ -102,7 +102,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
     if f_exi == zeros(Float64,1,6)
         f_exi = [zeros(Float64,sys.nbody,6) for k=1:st]
     end
-    if _outputmode bds = Vector{BodyDyn}(st) end
+    if _outputmode bds = Vector{BodyDyn}(undef,st) end
 
     qJ_dim = sys.ndof
     λ_dim = sys.ncdof_HERK
