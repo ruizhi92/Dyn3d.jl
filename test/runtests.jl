@@ -1,5 +1,6 @@
 using Base.Test
 using TestSetExtensions
+using LinearAlgebra
 
 include(Pkg.dir("Dyn3d")*"/src/Dyn3d.jl")
 using Dyn3d
