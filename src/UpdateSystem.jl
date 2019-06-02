@@ -12,15 +12,14 @@ using Dyn3d
 
 #-------------------------------------------------------------------------------
 function Jcalc(kind::String, qJ::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T <: AbstractFloat
-    if kind == "revolute" || kind == "prismatic" || kind == "cylindrical" ||
-       kind == "planar" || kind == "custom" || kind == "custom_fall_in_z"
-       Xj = TransMatrix(qJ,X,X_2)
-   elseif kind == "helical"
+    if kind == "helical"
        # set fixed screw parameter h
        h = 0.1
        r = h*qJ[4:6]
        θ = qJ[1:3]
        Xj = TransMatrix([θ; r],X,X_2)
+   else
+       Xj = TransMatrix(qJ,X,X_2)
    end
    return Xj
 end
