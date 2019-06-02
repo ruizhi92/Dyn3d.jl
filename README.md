@@ -13,7 +13,6 @@ Code is written in Julia and Fortran on different branch.
 - branch **master** for `Julia 1.1`
 - branch **v0.6** for `Julia 0.6`
 - branch **v0.7** for `Julia 0.7`
-- branch **v1.1** for `Julia 1.1` currently the same with master branch
 - branch **Fortran/artic3d** computes dynamics using articulated body method.
 - branch **Fortran/HERK** computes dynamics formulating into a half-explicit Runge Kutta method solver in Fortran.
 
