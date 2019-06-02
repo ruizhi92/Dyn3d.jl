@@ -118,7 +118,7 @@ function GenerateBodyGrid(bd::BodyDyn; np=101)
 
     if (np-1) % bd.bs[1].nverts != 0 error("Number of points can't be divided by system.nverts") end
 
-    bodygrids = Vector{BodyGrid}(unef,sys.nbody)
+    bodygrids = Vector{BodyGrid}(undef,sys.nbody)
     for i = 1:sys.nbody
         bid = bs[i].bid
         verts_id = range(1, stop=np, length=bs[bid].nverts+1)
