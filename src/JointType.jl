@@ -78,8 +78,8 @@ function ChooseJoint(kind)
         ncdof = 5
         udof = [5]
         cdof = [1, 2, 3, 4, 6]
-        S = eye(Int,6)[:,udof]
-        T = eye(Int,6)[:,cdof]
+        S = Matrix{Int}(I,6,6)[:,udof]
+        T = Matrix{Int}(I,6,6)[:,cdof]
 
     elseif kind == "free"
         nudof = 6
