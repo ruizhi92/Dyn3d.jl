@@ -46,7 +46,7 @@ config_joints = Vector{ConfigJoint}(undef,njoint)
 
 # set the first passive joint with no stiff and damp
 dofₚ = Dof(6, "passive", 0., 0., Motions())
-config_joints[1] = ConfigJoint(njoint, "custom_fall_in_z",
+config_joints[1] = ConfigJoint(njoint, "custom_prismatic_in_z",
     zeros(Float64,6), zeros(Float64,6), 0, [dofₚ], [0.])
 
 println("Config info set up.")

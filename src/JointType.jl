@@ -55,16 +55,7 @@ function ChooseJoint(kind)
         S = Matrix{Int}(I,6,6)[:,udof]
         T = Matrix{Int}(I,6,6)[:,cdof]
 
-    elseif kind == "custom"
-        # custom joints only allow a maximum of 2 dofs
-        nudof = 1
-        ncdof = 5
-        udof = [5]
-        cdof = [1, 2, 3, 4, 6]
-        S = Matrix{Int}(I,6,6)[:,udof]
-        T = Matrix{Int}(I,6,6)[:,cdof]
-
-    elseif kind == "custom_fall_in_z"
+    elseif kind == "custom_prismatic_in_z"
         # custom joints only allow a maximum of 2 dofs
         nudof = 1
         ncdof = 5
@@ -88,6 +79,8 @@ function ChooseJoint(kind)
         cdof = nothing
         S = Matrix{Int}(I,6,6)[:,udof]
         T = nothing
+    else
+        error("Joint type not supported in JointType.jl")
     end
 
     return ChooseJoint(nudof, ncdof, udof, cdof, S, T)

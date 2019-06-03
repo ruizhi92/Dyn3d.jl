@@ -320,8 +320,10 @@ end
 
 function show(io::IO, bd::BodyDyn)
     print("This is a $(bd.sys.nbody) body-joint system, ")
-    (bd.js[1].joint_type == "planar") ? print("system is un-mounted from space") :
-                                  print("system is fixed in space")
+    (bd.js[1].joint_type == "planar" || bd.js[1].joint_type == "custom_prismatic_in_y" ||
+    bd.js[1].joint_type == "custom_prismatic_in_z") ?
+        print("system is un-mounted from space") :
+        print("system is fixed in space")
 end
 
 #-------------------------------------------------------------------------------

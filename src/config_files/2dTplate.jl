@@ -27,7 +27,7 @@ config_joints = Vector{ConfigJoint}(undef,njoint)
 # set the first passive joint with no stiff and damp
 dof₁ = Dof(5, "passive", 0., 0., Motions())
 
-config_joints[1] = ConfigJoint(njoint, "custom",
+config_joints[1] = ConfigJoint(njoint, "custom_prismatic_in_y",
     [0.,0.,0.,0.,1.,0.], zeros(Float64,6), 0, [dof₁], [0.])
 
 # set the second active oscillatory joint
