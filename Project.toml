@@ -1,7 +1,7 @@
 name = "Dyn3d"
 uuid = "d8047ffa-7f43-11e9-2204-adfbb6974ec5"
 authors = ["fs <rzyang92@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
