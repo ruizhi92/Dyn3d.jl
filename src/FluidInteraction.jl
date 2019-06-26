@@ -20,12 +20,13 @@ Design this structure to contain body points coord, motion and forces used in fl
 - `points`: (x,y,z) coordinates of all body points in local body frame
 - `q_i`: (x,y,z) coordinates of all body points in inertial frame
 - `v_i`: velocity of all body points in inertial frame
-- `f_ex3d`: external force(fluid force) on all body points in inertial frame
+- `f_ex3d`: external force in (x,y,z) (by fluid) on all body points in inertial frame
+- `m_ex3d`: external moment in (x,y,z) (by fluid) on all body points in inertial frame
 - `f_ex6d`: f_ex3d integrated through all body points on one body and described in 6d spatial vector form
 
 ## Constructors
 
-- `BodyGrid(bid,np,points)`: initialize q_i, v_i, f_ex3d to be Vector of zeros(3),
+- `BodyGrid(bid,np,points)`: initialize q_i, v_i, f_ex3d, m_ex3d to be Vector of zeros(3),
                              f_ex6d to be zeros(6)
 """
 mutable struct BodyGrid
@@ -35,23 +36,28 @@ mutable struct BodyGrid
     q_i::Vector{Vector{Float64}}
     v_i::Vector{Vector{Float64}}
     f_ex3d::Vector{Vector{Float64}}
+    m_ex3d::Vector{Vector{Float64}}
     f_ex6d::Vector{Float64}
 end
 BodyGrid(bid,np,points) = BodyGrid(bid,np,points,[zeros(Float64,3) for i=1:np],
-    [zeros(Float64,3) for i=1:np], [zeros(Float64,3) for i=1:np], zeros(Float64,6))
+    [zeros(Float64,3) for i=1:np], [zeros(Float64,3) for i=1:np],
+    [zeros(Float64,3) for i=1:np], zeros(Float64,6))
 
 #-------------------------------------------------------------------------------
 """
     CutOut2d(bd::BodyDyn,bgs::Vector{BodyGrid})
 
 This function need to be called only once after GenerateBodyGrid for 2d case of
-flat plates.
+flat plates(1d body in x-y space).
 
 In `Dyn3d`, bodies are constructed by quadrilateral/triangles(not lines) in z-x plane
-for both 2d/3d cases. In `Whirl`, fluid in 2d cases are constructed in x-y plane.
+for both 2d/3d cases. In `ViscousFlow`, fluid in 2d cases are constructed in x-y plane.
 Thus to describe plates as lines in x-y space, we cut out the info on
-the other sides of the plate. Note that verts are formulated in clockwise
+the other 3 sides of the plate. Note that verts are formulated in clockwise
 direction, with the left-bottom corner as origin.
+
+If 2d body in x-y plane is constructed in `ViscousFlow`, this function doesn't
+need to be called.
 """
 function CutOut2d(bd::BodyDyn,bgs::Vector{BodyGrid})
     if bd.sys.ndim == 2 && bd.bs[1].nverts == 4
@@ -63,6 +69,7 @@ function CutOut2d(bd::BodyDyn,bgs::Vector{BodyGrid})
             bgs[i].q_i = bgs[i].q_i[end:-1:end-cutout]
             bgs[i].v_i = bgs[i].v_i[end:-1:end-cutout]
             bgs[i].f_ex3d = bgs[i].f_ex3d[end:-1:end-cutout]
+            bgs[i].m_ex3d = bgs[i].m_ex3d[end:-1:end-cutout]
         end
     else error("function Cutout2d currently only support quadrilateral shape.")
     end
@@ -82,9 +89,9 @@ np=101 has 26 points(2 body),
 np=49 has 13 points(4 body),
 np=25 has 7 points(8 body), etc.
 """
-function DetermineNP(nbody::Int, Δx::Float64;fine::Union{Float64,Int64}=1.0)
+function DetermineNP(nbody::Int, Δx::Float64;fine::Union{Float64,Int64}=1.0,length::Float64=1.0)
    # default total body length is 1
-    n = round(Int,1/Δx) + 1
+    n = round(Int,length/Δx) + 1
     while mod(n,nbody) != 0
         n +=1
     end
@@ -100,8 +107,8 @@ end
     GenerateBodyGrid(bd::BodyDyn; np=101)
 
 Given BodyDyn structure, where each body only consists of several verts(usually
-4 for quadrilateral and 3 for triangle), return the verts position in inertial
-frame of given number of points np by interpolation, of all bodies in the system.
+4 for quadrilateral and 3 for triangle), return the verts position of given number
+of points np in inertial frame by interpolation, of all bodies in the system.
 """
 function GenerateBodyGrid(bd::BodyDyn; np=101)
     # here we assume the body chain consists of only 1 body, or several bodies
@@ -195,6 +202,7 @@ function IntegrateBodyGridDynamics(bd::BodyDyn, bgs::Vector{BodyGrid})
         for j = 1:bgs[i].np
             # linear force in inertial grid coord
             f_temp .= 0.0
+            f_temp[1:3] .= bgs[i].m_ex3d[j]
             f_temp[4:6] .= bgs[i].f_ex3d[j]
             # get transform matrix from grid points in inertial frame to the origin of inertial frame
             r_temp1 .= 0.0
