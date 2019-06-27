@@ -244,8 +244,8 @@ function IntegrateBodyGridDynamics(bd::BodyDyn, bgs::Vector{BodyGrid})
             # r_temp1 .= b.Xb_to_i*r_temp1
             # r_temp2 .= 0.0
             # r_temp2[4:6] .= -b.x_i .+ r_temp1[4:6]
-            r_temp2[4:6] .= bgs[i].q_i[j]
-            
+            r_temp2[4:6] .= -bgs[i].q_i[j]
+
             Xic_to_i = TransMatrix(r_temp2,la_tmp1,la_tmp2)
             # express force in inertial frame at origin
             f_temp .= inv(Xic_to_i')*f_temp
