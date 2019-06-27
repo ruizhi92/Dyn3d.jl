@@ -236,7 +236,7 @@ function IntegrateBodyGridDynamics(bd::BodyDyn, bgs::Vector{BodyGrid})
         for j = 1:bgs[i].np
             # linear force in inertial grid coord
             f_temp .= 0.0
-            # f_temp[1:3] .= bgs[i].m_ex3d[j]
+            f_temp[1:3] .= bgs[i].m_ex3d[j]
             f_temp[4:6] .= bgs[i].f_ex3d[j]
             # get transform matrix from grid points in inertial frame to the origin of inertial frame
             # r_temp1 .= 0.0
@@ -244,11 +244,11 @@ function IntegrateBodyGridDynamics(bd::BodyDyn, bgs::Vector{BodyGrid})
             # r_temp1 .= b.Xb_to_i*r_temp1
             # r_temp2 .= 0.0
             # r_temp2[4:6] .= -b.x_i .+ r_temp1[4:6]
-            r_temp2[4:6] .= -bgs[i].q_i[j]
+            # r_temp2[4:6] .= -bgs[i].q_i[j]
 
-            Xic_to_i = TransMatrix(r_temp2,la_tmp1,la_tmp2)
-            # express force in inertial frame at origin
-            f_temp .= inv(Xic_to_i')*f_temp
+            # Xic_to_i = TransMatrix(r_temp2,la_tmp1,la_tmp2)
+            # # express force in inertial frame at origin
+            # f_temp .= inv(Xic_to_i')*f_temp
             bgs[i].f_ex6d .+= f_temp
         end
     end
