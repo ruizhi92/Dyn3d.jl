@@ -72,6 +72,14 @@ function ChooseJoint(kind)
         S = Matrix{Int}(I,6,6)[:,udof]
         T = Matrix{Int}(I,6,6)[:,cdof]
 
+    elseif kind == "custom_revolute_in_y"
+        nudof = 1
+        ncdof = 5
+        udof = [2]
+        cdof = [1, 3, 4, 5, 6]
+        S = Matrix{Int}(I,6,6)[:,udof]
+        T = Matrix{Int}(I,6,6)[:,cdof]
+
     elseif kind == "free"
         nudof = 6
         ncdof = 0
