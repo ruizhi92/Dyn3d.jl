@@ -275,7 +275,6 @@ mutable struct System
     S_total::Matrix{Int}
     T_total::Matrix{Int}
     Ib_total::Matrix{Float64}
-    M⁻¹::Matrix{Float64}
     # gravity
     g::Vector{Float64}
     # kinematic map
@@ -292,7 +291,7 @@ System(ndim, nbody, njoint, g, num_params) = System(
     0,0,0,0,0,
     Vector{Int}(undef,0),Vector{Int}(undef,0),Vector{Int}(undef,0),
     0,0,Vector{Int}(undef,0),
-    Matrix{Int}(undef,0,0),Matrix{Int}(undef,0,0),Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
+    Matrix{Int}(undef,0,0),Matrix{Int}(undef,0,0),Matrix{Float64}(undef,0,0),
     g,Matrix{Int}(undef,0,0),num_params,
     PreArray()
 )
@@ -511,6 +510,7 @@ function AddJoint(id::Int, cf::ConfigJoint)
     j.qJ = zeros(Float64,6)
     j.qJ[j.udof] = cf.qJ_init
     j.vJ = zeros(Float64,6)
+    j.vJ[j.udof] = cf.vJ_init
     j.v̇J = zeros(Float64,6)
 
     return j
@@ -672,7 +672,7 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     for i = 1:sys.nbody
         sys.Ib_total[6i-5:6i, 6i-5:6i] = bs[i].inertia_b
     end
-    sys.M⁻¹ = inv(sys.Ib_total)
+
     # diagonal block of S_total is S of each joint in joint coord
     sys.S_total = zeros(Int, sys.ndof, sys.nudof)
     for i = 1:sys.njoint

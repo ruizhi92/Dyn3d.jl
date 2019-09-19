@@ -184,6 +184,9 @@ degree of freedoms from 1 to 6.
 - `qJ_init`: Vector{Float64}. It is the initial angle/displacement of this joint
     with respect to its parent body. The size should be the same as the number of
     dof specified.
+- `vJ_init`: Vector{Float64}. It is the initial angular velocity of this joint
+    in its local frame. The size should be the same as the number of
+    dof specified.
 """
 mutable struct ConfigJoint
     njoint::Int
@@ -193,11 +196,15 @@ mutable struct ConfigJoint
     body1::Int
     joint_dof::Vector{Dof}
     qJ_init::Vector{Float64}
+    vJ_init::Vector{Float64}
 end
 
 ConfigJoint(njoint,joint_type) = ConfigJoint(njoint, joint_type,
     [0., 0., 0., 1.0/njoint, 0., 0.], zeros(Float64,6),
-    0, [Dof()], [0.])
+    0, [Dof()], [0.], [0.])
+
+ConfigJoint(njoint, joint_type, shape1, shape2, body1, joint_dof, qJ_init) =
+    ConfigJoint(njoint, joint_type, shape1, shape2, body1, joint_dof, qJ_init, zeros(length(qJ_init)))
 
 function show(io::IO, m::ConfigJoint)
     println(io, " joint type = $(m.joint_type)")
