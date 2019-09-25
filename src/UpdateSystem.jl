@@ -209,8 +209,7 @@ function InitSystem!(bd::BodyDyn)
     end
     # update body chain position
     bs, js, sys = UpdatePosition!(bs, js, sys)
-    # zero-out total initial momentum by assigning extra velocity to joint 1's
-    # passive dof.
+
     # pass 1, from body 1 to body n
     for i = 1:sys.nbody
         # initialize the articulated inertia of each body to be equal to its own
@@ -218,6 +217,7 @@ function InitSystem!(bd::BodyDyn)
         # initialize the joint momentum term
         bs[i].pA = zeros(Float64, 6)
     end
+
     # pass 2, from body n to body 1
     # If the parent is not the base, add the composite inertia of this body
     # (in the coordinate system of the parent) to the inertia of its parent
@@ -231,15 +231,18 @@ function InitSystem!(bd::BodyDyn)
             bs[pid].pA += (Xp_to_b')*pA_rest
         end
     end
+
     # pass 3, from body 1 to body n
+    # if the first floating base is passive with zero vJ,
     # compute the velocity of passive degrees of freedom in joint from inertial
     # system to body 1, by zeroing the overall system momentum.
-    if js[1].np > 0
+    if js[1].np > 0 && js[1].vJ == zeros(6)
         Pup = js[1].S[:, js[1].i_udof_p]
         Ptemp = (Pup')*bs[1].Ib_A*Pup
         udof_p = js[1].udof_p
         js[1].vJ[udof_p] = -inv(Ptemp)*(Pup')*bs[1].pA
     end
+
     # get body[i].v from updated js[i].vJ
     for i = 1:sys.nbody
         pid = bs[i].pid
