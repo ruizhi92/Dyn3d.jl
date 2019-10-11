@@ -12,14 +12,16 @@ A structure representing active motion of a joint, allowing different types of m
 can be time-dependent.
 
 ## Fields
-- `motion_type`: Allow choices of "hold", "velocity", "oscillatory", "ramp_1", "ramp_2"
+- `motion_type`: Allow choices of "hold", "velocity_const", "velocity_linear", "oscillatory", "ramp_1", "ramp_2"
 - `motion_params`: Numerical parameters provided to describe the motion
 
 ## Constructors
 
 - `Motions(): Provide no active motion`
 - `Motions("hold", [qJ])`: Hold the joint at constant qJ and vJ=0
-- `Motions("velocity",[qJ,vJ])`: Specify constant vJ of this joint with initial angle qJ
+- `Motions("velocity_const",[qJ,vJ])`: Specify constant vJ of this joint with initial angle qJ
+- `Motions("velocity_linear",[qJ,vJ,aJ])`: Specify constant acceleration aJ of this joint with
+    initial angle qJ and initial angular velocity vJ, and the specified angular velocity is linear
 - `Motions("oscillatory",[amp,freq,phase])` specify a oscillatory motion through
     \$qJ = amp*cos(2π*freq*t+phase)\$
 - `Motions("ramp_1",[a,t₁,t₂,t₃,t₄])`: Describes a ramp motion in [^1]
@@ -44,9 +46,13 @@ function (m::Motions)(t)
         q = m.motion_params[1]
         v = 0
 
-    elseif m.motion_type == "velocity"
+    elseif m.motion_type == "velocity_const"
         q = m.motion_params[1] + t*m.motion_params[2]
         v = m.motion_params[2]
+
+    elseif m.motion_type == "velocity_linear"
+        q = m.motion_params[1] + m.motion_params[2]*t + 0.5*m.motion_params[3]*t^2
+        v = m.motion_params[2] + m.motion_params[3]*t
 
     elseif m.motion_type == "oscillatory"
         amp = m.motion_params[1]
@@ -80,6 +86,7 @@ function (m::Motions)(t)
         a = m.motion_params[1]
         q = 0.5*(tanh(a*t) + 1)
         v = 0.5*a*sech(a*t).^2
+
     else
         error("This motion type does not exist")
     end
@@ -221,6 +228,7 @@ function show(io::IO, m::ConfigJoint)
         end
     end
     println(io, " initial unconstrained dof position = $(m.qJ_init)")
+    println(io, " initial unconstrained dof velocity = $(m.vJ_init)")
 end
 
 #-------------------------------------------------------------------------------

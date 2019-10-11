@@ -27,7 +27,7 @@ end
 
     # check active motion functions
     m₁ = Motions("hold", [0.1]); q₁,v₁ = m₁(2.0)
-    m₂ = Motions("velocity", [-0.1,0.2]); q₂,v₂ = m₂(2.0)
+    m₂ = Motions("velocity_const", [-0.1,0.2]); q₂,v₂ = m₂(2.0)
     m₃ = Motions("oscillatory", [0.5,1.0,π/4]); q₃,v₃ = m₃(1/16)
     m₄ = Motions("ramp_1",[4.0,π/2, π, 3π/2, 2π]); q₄,v₄ = m₄(π)
     m₅ = Motions("ramp_2",[1.0]); q₅,v₅ = m₅(π/2)
