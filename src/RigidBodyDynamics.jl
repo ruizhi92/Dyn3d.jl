@@ -56,7 +56,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
         f_g = bs[i].Xb_to_i'*inv(Xic_to_i')*f_g
 
 if i == sys.nbody
-    println("gravity of last body in body coord", f_g)
+    println("gravity of last body in body coord", f_g[3:5])
 end
         # input external force f_exi described in inertial coord
         f_ex = bs[i].Xb_to_i'*f_exi[i,:]
@@ -87,7 +87,7 @@ end
     end
 
     # collect all together
-println("joint force of last joint in body coord",(A_total*sys.S_total*τ_total)[end,:])
+println("joint force of last joint in body coord",(A_total*sys.S_total*τ_total)[end-3:end-1])
     return -p_total + A_total*sys.S_total*τ_total
 end
 
