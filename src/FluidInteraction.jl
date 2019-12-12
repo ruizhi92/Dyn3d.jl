@@ -179,7 +179,7 @@ function AcquireBodyGridKinematics(bd::BodyDyn, bgs::Vector{BodyGrid})
         b = bs[bgs[i].bid]
         for j = 1:bgs[i].np
             q_temp = [zeros(Float64, 3); bgs[i].points[j]]
-            q_temp = [zeros(Float64, 3); b.x_i] + b.Xb_to_i*q_temp
+            q_temp = [zeros(Float64, 3); b.x_i] - b.Xb_to_i*q_temp
             bgs[i].q_i[j] = q_temp[4:6]
             v_temp = bs[i].v + [zeros(Float64, 3); cross(bs[i].v[1:3],bgs[i].points[j])]
             bgs[i].v_i[j] = (X_ref*b.Xb_to_i*v_temp)[4:6]
