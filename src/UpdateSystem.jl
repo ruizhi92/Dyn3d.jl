@@ -148,7 +148,7 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
 end
 
 #-------------------------------------------------------------------------------
-function InitSystem!(bd::BodyDyn)
+function InitSystem!(bd::BodyDyn;influid::Bool=false)
 """
     InitSystem initialize the joint-body chain by assining values to
     bs[i].v and js[i].qJ at time=0. Body velocity are calculated from joint
@@ -233,14 +233,16 @@ function InitSystem!(bd::BodyDyn)
     end
 
     # pass 3, from body 1 to body n
-    # if the first floating base is passive with zero vJ,
-    # compute the velocity of passive degrees of freedom in joint from inertial
-    # system to body 1, by zeroing the overall system momentum.
-    if js[1].np > 0 && js[1].vJ == zeros(6)
-        Pup = js[1].S[:, js[1].i_udof_p]
-        Ptemp = (Pup')*bs[1].Ib_A*Pup
-        udof_p = js[1].udof_p
-        js[1].vJ[udof_p] = -inv(Ptemp)*(Pup')*bs[1].pA
+    if influid == false
+        # if the first floating base is passive with zero vJ,
+        # compute the velocity of passive degrees of freedom in joint from inertial
+        # system to body 1, by zeroing the overall system momentum.
+        if js[1].np > 0 && js[1].vJ == zeros(6)
+            Pup = js[1].S[:, js[1].i_udof_p]
+            Ptemp = (Pup')*bs[1].Ib_A*Pup
+            udof_p = js[1].udof_p
+            js[1].vJ[udof_p] = -inv(Ptemp)*(Pup')*bs[1].pA
+        end
     end
 
     # get body[i].v from updated js[i].vJ
@@ -252,6 +254,7 @@ function InitSystem!(bd::BodyDyn)
             bs[i].v = js[i].vJ
         end
     end
+    
     # construct first solution
     qJ_total = zeros(Float64,6*sys.njoint)
     v_total = zeros(Float64,6*sys.nbody)
