@@ -37,7 +37,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
     if influid == false || bodydim == 1
         ρ_reduced = 1.0
     else
-        ρb == 0.0 ? ρ_reduced = 0.0 : ρ_reduced = 1-1/ρb
+        ρb == 0.0 ? ρ_reduced = -1.0 : ρ_reduced = 1-1/ρb
     end
 
     # compute bias force, gravity and external force
