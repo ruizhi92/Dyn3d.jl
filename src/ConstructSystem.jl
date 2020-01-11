@@ -69,6 +69,8 @@ mutable struct SingleBody
     # articulated body info
     pA::Vector{Float64}
     Ib_A::Matrix{Float64}
+    # supplementary infor for zero-mass case used in FSI
+    volume::Float64
 end
 
 # outer constructor
@@ -80,10 +82,15 @@ function SingleBody()
     0,Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
     Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
     Vector{Float64}(undef,0),Vector{Float64}(undef,0),Vector{Float64}(undef,0),
-    Vector{Float64}(undef,0),Matrix{Float64}(undef,0,0)
+    Vector{Float64}(undef,0),Matrix{Float64}(undef,0,0),
+    0
     )
     return body
 end
+
+SingleBody(bid,pid,chid,nchild,nverts,verts,verts_i,x_c,x_i,mass,inertia_c,
+    inertia_b,Xb_to_c,Xb_to_i,Xp_to_b,q,v,v̇,pA,Ib_A) = SingleBody(bid,pid,chid,
+    nchild,nverts,verts,verts_i,x_c,x_i,mass,inertia_c,inertia_b,Xb_to_c,Xb_to_i,Xp_to_b,q,v,v̇,pA,Ib_A,0.0)
 
 function show(io::IO, m::SingleBody)
     println(io, "body_id = $(m.bid)", ", parent_id = $(m.pid)",
@@ -367,6 +374,7 @@ function AddBody(id::Int, cf::ConfigBody)
 
     # mass in scalar, inertia_c in 6d form
     b.mass  = cf.ρ*A
+    b.volume = A
     for i = 1:b.nverts
         # make (Zc,Xc) the origin
         xj = b.verts[i,1] - Xc

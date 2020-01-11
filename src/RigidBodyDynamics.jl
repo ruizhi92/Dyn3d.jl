@@ -45,7 +45,12 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
         # bias force
         p_bias = Mfcross(bs[i].v, (bs[i].inertia_b*bs[i].v))
         # gravity in inertial center coord
-        f_g = ρ_reduced*bs[i].mass*[zeros(Float64, 3); sys.g]
+        if ρb != 0.0
+            f_g = ρ_reduced*bs[i].mass*[zeros(Float64, 3); sys.g]
+        else
+            # for zero-mass case used in FSI solver
+            f_g = ρ_reduced*bs[i].volume*[zeros(Float64, 3); sys.g]
+        end
         # get transform matrix from x_c in inertial frame to the origin of
         # inertial frame
         r_temp = [zeros(Float64, 3); -bs[i].x_c]
