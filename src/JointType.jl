@@ -79,6 +79,14 @@ function ChooseJoint(kind)
         cdof = [1, 3, 4, 5, 6]
         S = Matrix{Int}(I,6,6)[:,udof]
         T = Matrix{Int}(I,6,6)[:,cdof]
+        
+    elseif kind == "custom_planar_in_y"
+        nudof = 3
+        ncdof = 3
+        udof = [2, 4, 6]
+        cdof = [1, 3, 5]
+        S = Matrix{Int}(I,6,6)[:,udof]
+        T = Matrix{Int}(I,6,6)[:,cdof]
 
     elseif kind == "free"
         nudof = 6

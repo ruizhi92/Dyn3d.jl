@@ -133,7 +133,7 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         # for planar type joints, we rotate the joint velocity from Fs back to
         # Fp so that the integrated result in q described in Fp coord,
         # which can be used directly as transformation matrix.
-        if js[i].joint_type == "planar"
+        if js[i].joint_type == "planar" || js[i].joint_type == "custom_planar_in_y"
             rot[1:3, 1:3] = js[i].Xj[1:3, 1:3]
             rot[4:6, 4:6] = rot[1:3, 1:3]
             js[i].vJ = (rot')*js[i].vJ
@@ -254,7 +254,7 @@ function InitSystem!(bd::BodyDyn;influid::Bool=false)
             bs[i].v = js[i].vJ
         end
     end
-    
+
     # construct first solution
     qJ_total = zeros(Float64,6*sys.njoint)
     v_total = zeros(Float64,6*sys.nbody)
