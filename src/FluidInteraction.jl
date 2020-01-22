@@ -129,8 +129,8 @@ function GenerateBodyGrid(bd::BodyDyn; np=101)
     bodygrids = Vector{BodyGrid}(undef,sys.nbody)
     # for cases with only 1 or multiple bodies, which has more than 4 grid points(like a circle)
     if bs[1].nverts != 3 && bs[1].nverts != 4
-        for i = 1:sys.nbody
-            bodygrids[i] = BodyGrid(bs[i].bid,bs[i].nverts,[bs[i].verts[i,:] for i =1:size(bs[i].verts,1)])
+        for j = 1:sys.nbody
+            bodygrids[j] = BodyGrid(bs[j].bid,bs[j].nverts,[bs[j].verts[i,:] for i =1:size(bs[jS].verts,1)])
         end
         return bodygrids
     end
