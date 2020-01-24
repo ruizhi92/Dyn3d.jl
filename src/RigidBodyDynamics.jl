@@ -1,7 +1,7 @@
 # RigidBodyDynamics contain HERK matrix blocks and right hand side
 module RigidBodyDynamics
 
-export HERKFuncM, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
+export HERKFuncM, HERKFuncMf, HERKFuncGT, HERKFuncG, HERKFuncf, HERKFuncgti
 
 using Dyn3d
 using LinearAlgebra
@@ -16,6 +16,15 @@ function HERKFuncM(sys::System)
     return sys.Ib_total
 end
 
+"""
+    HERKFuncMf(sys)
+
+Very similar to HERKFuncM, but computed with fluid density instead of body density,
+for the use in FSI for 2d body with zero-mass case
+"""
+function HERKFuncMf(sys::System)
+    return sys.Ifluid_total
+end
 
 """
     HERKFuncf(bs, js, sys, f_exi; ρb)

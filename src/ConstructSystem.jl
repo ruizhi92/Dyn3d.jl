@@ -71,6 +71,7 @@ mutable struct SingleBody
     Ib_A::Matrix{Float64}
     # supplementary infor for zero-mass case used in FSI
     volume::Float64
+    inertia_fluid::Matrix{Float64}
 end
 
 # outer constructor
@@ -83,14 +84,10 @@ function SingleBody()
     Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),Matrix{Float64}(undef,0,0),
     Vector{Float64}(undef,0),Vector{Float64}(undef,0),Vector{Float64}(undef,0),
     Vector{Float64}(undef,0),Matrix{Float64}(undef,0,0),
-    0
+    0,Matrix{Float64}(undef,0,0)
     )
     return body
 end
-
-SingleBody(bid,pid,chid,nchild,nverts,verts,verts_i,x_c,x_i,mass,inertia_c,
-    inertia_b,Xb_to_c,Xb_to_i,Xp_to_b,q,v,v̇,pA,Ib_A) = SingleBody(bid,pid,chid,
-    nchild,nverts,verts,verts_i,x_c,x_i,mass,inertia_c,inertia_b,Xb_to_c,Xb_to_i,Xp_to_b,q,v,v̇,pA,Ib_A,0.0)
 
 function show(io::IO, m::SingleBody)
     println(io, "body_id = $(m.bid)", ", parent_id = $(m.pid)",
@@ -290,6 +287,8 @@ mutable struct System
     num_params::NumParams
     # pre-allocation array
     pre_array::PreArray
+    # supplementary infor for zero-mass case used in FSI
+    Ifluid_total::Matrix{Float64}
 end
 
 # outer constructor
@@ -300,7 +299,7 @@ System(ndim, nbody, njoint, g, num_params) = System(
     0,0,Vector{Int}(undef,0),
     Matrix{Int}(undef,0,0),Matrix{Int}(undef,0,0),Matrix{Float64}(undef,0,0),
     g,Matrix{Int}(undef,0,0),num_params,
-    PreArray()
+    PreArray(),Matrix{Float64}(undef,0,0)
 )
 
 function show(io::IO, m::System)
@@ -314,7 +313,6 @@ function show(io::IO, m::System)
     println(io, "nudof_HERK = $(m.nudof_HERK)",", ncdof_HERK = $(m.ncdof_HERK)")
     println(io, "udof_HERK = $(m.udof_HERK)")
     println(io, "gravity = $(m.g)")
-    # println(io, "kinmap = $(m.kinmap)")
 end
 
 #-------------------------------------------------------------------------------
@@ -396,9 +394,13 @@ function AddBody(id::Int, cf::ConfigBody)
     Iy = Ix + Iz
     Ixz = Ixz/24.
     inertia_3d = cf.ρ*[Ix 0. -Ixz; 0. Iy 0.; -Ixz 0. Iz]
+    inertia_3d_fluid = [Ix 0. -Ixz; 0. Iy 0.; -Ixz 0. Iz]
     mass_3d = b.mass*Matrix{Float64}(I,3,3)
+    mass_3d_fluid = b.volume*Matrix{Float64}(I,3,3)
     b.inertia_c = [inertia_3d zeros(Float64,3,3);
                    zeros(Float64,3,3) mass_3d]
+    inertia_c_fluid = [inertia_3d_fluid zeros(Float64,3,3);
+                   zeros(Float64,3,3) mass_3d_fluid]
 
     # Xb_to_c
     la_tmp1 = zeros(Float64,6,6)
@@ -407,6 +409,7 @@ function AddBody(id::Int, cf::ConfigBody)
 
     # inertia_b in body frame at point b
     b.inertia_b = b.Xb_to_c'*b.inertia_c*b.Xb_to_c
+    b.inertia_fluid = b.Xb_to_c'*inertia_c_fluid*b.Xb_to_c
 
     # init q, v, c
     b.q = zeros(Float64,6)
@@ -662,6 +665,7 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         # update bs[i].Xb_to_c and bs[i].inertia_b
         bs[i].Xb_to_c = bs[i].Xb_to_c*Xj_to_ch_old
         bs[i].inertia_b = (Xj_to_ch_old')*bs[i].inertia_b*Xj_to_ch_old
+        bs[i].inertia_fluid = (Xj_to_ch_old')*bs[i].inertia_fluid*Xj_to_ch_old
         # update Xp_to_j(related to shape1) for child body
         if bs[i].nchild != 0
             for k = 1:bs[i].nchild
@@ -679,6 +683,10 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     sys.Ib_total = zeros(Float64, sys.ndof, sys.ndof)
     for i = 1:sys.nbody
         sys.Ib_total[6i-5:6i, 6i-5:6i] = bs[i].inertia_b
+    end
+    sys.Ifluid_total = zeros(Float64, sys.ndof, sys.ndof)
+    for i = 1:sys.nbody
+        sys.Ifluid_total[6i-5:6i, 6i-5:6i] = bs[i].inertia_fluid
     end
 
     # diagonal block of S_total is S of each joint in joint coord
