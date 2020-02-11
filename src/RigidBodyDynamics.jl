@@ -36,7 +36,7 @@ inertia effect, together with gravity and external force. If the body is
 a 2d body (for example a cylinder) in the fluid, buoyancy is also taken into account.
 """
 function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
-    f_exi::Array{Float64,2}; influid::Bool=false, bodydim::Int=1, ρb::Float64=0.0)
+    f_exi::Array{Float64,2}; influid::Bool=false, bodydim::Int=1, ρb::Float64=1.0)
 
     # pointer to pre-allocated array
     @getfield sys.pre_array (p_total, τ_total, p_bias, f_g, f_ex, r_temp,
