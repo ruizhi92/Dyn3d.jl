@@ -92,7 +92,7 @@ function HERKFuncf(bs::Vector{SingleBody}, js::Vector{SingleJoint}, sys::System,
         # fill in child joint blocks except for those body whose nchild=0
         for child_count = 1:bs[i].nchild
             chid = bs[i].chid[child_count]
-            A_total[6i-5:6i, 6chid-5:6chid] = - bs[chid].Xp_to_b
+            A_total[6i-5:6i, 6chid-5:6chid] = - (bs[chid].Xp_to_b)'
         end
     end
 

@@ -45,6 +45,9 @@ mutable struct HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}
 
     # # Saddle-point systems
     # S :: Vector{SaddleSystem}  # -B₂AB₁ᵀ
+
+    # place holder for possible conservation check
+    dict :: Union{Dict,Nothing}
 end
 
 #-------------------------------------------------------------------------------
@@ -64,14 +67,24 @@ B₂, rhs and up. This is used before timemarching.
 - `up` : tuple of function (UpP,UpV) that updates qJ and v respectively
 """
 function (::Type{HERKBody})(num_params::NumParams, A::FA, B₁ᵀ::FB1, B₂::FB2,
-                            rhs::Tuple{FR1,FR2}, up::Tuple{FP,FV},
-                            ) where {FA,FB1,FB2,FR1,FR2,FP,FV}
+                            rhs::Tuple{FR1,FR2}, up::Tuple{FP,FV};
+                            _conservationcheck=false) where {FA,FB1,FB2,FR1,FR2,FP,FV}
 
     @getfield num_params (scheme, tol)
     rk = RKParams(scheme)
 
-    return HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}(rk, tol, A, B₁ᵀ,
-                B₂, rhs[1], rhs[2], up[1], up[2])
+    if _conservationcheck
+        # buffer for conservation check
+        dict = Dict([("edam",[]),("edam_temp",[]),
+                    ("elag",[]),("elag_temp",[]),("ekin",[]),("espr",[]),("egra",[]),
+                    ("mkin",[]),("mlag",[]),("mlag_temp",[]),("mgra",[]),("mgra_temp",[])
+                    ])
+        return HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}(rk, tol, A, B₁ᵀ,
+                    B₂, rhs[1], rhs[2], up[1], up[2], dict)
+    else
+        return HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}(rk, tol, A, B₁ᵀ,
+                    B₂, rhs[1], rhs[2], up[1], up[2], nothing)
+    end
 end
 
 function Base.show(io::IO, scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV}) where {FA,FB1,FB2,FR1,FR2,FP,FV}
@@ -95,7 +108,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         f_exi::Union{Array{Float64,2},Vector{Array{Float64,2}}}=zeros(Float64,1,6)
         ) where {T<:AbstractFloat,FA,FB1,FB2,FR1,FR2,FP,FV}
 
-    @getfield scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV)
+    @getfield scheme (rk, tol, A, B₁ᵀ, B₂, r₁, r₂, UpP, UpV, dict)
     @getfield bd (bs, js, sys)
     @getfield rk (st, c, a)
 
@@ -103,6 +116,7 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         f_exi = [zeros(Float64,sys.nbody,6) for k=1:st]
     end
     if _outputmode bds = Vector{BodyDyn}(undef,st) end
+    dict != nothing ? _conservationcheck = true : _conservationcheck = false
 
     qJ_dim = sys.ndof
     λ_dim = sys.ncdof_HERK
@@ -111,17 +125,32 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
     @getfield sys.pre_array (qJ, vJ, v, v̇, λ, v_temp, Mᵢ₋₁, fᵢ₋₁, GTᵢ₋₁, Gᵢ, gtiᵢ,
         lhs, rhs)
 
-    # stage 1
+    #----------------------------- stage 1 -----------------------------
     tᵢ₋₁ = sᵢₙ.t; tᵢ = sᵢₙ.t;
     dt = sᵢₙ.dt
     qJ[1,:] = sᵢₙ.qJ
     v[1,:] = sᵢₙ.v
     # update vJ using v
     bs, js, sys, vJ[1,:] = UpV(bs, js, sys, v[1,:])
-
+    # for strongly coupled FSI algorithm
     if _outputmode bds[1] = deepcopy(BodyDyn(bs,js,sys)) end
+    # for conservation check
+    if _conservationcheck
+        for key in ["edam","elag","ekin","espr","egra"]
+            push!(dict[key],0.0)
+        end
+        for key in ["edam_temp","elag_temp"]
+            push!(dict[key],zeros(Float64,st))
+        end
+        for key in ["mkin","mlag","mgra"]
+            push!(dict[key],zeros(Float64,2))
+        end
+        for key in ["mlag_temp","mgra_temp"]
+            push!(dict[key],zeros(Float64,st,2))
+        end
+    end
 
-    # stage 2 to st+1
+    #-----------------------------stage 2 to st+1 -----------------------------
     for i = 2:st+1
         # time of i-1 and i
         tᵢ₋₁ = tᵢ
@@ -164,15 +193,22 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
         # update vJ using updated v
         bs, js, sys, vJ[i,:] = UpV(bs, js, sys, v[i,:])
 
+        # for strongly coupled FSI method
         if _outputmode && i<st
             bds[i] = deepcopy(BodyDyn(bs,js,sys))
+        end
+
+        # for conservation check
+        if _conservationcheck
+            dict = force!(dict,bd,λ[i-1,:],i)
+            dict = work!(dict,bd,λ[i-1,:],i)
         end
     end
 
     if _outputmode bds[st] = deepcopy(BodyDyn(bs,js,sys)) end
 
     # use norm(v[st+1,:]-v[st,:]) to determine next timestep
-    sₒᵤₜ = Soln(tᵢ) # init struct
+    sₒᵤₜ = Soln(tᵢ)
     sₒᵤₜ.dt = _isfixedstep ? sᵢₙ.dt :
         sᵢₙ.dt*(tol/norm(view(v,st+1,:)-view(v,st,:)))^(1/3)
     sₒᵤₜ.t = sᵢₙ.t + sᵢₙ.dt
@@ -181,8 +217,23 @@ function (scheme::HERKBody{FA,FB1,FB2,FR1,FR2,FP,FV})(sᵢₙ::Soln{T}, bd::Body
     sₒᵤₜ.v̇ = view(v̇, st, :)
     sₒᵤₜ.λ = view(λ, st, :)
 
+    if _conservationcheck
+        dict = momentum!(dict,bd)
+        dict = energy!(dict,bd)
+        for k = 1:st
+            dict["mlag"][end] .+= dt*a[st+1,k]*dict["mlag_temp"][end][k,:]
+            dict["mgra"][end] .+= dt*a[st+1,k]*dict["mgra_temp"][end][k,:]
+            dict["edam"][end] += dt*a[st+1,k]*dict["edam_temp"][end][k]
+            dict["elag"][end] += dt*a[st+1,k]*dict["elag_temp"][end][k]
+        end
+    end
+
     if !_outputmode
-        return  sₒᵤₜ, bd
+        if !_conservationcheck
+            return  sₒᵤₜ, bd
+        else
+            return sₒᵤₜ, bd, dict
+        end
     else
         return sₒᵤₜ, bds
     end

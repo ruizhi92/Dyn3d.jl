@@ -18,6 +18,10 @@ function Jcalc(kind::String, qJ::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T 
        r = h*qJ[4:6]
        θ = qJ[1:3]
        Xj = TransMatrix([θ; r],X,X_2)
+   # elseif kind == "planar"
+   #     θ = qJ[1:3]
+   #     r = [cos(qJ[3])*qJ[4]-sin(qJ[3]*qJ[5]), sin(qJ[3])*qJ[4]+cos(qJ[3])*qJ[5], 0]
+   #     Xj = TransMatrix([θ; r],X,X_2)
    else
        Xj = TransMatrix(qJ,X,X_2)
    end
@@ -115,7 +119,7 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     return joint velocity in one array.
 """
     # pointer to pre-allocated array
-    rot = sys.pre_array.rot
+    @getfield sys.pre_array (q_temp,rot,la_tmp1,la_tmp2)
 
     # update bs[i].v using input argument v
     count = 0
@@ -130,13 +134,21 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         else
             js[i].vJ = bs[i].v
         end
-        # for planar type joints, we rotate the joint velocity from Fs back to
-        # Fp so that the integrated result in q described in Fp coord,
-        # which can be used directly as transformation matrix.
+        # for planar type joints, joint velocity vJ and postion qJ shoud all be
+        # rotated from body-local frame to a frame that's in horizontal and verticle
+        # directions in space
         if js[i].joint_type == "planar" || js[i].joint_type == "custom_planar_in_y"
             rot[1:3, 1:3] = js[i].Xj[1:3, 1:3]
             rot[4:6, 4:6] = rot[1:3, 1:3]
-            js[i].vJ = (rot')*js[i].vJ
+            # q_temp = [js[1].qJ[1:3];zeros(Float64,3)]
+            # rot = Jcalc(js[1].joint_type, q_temp, la_tmp1, la_tmp2)
+            js[i].vJ = rot*js[i].vJ
+            
+            # X = [1 0 0;
+            #     -js[i].qJ[5] cos(js[i].qJ[3]) -sin(js[i].qJ[3]);
+            #     js[i].qJ[4] sin(js[i].qJ[3]) cos(js[i].qJ[3])]
+            # js[i].vJ[3:5] = inv(X)*js[i].vJ[3:5]
+            # js[i].vJ[3:5] = X*js[i].vJ[3:5]
         end
     end
     # return joint velocity in an array

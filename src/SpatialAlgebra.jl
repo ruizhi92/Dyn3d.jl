@@ -17,7 +17,7 @@ function TransMatrix(v::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T <: Abstra
     if length(v) != 6 error("TransMatrix method need input vector length 6") end
 
     # tmp memory
-    E_temp = Matrix{Int}(I, 3, 3)
+    E_temp = Matrix{T}(I, 3, 3)
     X .= 0.0
     X_2 .= 0.0
 
@@ -28,13 +28,22 @@ function TransMatrix(v::Vector{T},X::Matrix{T},X_2::Matrix{T}) where T <: Abstra
     E₃ = copy(E_temp)
 
     if θ[1] != 0.
-        E₁ = [1. 0. 0.; 0. cos(θ[1]) sin(θ[1]); 0. -sin(θ[1]) cos(θ[1])]
+        E₁[2,2] = cos(θ[1])
+        E₁[2,3] = sin(θ[1])
+        E₁[3,2] = -sin(θ[1])
+        E₁[3,3] = cos(θ[1])
     end
     if θ[2] != 0.
-        E₂ = [cos(θ[2]) 0. -sin(θ[2]); 0. 1. 0.; sin(θ[2]) 0. cos(θ[2])]
+        E₂[1,1] = cos(θ[2])
+        E₂[1,3] = -sin(θ[2])
+        E₂[3,1] = sin(θ[2])
+        E₂[3,3] = cos(θ[2])
     end
     if θ[3] != 0.
-        E₃ = [cos(θ[3]) sin(θ[3]) 0.; -sin(θ[3]) cos(θ[3]) 0.; 0. 0. 1.]
+        E₃[1,1] = cos(θ[3])
+        E₃[1,2] = sin(θ[3])
+        E₃[2,1] = -sin(θ[3])
+        E₃[2,2] = cos(θ[3])
     end
     E = E₃*E₂*E₁
 

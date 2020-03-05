@@ -29,4 +29,7 @@ include("TimeMarching.jl")
 include("FluidInteraction.jl")
 @reexport using .FluidInteraction
 
+include("Conservation.jl")
+@reexport using .Conservation
+
 end
