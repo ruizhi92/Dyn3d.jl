@@ -645,11 +645,11 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
     #-------------------------------------------------
     for i = 1:sys.njoint
         # store old values
-        r_old = js[i].shape2[1:3]
+        r_old = js[i].shape2[4:6]
         Xj_to_ch_old = js[i].Xj_to_ch
         rot_old = Xj_to_ch_old[1:3,1:3]
         # The body frame origin now coincides with the joint location
-        js[i].shape2[1:3] .= 0.0
+        js[i].shape2[4:6] .= 0.0
         # the new transform from parent joint to body is the identity
         js[i].Xj_to_ch .= Matrix{Float64}(I,6,6)
         # update all the vertices
@@ -671,7 +671,9 @@ function AssembleSystem(bs::Vector{SingleBody}, js::Vector{SingleJoint},
             for k = 1:bs[i].nchild
                 ck = bs[i].chid[k]
                 r_temp = -r_old + js[ck].shape1[4:6]
-                js[ck].Xp_to_j = js[ck].Xp_to_j*Xj_to_ch_old
+                r_temp = (rot_old')*r_temp
+                js[ck].shape1[4:6] .= r_temp
+                js[ck].Xp_to_j = js[ck].Xp_to_j*inv(Xj_to_ch_old)
             end
         end
     end

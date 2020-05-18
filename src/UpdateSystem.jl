@@ -75,6 +75,7 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
         for k = 1:bs[i].nverts
             q_temp = zeros(Float64, 6)
             q_temp[4:6] = bs[i].verts[k,:]
+            # q_temp[4:6] = bs[i].verts[k,:] - bs[i].verts[1,:]
             q_temp = bs[i].Xb_to_i*q_temp
             bs[i].verts_i[k,:] = q_temp[4:6] + bs[i].x_i
         end
@@ -94,16 +95,26 @@ function UpdatePosition!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
             q_temp = [ zeros(Float64, 3); js[chid].shape1[4:6] ]
             q_temp = bs[i].Xb_to_i*q_temp
             x_temp = q_temp[4:6] + bs[i].x_i
+            # if i == 1
+            #     println("body 2 step 1 is ",x_temp)
+            # end
             # step 2: find the vector to account for joint displacement
             #         (qj is expressed in the child joint coord)
             q_temp = [ zeros(Float64, 3); js[chid].qJ[4:6] ]
             q_temp = bs[i].Xb_to_i*inv(js[chid].Xp_to_j)*q_temp
             x_temp = x_temp + q_temp[4:6]
+            # if i == 1
+            #     println("body 2 step 2 is ",x_temp)
+            # end
             # step 3: find the vector to accout for shape2(shape2 is expressed
             #         in the child joint coord)
-            q_temp = [ zeros(Float64, 3); -js[chid].shape2[4:6] ]
-            q_temp = bs[chid].Xb_to_i*q_temp
-            x_temp = x_temp + q_temp[4:6]
+            # not necessary anymore since shape2 is set to be 0 in AssembleSystem
+            # q_temp = [ zeros(Float64, 3); -js[chid].shape2[4:6] ]
+            # q_temp = bs[chid].Xb_to_i*q_temp
+            # x_temp = x_temp + q_temp[4:6]
+            # if i == 1
+            #     println("body 2 step 3 is ",x_temp)
+            # end
             # assign to bs[chid].x_i
             bs[chid].x_i = x_temp
         end
@@ -142,8 +153,8 @@ function UpdateVelocity!(bs::Vector{SingleBody}, js::Vector{SingleJoint},
             rot[4:6, 4:6] = rot[1:3, 1:3]
             # q_temp = [js[1].qJ[1:3];zeros(Float64,3)]
             # rot = Jcalc(js[1].joint_type, q_temp, la_tmp1, la_tmp2)
-            js[i].vJ = rot*js[i].vJ
-            
+            js[i].vJ = rot'*js[i].vJ
+
             # X = [1 0 0;
             #     -js[i].qJ[5] cos(js[i].qJ[3]) -sin(js[i].qJ[3]);
             #     js[i].qJ[4] sin(js[i].qJ[3]) cos(js[i].qJ[3])]
