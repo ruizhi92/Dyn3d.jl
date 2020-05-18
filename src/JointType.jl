@@ -89,8 +89,8 @@ function ChooseJoint(kind)
         T = Matrix{Int}(I,6,6)[:,cdof]
 
     elseif kind == "custom_translation_in_xz"
-        nudof = 3
-        ncdof = 3
+        nudof = 2
+        ncdof = 4
         udof = [4, 6]
         cdof = [1, 2, 3, 5]
         S = Matrix{Int}(I,6,6)[:,udof]
