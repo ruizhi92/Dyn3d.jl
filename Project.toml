@@ -16,4 +16,5 @@ Reactive = "a223df75-4e93-5b7c-acf9-bdd599c0f4de"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
 [compat]
+Interpolations = "0.12"
 julia = "1"
