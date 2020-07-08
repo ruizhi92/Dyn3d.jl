@@ -1,10 +1,5 @@
-using Pkg
-Pkg.activate("..")
-
-using Compat
-using Compat.Test
-
 using Dyn3d
+using Test
 
 include("config_body.jl")
 include("ConstructSystem.jl")
