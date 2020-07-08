@@ -2,6 +2,7 @@
 
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://ruizhi92.github.io/Dyn3d.jl/latest)
 [![Build Status](https://travis-ci.org/ruizhi92/Dyn3d.jl.png?branch=master)](https://travis-ci.org/ruizhi92/Dyn3d.jl)
+[![Build status](https://ci.appveyor.com/api/projects/status/0ykpxm3e8rftro6m/branch/master?svg=true)](https://ci.appveyor.com/project/ruizhi92/dyn3d-jl/branch/master)
 [![codecov](https://codecov.io/gh/ruizhi92/Dyn3d.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/ruizhi92/Dyn3d.jl)
 
 This is the 2d/3d rigid body dynamics solver using 6d spatial vector. Examples notebooks
