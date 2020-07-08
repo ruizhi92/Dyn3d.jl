@@ -8,3 +8,4 @@ docs/build
 notebook/local_run
 notebook/movies
 notebook/saved_data
+Manifest.toml
