@@ -1,7 +1,7 @@
 name = "Dyn3d"
 uuid = "d8047ffa-7f43-11e9-2204-adfbb6974ec5"
 authors = ["fs <rzyang92@gmail.com>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
@@ -17,13 +17,13 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-Reactive = "0.8"
-Plots = "1.4"
-Interpolations = "0.12"
-Reexport = "0.2"
-PyPlot = "2.9"
-LaTeXStrings = "1.1"
 Compat = "3.13"
-Interact = "0.10"
 DocStringExtensions = "0.8"
+Interact = "0.10"
+Interpolations = "0.12"
+LaTeXStrings = "1.1"
+Plots = "1.4"
+PyPlot = "2.9"
+Reactive = "0.8"
+Reexport = "0.2"
 julia = "1"
