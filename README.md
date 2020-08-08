@@ -5,6 +5,8 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/0ykpxm3e8rftro6m/branch/master?svg=true)](https://ci.appveyor.com/project/ruizhi92/dyn3d-jl/branch/master)
 [![codecov](https://codecov.io/gh/ruizhi92/Dyn3d.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/ruizhi92/Dyn3d.jl)
 
+## About the package
+
 This is the 2d/3d rigid body dynamics solver using 6d spatial vector. Examples notebooks
 are given in notebook folder. User just need to change the configuration files
 for different cases, nothing else needed to be changed.
@@ -17,13 +19,16 @@ Code is written in Julia and Fortran on different branch.
 - branch **Fortran/artic3d** computes dynamics using articulated body method.
 - branch **Fortran/HERK** computes dynamics formulating into a half-explicit Runge Kutta method solver in Fortran.
 
-For `Julia 0.7` or higher versions, this package uses the local environment specified
-in `Project.toml`. User doesn't need to do any set up except for possible denpendency
-package required. For `Julia 0.6` version, this package's local dir need to be set by user.
-Find Julia repo address by
-`julia> Pkg.dir("Dyn3d")`
-Then you can make a symlinking by
-`shell$ sudo ln -s actual_address Julia_repo_address`
+**Dyn3d.jl** is registered in the general Julia registry. To install, type
+e.g.,
+```julia
+] add Dyn3d
+```
 
+Then, in any version, type
+```julia
+julia> using Dyn3d
+```
+See the example Jupyter notebooks in the examples folder.
 
 ![](https://github.com/ruizhi92/Dyn3d.jl/raw/master/example_gif.gif)
